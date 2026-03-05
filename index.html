@@ -473,6 +473,20 @@
             line-height: 1.4;
         }
 
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(1.4);
+            }
+        }
+
         @media(max-width:480px) {
             .ov-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -542,6 +556,9 @@
             font-style: italic;
         }
     </style>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -567,7 +584,13 @@
                 <h1>🛥️ Andrey's Boat Night</h1>
                 <p>Fri 6 – Sat 7 Mar 2026 &nbsp;·&nbsp; Cottage Point</p>
             </div>
-            <div class="countdown" id="countdown">
+            <div style="display:flex;align-items:center;gap:0.9rem">
+                <div id="online-pill"
+                    style="display:flex;align-items:center;gap:0.35rem;background:rgba(0,180,216,0.18);border:1px solid rgba(0,180,216,0.4);border-radius:999px;padding:3px 10px 3px 7px;font-size:0.7rem;font-weight:600;opacity:0.85">
+                    <span
+                        style="width:7px;height:7px;border-radius:50%;background:#00b4d8;display:inline-block;animation:pulse 1.8s infinite"></span>
+                    <span id="online-count">...</span> online
+                </div>
                 <div class="cd-unit">
                     <div class="cd-num" id="cd-h">--</div>
                     <div class="cd-lbl">hrs</div>
@@ -997,6 +1020,27 @@
             toast.style.transform = 'translateX(-50%) translateY(160px)';
         }
         setTimeout(dismissToast, 7000);
+
+        // ── FIREBASE PRESENCE ──
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcnpQDPsQptHdZKHupXOZNqNbO1JOD1Ss",
+            authDomain: "general-4686c.firebaseapp.com",
+            databaseURL: "https://general-4686c-default-rtdb.firebaseio.com",
+            projectId: "general-4686c",
+            storageBucket: "general-4686c.firebasestorage.app",
+            messagingSenderId: "810223700186",
+            appId: "1:810223700186:web:7eeeac4b4e0f921cd7fde3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const uid = Math.random().toString(36).slice(2);
+        const myRef = db.ref('boat-dashboard/presence/' + uid);
+        const allRef = db.ref('boat-dashboard/presence');
+        myRef.set(true);
+        myRef.onDisconnect().remove();
+        allRef.on('value', snap => {
+            document.getElementById('online-count').textContent = snap.numChildren();
+        });
     </script>
 </body>
 
