@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>🛥️ Andrey's Boat Trip – 6 March 2026</title>
+    <link rel="icon" href="data:,">
     <meta name="description" content="All the details for Andrey's boat poker night at Cottage Point" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
@@ -410,6 +411,48 @@
 
         .stay-day {
             background: rgba(0, 119, 182, 0.4);
+        }
+
+        /* ── IDENTITY MODAL ── */
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .identity-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 0.8rem 0.4rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .identity-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .identity-btn .av {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         /* ── CREW GRID ── */
@@ -1149,6 +1192,7 @@
 
         function updateMeChip() {
             const chip = document.getElementById('me-chip');
+            if (!chip) return; // Safeguard if element was removed
             if (myIdentity) {
                 chip.textContent = myIdentity.init;
                 chip.style.background = myIdentity.color;
