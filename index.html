@@ -410,140 +410,66 @@
             padding: 2rem;
             border: 1px solid var(--border);
         }
-    </style>
 
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 14px;
-    color: #fff;
-    font-family: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.8rem 0.4rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-    }
+        .identity-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            color: #fff;
+            padding: 0.8rem 0.4rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
 
-    .identity-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.05);
-    border-color: var(--primary);
-    }
+        .identity-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
 
-    .identity-btn .av {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
+        .identity-btn .av {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+        }
 
-    /* Drag & Drop Styles */
-    .sortable-ghost {
-    opacity: 0.3;
-    transform: scale(0.9);
-    }
+        .car-passengers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
 
-    .sortable-chosen {
-    background: rgba(0, 180, 216, 0.2) !important;
-    border-radius: 8px;
-    }
+        .poker-input::-webkit-outer-spin-button,
+        .poker-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-    .car-passengers {
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    transition: background 0.2s;
-    border-radius: 8px;
-    border: 1px dashed transparent;
-    -webkit-overflow-scrolling: touch;
-    }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
 
-    .car-passengers:empty::after {
-    content: "Drag names here";
-    font-size: 0.65rem;
-    opacity: 0.3;
-    display: flex;
-    align-items: center;
-    padding-left: 0.5rem;
-    }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
 
-    .add-car-btn {
-    margin-top: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    padding: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    }
-
-    .add-car-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #fff;
-    transform: scale(1.02);
-    }
-
-    /* ── POKER UI ── */
-    .poker-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.8rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    margin-bottom: 0.5rem;
-    }
-
-    .poker-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 0.4rem;
-    border-radius: 6px;
-    width: 70px;
-    text-align: right;
-    font-family: inherit;
-    }
-
-    .settle-card {
-    background: linear-gradient(135deg, rgba(72, 202, 228, 0.15), rgba(0, 119, 182, 0.15));
-    border: 1px solid rgba(72, 202, 228, 0.3);
-    border-radius: 16px;
-    padding: 1rem;
-    margin-top: 1.5rem;
-    }
-
-    .beem-tx {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.6rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    margin-top: 0.4rem;
-    font-size: 0.8rem;
-    }
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+        }
     </style>
     <!-- Dependencies -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -552,414 +478,112 @@
 </head>
 
 <body>
-
-    <!-- WHATS NEW TOAST -->
-    <div class="toast show" id="toast" onclick="dismissToast()">
-        <div class="toast-header">
-            <span class="toast-title">🆕 What's New</span>
-            <span class="toast-close">tap to dismiss ✕</span>
-        </div>
-        <div class="toast-item"><span>🍖</span><span><strong>Supplies Tracker</strong>: Coordinate who's bringing what
-                gear & food &nbsp;<span class="toast-who">— new!</span></span></div>
-        <div class="toast-item"><span>⚠️</span><span><strong>Ride Status</strong>: See who's still missing a ride at a
-                glance &nbsp;<span class="toast-who">— utility</span></span></div>
-        <div class="toast-item"><span>🗓️</span><span><strong>Smart Schedule</strong>: Auto-highlights the "Next Up"
-                event &nbsp;<span class="toast-who">— update</span></span></div>
-        <div class="toast-item"><span>🏎️</span><span><strong>Carpool Fix</strong>: Explicit name selection & mobile
-                scroll fix &nbsp;<span class="toast-who">— resolved</span></span></div>
+    <!-- WHAT'S NEW TOAST -->
+    <div class="toast" id="toast" onclick="dismissToast()">
+        <span style="font-size:0.8rem; font-weight:800">🆕 What's New</span>
+        <div style="font-size:0.75rem; opacity:0.6; margin-top:0.4rem">Premium 4-tab app redesign is now live!
+            Consolidate & simplify.</div>
     </div>
+
     <!-- IDENTITY MODAL -->
-    <div id="identity-modal" class="identity-modal" onclick="if(event.target===this)this.classList.remove('show')">
-        <div class="identity-sheet">
-            <h2>👋 Who are you?</h2>
-            <p>Select your name to manage carpool</p>
-            <div class="identity-grid" id="identity-grid"></div>
-            <button class="add-car-btn"
-                style="margin-top:1.5rem;width:100%;border-style:solid;background:rgba(255,255,255,0.1)"
-                onclick="promptOtherName()">Other...</button>
+    <div class="modal" id="identity-modal">
+        <div class="modal-content">
+            <h2 style="font-weight:900; font-size:1.4rem; margin-bottom:1rem">👋 Who are you?</h2>
+            <div id="identity-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem"></div>
         </div>
     </div>
 
-    <div class="shell">
-
+    <div class="app-shell">
         <!-- HEADER -->
         <header>
-            <div class="header-left">
-                <h1>🛥️ Andrey's Boat Night</h1>
-                <p>Fri 6 – Sat 7 Mar 2026 &nbsp;·&nbsp; Cottage Point</p>
+            <div class="header-title">
+                <h1>Boat Trip 🛥️</h1>
+                <p>Fri 6 – Sat 7 Mar · Cottage Point</p>
             </div>
             <div class="countdown" id="countdown">
-                <div class="cd-unit">
-                    <div class="cd-num" id="cd-h">--</div>
-                    <div class="cd-lbl">hrs</div>
-                </div>
-                <div class="cd-sep">:</div>
-                <div class="cd-unit">
-                    <div class="cd-num" id="cd-m">--</div>
-                    <div class="cd-lbl">min</div>
-                </div>
-                <div class="cd-sep">:</div>
-                <div class="cd-unit">
-                    <div class="cd-num" id="cd-s">--</div>
-                    <div class="cd-lbl">sec</div>
-                </div>
+                <div class="cd-num" id="cd-h">--</div>
+                <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">hrs</div>
+                <div class="cd-num" id="cd-m">--</div>
+                <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">min</div>
             </div>
         </header>
 
-        <!-- TABS -->
-        <nav class="tabs">
-            <button class="tab-btn active" onclick="switchTab('overview', this)">📋 Overview</button>
-            <button class="tab-btn" onclick="switchTab('carpool', this)">🚗 Carpool</button>
-            <button class="tab-btn" onclick="switchTab('poker', this)">🃏 Poker</button>
-            <button class="tab-btn" onclick="switchTab('supplies', this)">🍖 Supplies</button>
-            <button class="tab-btn" onclick="switchTab('schedule', this)">🗓️ Schedule</button>
-            <button class="tab-btn" onclick="switchTab('crew', this)">👥 Crew</button>
-            <button class="tab-btn" onclick="switchTab('map', this)">📍 Map</button>
-        </nav>
-
         <!-- PANELS -->
-        <div class="panels">
-
-            <!-- ── OVERVIEW ── -->
-            <div class="panel active" id="panel-overview">
-                <div class="ov-grid">
-                    <div class="ov-item">
-                        <div class="ov-icon">🏁</div>
-                        <div class="ov-label">Depart</div>
-                        <div class="ov-val">Newport 10:30 AM Fri</div>
+        <div class="panels scroll">
+            <!-- ── HOME ── -->
+            <div class="panel active" id="panel-home">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <div class="card-title">📍 Cottage Point</div>
+                        <div class="status-badge">ONLINE</div>
                     </div>
-                    <div class="ov-item">
-                        <div class="ov-icon">⚓</div>
-                        <div class="ov-label">Mooring</div>
-                        <div class="ov-val">50m from Cottage Point Wharf</div>
-                    </div>
-                    <div class="ov-item">
-                        <div class="ov-icon">🚗</div>
-                        <div class="ov-label">Drive-in pickup</div>
-                        <div class="ov-val">~Noon Fri<br />Text Andrey</div>
-                    </div>
-                    <div class="ov-item">
-                        <div class="ov-icon">🍔</div>
-                        <div class="ov-label">Dinner</div>
-                        <div class="ov-val">Hamburgers Fri Eve</div>
-                    </div>
-                    <div class="ov-item">
-                        <div class="ov-icon">🎴</div>
-                        <div class="ov-label">Main Event</div>
-                        <div class="ov-val">Poker Night!</div>
-                    </div>
-                    <div class="ov-item">
-                        <div class="ov-icon">🌅</div>
-                        <div class="ov-label">Return</div>
-                        <div class="ov-val">Newport Sat ~Noon</div>
-                    </div>
+                    <p style="font-size:0.75rem; opacity:0.6; line-height:1.4; margin-top:0.5rem">
+                        Andrey's moored 50m from <strong>Cottage Point Wharf</strong>.
+                        Text him when you arrive for a tender pickup!
+                    </p>
+                    <a href="https://maps.app.goo.gl/2V3RgriTK8gvKepS6" target="_blank"
+                        style="display:inline-block; margin-top:1rem; font-size:0.7rem; color:var(--primary); text-decoration:none; font-weight:800">📍
+                        OPEN GOOGLE MAPS →</a>
                 </div>
 
                 <div class="card">
-                    <div class="card-title">💡 Good to Know</div>
-                    <div style="display:flex;flex-direction:column;gap:0.5rem">
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start">
-                            <span style="font-size:1rem">🚢</span>
-                            <div style="font-size:0.76rem;opacity:0.85;line-height:1.4"><strong>Drive to Cottage Point
-                                    Wharf</strong> and text Andrey — he'll come pick you up by tender.</div>
-                        </div>
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start">
-                            <span style="font-size:1rem">🪢</span>
-                            <div style="font-size:0.76rem;opacity:0.85;line-height:1.4"><strong>Rope help
-                                    needed</strong> for returning the boat to Newport on Saturday. Volunteers welcome!
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start">
-                            <span style="font-size:1rem">🛏️</span>
-                            <div style="font-size:0.76rem;opacity:0.85;line-height:1.4"><strong>Staying
-                                    overnight?</strong> Sleeping bags <strong>not needed</strong> (enough beds for the 4
-                                staying over).</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── CARPOOL ── -->
-            <div class="panel" id="panel-carpool">
-
-                <!-- Car 1: Jonathan -->
-                <div class="car-card">
-                    <div class="car-header">
-                        <div class="car-emoji">🚙</div>
-                        <div class="car-header-info">
-                            <h3>Jonathan's Car</h3>
-                            <p>Pickup ~9:45 AM → Newport → Cottage Point → Newport return</p>
-                        </div>
-                        <span class="car-badge badge-driver">Driver</span>
-                    </div>
-                    <div class="car-passengers">
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">J</div>
-                            <div>
-                                <div class="chip-name">Jonathan&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
-                                </div>
-                                <div class="chip-note">Driver · Back Sat noon</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#f77f00,#d62828)">A</div>
-                            <div>
-                                <div class="chip-name">Andrey&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
-                                </div>
-                                <div class="chip-note">Host · Newport pickup</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#2d6a4f,#52b788)">T</div>
-                            <div>
-                                <div class="chip-name">Tamir&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
-                                </div>
-                                <div class="chip-note">Passenger · sharing ride</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Car 2: Nevo + Oren -->
-                <div class="car-card" style="border-color:rgba(0,180,216,0.5)">
-                    <div class="car-header">
-                        <div class="car-emoji">🚗</div>
-                        <div class="car-header-info">
-                            <h3>Nevo's Car</h3>
-                            <p>Driving to Cottage Point, heading home after poker</p>
-                        </div>
-                        <span class="car-badge badge-solo">Day only</span>
-                    </div>
-                    <div class="car-passengers">
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#0077b6,#00b4d8)">N</div>
-                            <div>
-                                <div class="chip-name">Nevo&nbsp;<span class="stay-badge stay-day">☀️ Day</span></div>
-                                <div class="chip-note">Driver · heading home after</div>
-                            </div>
-                        </div>
-                        <div class="person-chip"
-                            style="border-color:rgba(255,180,0,0.5);background:rgba(255,180,0,0.08)">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">O</div>
-                            <div>
-                                <div class="chip-name">Oren&nbsp;<span class="stay-badge"
-                                        style="background:rgba(160,100,0,0.6)">⏳ TBC</span></div>
-                                <div class="chip-note">To be confirmed</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Car 3: Self-drivers going home -->
-                <div class="car-card">
-                    <div class="car-header">
-                        <div class="car-emoji">🚘</div>
-                        <div class="car-header-info">
-                            <h3>Self-Drivers (Day)</h3>
-                            <p>Each driving separately, leaving after poker</p>
-                        </div>
-                        <span class="car-badge badge-solo">Own Cars</span>
-                    </div>
-                    <div class="car-passengers">
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">Na</div>
-                            <div>
-                                <div class="chip-name">Nadav&nbsp;<span class="stay-badge stay-day">☀️ Day</span></div>
-                                <div class="chip-note">If there's a quorum</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#d62828,#f77f00)">E</div>
-                            <div>
-                                <div class="chip-name">Eran&nbsp;<span class="stay-badge stay-day">☀️ Day</span></div>
-                                <div class="chip-note">Not staying overnight</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#555,#888)">H</div>
-                            <div>
-                                <div class="chip-name">Hartmut&nbsp;<span class="stay-badge stay-day">☀️ Day</span>
-                                </div>
-                                <div class="chip-note">Not staying overnight</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">R</div>
-                            <div>
-                                <div class="chip-name">Richard&nbsp;<span class="stay-badge stay-day">☀️ In</span></div>
-                                <div class="chip-note">Confirmed</div>
-                            </div>
-                        </div>
-                        <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">E</div>
-                            <div>
-                                <div class="chip-name">Eyal&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
-                                </div>
-                                <div class="chip-note">Likely staying over</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card" style="background:rgba(247,127,0,0.12);border-color:rgba(247,127,0,0.35)">
-                    <div style="display:flex;gap:0.6rem;align-items:center;font-size:0.78rem">
-                        <span style="font-size:1.1rem">💬</span>
-                        <span><strong>Need a ride?</strong> Reach out in the group chat — there are empty seats
-                            available in some cars!</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── SCHEDULE ── -->
-            <div class="panel" id="panel-schedule">
-                <div class="card" style="padding:0.8rem 1rem">
-                    <div class="tl">
+                    <div class="card-title">🗓️ Schedule</div>
+                    <div class="timeline">
                         <div class="tl-item">
-                            <div class="tl-time">10:30 AM<div class="tl-day">FRIDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(247,127,0,0.4)">🏁</div>
-                                <div class="tl-line"></div>
-                            </div>
+                            <div class="tl-time">10:30</div>
                             <div class="tl-body">
-                                <h3>Andrey picks up the boat</h3>
-                                <p>Newport Marina – departing from here</p>
+                                <h3>Boarding</h3>
+                                <p>Newport Marina departure. Andrey picks up the boat.</p>
                             </div>
                         </div>
                         <div class="tl-item">
-                            <div class="tl-time">~Noon<div class="tl-day">FRIDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(0,180,216,0.4)">⚓</div>
-                                <div class="tl-line"></div>
-                            </div>
+                            <div class="tl-time">12:30</div>
                             <div class="tl-body">
-                                <h3>Moored at Cottage Point</h3>
-                                <p>50m from the wharf. Drive up & get picked up!</p>
+                                <h3>Mooring</h3>
+                                <p>Anchoring at Cottage Point. Crew pickup starts.</p>
                             </div>
                         </div>
                         <div class="tl-item">
-                            <div class="tl-time">Noon+<div class="tl-day">FRIDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(45,106,79,0.5)">🛥️</div>
-                                <div class="tl-line"></div>
-                            </div>
+                            <div class="tl-time">19:00</div>
                             <div class="tl-body">
-                                <h3>Boarding all day</h3>
-                                <p>Whenever you arrive, text Andrey and he'll pick you up</p>
+                                <h3>Dinner</h3>
+                                <p>Burgers on deck 🔥</p>
                             </div>
                         </div>
                         <div class="tl-item">
-                            <div class="tl-time">Evening<div class="tl-day">FRIDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(247,127,0,0.5)">🍔</div>
-                                <div class="tl-line"></div>
-                            </div>
+                            <div class="tl-time">21:00</div>
                             <div class="tl-body">
-                                <h3>Hamburger dinner</h3>
-                                <p>Andrey cooks on deck 🔥</p>
-                            </div>
-                        </div>
-                        <div class="tl-item">
-                            <div class="tl-time">Night<div class="tl-day">FRIDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(3,4,94,0.9)">🎴</div>
-                                <div class="tl-line"></div>
-                            </div>
-                            <div class="tl-body">
-                                <h3>Poker night!</h3>
-                                <p>Texas Hold'em on the water 🃏</p>
+                                <h3>Poker</h3>
+                                <p>The main event 🃏</p>
                             </div>
                         </div>
                         <div class="tl-item" style="padding-bottom:0">
-                            <div class="tl-time">~Noon<div class="tl-day">SATURDAY</div>
-                            </div>
-                            <div class="tl-col">
-                                <div class="tl-dot" style="background:rgba(0,119,182,0.5)">🌅</div>
-                            </div>
+                            <div class="tl-time">Sat 12:00</div>
                             <div class="tl-body">
-                                <h3>Return to Newport</h3>
-                                <p>Help with ropes appreciated! 🪢</p>
+                                <h3>Return</h3>
+                                <p>Back to Newport. Help with ropes welcome!</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── CREW ── -->
-            <div class="panel" id="panel-crew">
-                <div class="crew-grid">
-                    <div class="crew-card"
-                        style="border:2px solid rgba(0,180,216,0.6);background:rgba(0,180,216,0.12);box-shadow:0 0 16px rgba(0,180,216,0.2)">
-                        <div class="crew-av"
-                            style="background:linear-gradient(135deg,#0077b6,#48cae4);border:2px solid rgba(100,220,255,0.7);box-shadow:0 0 10px rgba(0,180,216,0.5)">
-                            O</div>
-                        <div class="crew-name">Oren&nbsp;👈</div>
-                        <span class="crew-tag tag-day">☀️ Day</span>
-                        <div class="crew-note">You! Fri only · riding with Nevo home</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#f77f00,#d62828)">A</div>
-                        <div class="crew-name">Andrey</div>
-                        <span class="crew-tag tag-host">🛥️ Host</span>
-                        <div class="crew-note">Newport 10:30 AM pickup</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#0077b6,#48cae4)">J</div>
-                        <div class="crew-name">Jonathan</div>
-                        <span class="crew-tag tag-night">🌙 Night</span>
-                        <div class="crew-note">Driving; back Sat noon</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#2d6a4f,#52b788)">T</div>
-                        <div class="crew-name">Tamir</div>
-                        <span class="crew-tag tag-night">🌙 Night</span>
-                        <div class="crew-note">Riding with Jonatan</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">E</div>
-                        <div class="crew-name">Eyal</div>
-                        <span class="crew-tag tag-night">🌙 Night</span>
-                        <div class="crew-note">Likely staying over</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#0077b6,#48cae4)">N</div>
-                        <div class="crew-name">Nevo</div>
-                        <span class="crew-tag tag-day">☀️ Day</span>
-                        <div class="crew-note">Driving home after</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#0077b6,#48cae4)">Na</div>
-                        <div class="crew-name">Nadav</div>
-                        <span class="crew-tag tag-day">☀️ Day</span>
-                        <div class="crew-note">In if quorum</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#d62828,#f77f00)">E</div>
-                        <div class="crew-name">Eran</div>
-                        <span class="crew-tag tag-day">☀️ Day</span>
-                        <div class="crew-note">Not overnight</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#2d6a4f,#74c69d)">R</div>
-                        <div class="crew-name">Richard</div>
-                        <span class="crew-tag tag-day">☀️ In</span>
-                        <div class="crew-note">Confirmed</div>
-                    </div>
-                    <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#555,#999)">H</div>
-                        <div class="crew-name">Hartmut</div>
-                        <span class="crew-tag tag-day">☀️ Day</span>
-                        <div class="crew-note">Not overnight</div>
-                    </div>
-                    <div class="crew-card" style="opacity:0.5">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#444,#666)">I</div>
-                        <div class="crew-name">Igor</div>
-                        <span class="crew-tag tag-out">❌ Out</span>
-                        <div class="crew-note">Family visiting</div>
+            <!-- ── LOGISTICS ── -->
+            <div class="panel" id="panel-logistics">
+                <div id="missing-rides-box"></div>
+                <div class="card">
+                    <div class="card-title">🚗 Carpool</div>
+                    <div id="carpool-list"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🍖 Supplies</div>
+                    <p style="font-size:0.7rem; opacity:0.5; margin-bottom:1rem">Coordinate who's bringing gear & food.
+                    </p>
+                    <div id="supplies-list"></div>
+                    <div style="margin-top:1.5rem; display:flex; gap:0.5rem">
+                        <input type="text" id="new-supply-item" class="poker-input"
+                            style="flex:1; text-align:left; width:auto; padding:0.6rem" placeholder="Ice, Beer, etc...">
+                        <button class="join-btn" onclick="addSupplyItem()" style="padding:0 1.2rem">Add</button>
                     </div>
                 </div>
             </div>
@@ -967,75 +591,60 @@
             <!-- ── POKER ── -->
             <div class="panel" id="panel-poker">
                 <div class="card">
-                    <div class="card-title">🃏 Poker Night Manager</div>
-                    <p style="font-size:0.75rem;opacity:0.6;margin-bottom:1rem">Track buy-ins and calculate the optimal
-                        Beem transactions.</p>
-
+                    <div class="card-title">🃏 Players</div>
                     <div id="poker-players-list"></div>
-
-                    <div class="settle-card" id="poker-settlement" style="display:none">
-                        <div style="font-weight:800;font-size:0.9rem;margin-bottom:0.8rem">💰 Settlement Plan</div>
-                        <div id="settlement-results"></div>
-                    </div>
+                </div>
+                <div class="card" id="poker-settlement" style="display:none">
+                    <div class="card-title">💰 Settlement</div>
+                    <div id="settlement-results"></div>
                 </div>
             </div>
 
-            <!-- ── SUPPLIES ── -->
-            <div class="panel" id="panel-supplies">
+            <!-- ── INFO ── -->
+            <div class="panel" id="panel-info">
                 <div class="card">
-                    <div class="card-title">🍖 Supplies & Gear</div>
-                    <p style="font-size:0.75rem;opacity:0.6;margin-bottom:1rem">Coordinate who's bringing what. Claim an
-                        item to let others know!</p>
-
-                    <div id="supplies-list" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem">
-                    </div>
-
-                    <div
-                        style="display:flex;gap:0.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05)">
-                        <input type="text" id="new-supply-item" placeholder="Add item (e.g. Ice, Beer...)"
-                            style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:0.6rem;font-size:0.8rem;color:white">
-                        <button class="join-btn" onclick="addSupplyItem()" style="padding:0 1rem">+ Add</button>
+                    <div class="card-title">👥 The Crew</div>
+                    <div id="crew-list" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📞 Contacts</div>
+                    <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:0.8rem">
+                        <div style="display:flex; justify-content:space-between"><span>Andrey (Host)</span><span
+                                style="font-weight:800">0XXX XXX XXX</span></div>
+                        <div style="display:flex; justify-content:space-between"><span>Emergency (Oren)</span><span
+                                style="font-weight:800">0XXX XXX XXX</span></div>
                     </div>
                 </div>
-            </div>
-
-            <!-- ── CREW ── -->
-            <div class="panel" id="panel-crew">
-                <div id="crew-list" class="crew-grid"></div>
-            </div>
-
-            <!-- ── MAP ── -->
-            <div class="panel" id="panel-map">
-                <div class="card" style="padding:0; overflow:hidden;">
-                    <div style="padding:0.8rem 1rem 0.6rem;display:flex;align-items:center;gap:0.5rem">
-                        <span style="font-size:1.2rem">📍</span>
-                        <div>
-                            <div style="font-weight:700;font-size:0.9rem">Cottage Point Wharf</div>
-                            <div style="font-size:0.68rem;opacity:0.6">Andrey moors 50m from here · text him when you
-                                arrive</div>
-                        </div>
-                    </div>
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3322.251457467644!2d151.2185566763486!3d-33.62473410611467!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b0d993952f9b87b%3A0x6b107ec3542289c3!2sCottage%20Point%20Wharf!5e0!3m2!1sen!2sau!4v1709620000000!5m2!1sen!2sau"
-                        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                </div>
-                <div style="margin-top:1rem; text-align:center;">
-                    <a href="https://maps.app.goo.gl/2V3RgriTK8gvKepS6" target="_blank" class="join-btn"
-                        style="text-decoration:none; display:inline-block;">📍 Open in Google Maps</a>
-                </div>
-            </div>
-
-        </div><!-- /panels -->
-        <div
-            style="text-align:center;padding:1.5rem 1rem 2rem;font-size:0.65rem;opacity:0.4;display:flex;flex-direction:column;gap:0.4rem;align-items:center">
-            <div>Made for Andrey's Crew 🛥️</div>
-            <div style="display:flex;align-items:center;gap:0.3rem">
-                <span
-                    style="width:5px;height:5px;border-radius:50%;background:#00b4d8;display:inline-block;animation:pulse 1.8s infinite"></span>
-                <span id="online-count">...</span> online now
             </div>
         </div>
-    </div><!-- /shell -->
+
+        <!-- NAV -->
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('home', this)">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('logistics', this)">
+                <span class="nav-icon">🚛</span>
+                <span class="nav-label">Logistics</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('poker', this)">
+                <span class="nav-icon">🃏</span>
+                <span class="nav-label">Poker</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('info', this)">
+                <span class="nav-icon">ℹ️</span>
+                <span class="nav-label">Info</span>
+            </button>
+        </nav>
+
+        <div
+            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem">
+            <span
+                style="width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse 2s infinite"></span>
+            <span id="online-count">...</span> crew members online
+        </div>
+    </div>
 
     <script>
         // ── FIREBASE PRESENCE ──
@@ -1071,6 +680,10 @@
             { name: "Eyal", color: "linear-gradient(135deg,#7b2d8b,#9d4edd)", init: "E" },
             { name: "Nevo", color: "linear-gradient(135deg,#2d6a4f,#52b788)", init: "N" },
             { name: "Tamir", color: "linear-gradient(135deg,#52b788,#95d5b2)", init: "T" },
+            { name: "Nadav", color: "linear-gradient(135deg,#0077b6,#48cae4)", init: "Na" },
+            { name: "Eran", color: "linear-gradient(135deg,#d62828,#f77f00)", init: "Er" },
+            { name: "Richard", color: "linear-gradient(135deg,#2d6a4f,#74c69d)", init: "R" },
+            { name: "Hartmut", color: "linear-gradient(135deg,#555,#999)", init: "H" },
             { name: "Igor", color: "linear-gradient(135deg,#ff4d4d,#ff8fa3)", init: "I" }
         ];
 
@@ -1349,12 +962,11 @@
             renderCrew();
             highlight();
             db.ref('.info/connected').on('value', s => {
-                if (s.val()) {
-                    const p = db.ref('boat-dashboard/online').push(true); p.onDisconnect().remove();
-                }
+                if (s.val()) myPresenceRef.set(true);
             });
-            db.ref('boat-dashboard/online').on('value', s => {
-                document.getElementById('online-count').innerText = Object.keys(s.val() || {}).length;
+            allPresenceRef.on('value', s => {
+                const el = document.getElementById('online-count');
+                if (el) el.innerText = s.numChildren();
             });
         });
 
