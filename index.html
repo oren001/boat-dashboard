@@ -149,6 +149,8 @@
             display: none;
             height: 100%;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
             padding: 1rem 1.2rem;
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
@@ -583,33 +585,6 @@
             <!-- ── CARPOOL ── -->
             <div class="panel" id="panel-carpool">
 
-                <!-- Oren's Plan -->
-                <div class="card"
-                    style="background:linear-gradient(135deg,rgba(0,180,216,0.18),rgba(3,4,94,0.45));border:2px solid rgba(0,180,216,0.55);">
-                    <div style="display:flex;align-items:center;gap:0.65rem;margin-bottom:0.65rem">
-                        <div
-                            style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0077b6,#00b4d8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;border:2px solid rgba(100,220,255,0.7);box-shadow:0 0 12px rgba(0,180,216,0.5)">
-                            O</div>
-                        <div>
-                            <div style="font-size:0.9rem;font-weight:800">Oren's Plan&nbsp;🎯&nbsp;<span
-                                    style="font-size:0.65rem;opacity:0.65;font-weight:400">(you!)</span></div>
-                            <div style="font-size:0.65rem;opacity:0.6">Day only · Fri morning to Fri night · Drive home
-                                after poker</div>
-                        </div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:0.45rem">
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start;font-size:0.76rem">
-                            <span>🅿️</span><span><strong>Park at Cottage Point Wharf</strong> — small free public car
-                                park right at the wharf.</span></div>
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start;font-size:0.76rem">
-                            <span>📱</span><span><strong>Text Andrey</strong> on arrival — he'll tender over to pick you
-                                up from the wharf.</span></div>
-                        <div style="display:flex;gap:0.6rem;align-items:flex-start;font-size:0.76rem">
-                            <span>🚗</span><span><strong>Ask Nevo for a lift home</strong> — both day-only, both heading
-                                home after poker. Perfect match! 👇</span></div>
-                    </div>
-                </div>
-
                 <!-- Car 1: Jonathan -->
                 <div class="car-card">
                     <div class="car-header">
@@ -656,7 +631,7 @@
                             <h3>Nevo's Car</h3>
                             <p>Driving to Cottage Point, heading home after poker</p>
                         </div>
-                        <span class="car-badge badge-ride">⭐ Oren's ride</span>
+                        <span class="car-badge badge-solo">Day only</span>
                     </div>
                     <div class="car-passengers">
                         <div class="person-chip">
@@ -667,14 +642,12 @@
                             </div>
                         </div>
                         <div class="person-chip"
-                            style="border-color:rgba(0,180,216,0.6);background:rgba(0,180,216,0.15)">
-                            <div class="chip-avatar"
-                                style="background:linear-gradient(135deg,#0077b6,#48cae4);border:2px solid rgba(100,220,255,0.8);box-shadow:0 0 8px rgba(0,180,216,0.4)">
-                                O</div>
+                            style="border-color:rgba(255,180,0,0.5);background:rgba(255,180,0,0.08)">
+                            <div class="chip-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">O</div>
                             <div>
-                                <div class="chip-name">Oren&nbsp;<span class="stay-badge stay-day">☀️ Day</span>&nbsp;👈
-                                </div>
-                                <div class="chip-note">Ask Nevo for this spot!</div>
+                                <div class="chip-name">Oren&nbsp;<span class="stay-badge"
+                                        style="background:rgba(160,100,0,0.6)">⏳ TBC</span></div>
+                                <div class="chip-note">To be confirmed</div>
                             </div>
                         </div>
                     </div>
@@ -721,9 +694,9 @@
                             </div>
                         </div>
                         <div class="person-chip">
-                            <div class="chip-avatar" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">Ay</div>
+                            <div class="chip-avatar" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">E</div>
                             <div>
-                                <div class="chip-name">Ayal&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
+                                <div class="chip-name">Eyal&nbsp;<span class="stay-badge stay-night">🌙 Night</span>
                                 </div>
                                 <div class="chip-note">Likely staying over</div>
                             </div>
@@ -850,8 +823,8 @@
                         <div class="crew-note">Riding with Jonatan</div>
                     </div>
                     <div class="crew-card">
-                        <div class="crew-av" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">Ay</div>
-                        <div class="crew-name">Ayal</div>
+                        <div class="crew-av" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">E</div>
+                        <div class="crew-name">Eyal</div>
                         <span class="crew-tag tag-night">🌙 Night</span>
                         <div class="crew-note">Likely staying over</div>
                     </div>
