@@ -695,13 +695,15 @@
         ];
 
         // ── Navigation ──
-        function switchTab(tabId, btn) {
+        function switchTab(tabId, btn, isInitial = false) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('panel-' + tabId).classList.add('active');
             btn.classList.add('active');
             localStorage.setItem('boat-tab', tabId);
-            try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
+            if (!isInitial) {
+                try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
+            }
         }
 
         // ── Logistics: Carpool ──
@@ -965,7 +967,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const last = localStorage.getItem('boat-tab') || 'home';
             const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(last));
-            if (btn) switchTab(last, btn);
+            if (btn) switchTab(last, btn, true);
             renderCrew();
             highlight();
             db.ref('.info/connected').on('value', s => {
