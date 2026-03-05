@@ -482,10 +482,83 @@
                 padding: 0.7rem 1rem 0.4rem;
             }
         }
+
+        /* ── WHATS NEW TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 1.2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: rgba(3, 4, 94, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 180, 216, 0.45);
+            border-radius: 16px;
+            padding: 0.85rem 1.1rem;
+            width: min(90vw, 360px);
+            z-index: 999;
+            transition: transform 0.4s cubic-bezier(.34, 1.56, .64, 1);
+            cursor: pointer;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.55rem;
+        }
+
+        .toast-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .toast-close {
+            font-size: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .toast-item {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            font-size: 0.72rem;
+            opacity: 0.85;
+            line-height: 1.4;
+            padding: 0.2rem 0;
+        }
+
+        .toast-item+.toast-item {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 0.35rem;
+            margin-top: 0.15rem;
+        }
+
+        .toast-who {
+            opacity: 0.5;
+            font-style: italic;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- WHATS NEW TOAST -->
+    <div class="toast" id="toast" onclick="dismissToast()">
+        <div class="toast-header">
+            <span class="toast-title">🆕 What's New</span>
+            <span class="toast-close">tap to dismiss ✕</span>
+        </div>
+        <div class="toast-item"><span>✏️</span><span>Fixed <strong>Eyal</strong>'s name (it's with an E!) &nbsp;<span
+                    class="toast-who">— reported by Eyal</span></span></div>
+        <div class="toast-item"><span>📱</span><span>Fixed <strong>mobile scrolling</strong> within tabs &nbsp;<span
+                    class="toast-who">— reported by Andrey</span></span></div>
+        <div class="toast-item"><span>🕘</span><span>Added <strong>Jonathan's pickup time: ~9:45 AM</strong> &nbsp;<span
+                    class="toast-who">— confirmed by Andrey</span></span></div>
+    </div>
     <div class="shell">
 
         <!-- HEADER -->
@@ -915,6 +988,15 @@
             document.getElementById('panel-' + name).classList.add('active');
             btn.classList.add('active');
         }
+
+        // What's New toast
+        const toast = document.getElementById('toast');
+        setTimeout(() => toast.classList.add('show'), 400);
+        function dismissToast() {
+            toast.style.transition = 'transform 0.3s ease';
+            toast.style.transform = 'translateX(-50%) translateY(160px)';
+        }
+        setTimeout(dismissToast, 7000);
     </script>
 </body>
 
