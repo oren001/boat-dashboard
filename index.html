@@ -10,53 +10,172 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         :root {
             --bg: #000814;
-            --glass: rgba(255, 255, 255, 0.04);
-            --card: rgba(255, 255, 255, 0.07);
-            --border: rgba(255, 255, 255, 0.12);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-heavy: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.08);
             --text: #f0f4f8;
             --primary: #00b4d8;
             --secondary: #0077b6;
             --accent: #caf0f8;
             --sunset: #f77f00;
             --night: #7b2d8b;
-            --h: 100dvh;
+            --success: #52b788;
+            --danger: #ff4d4d;
         }
 
-        /* ── INTERACTION LAYER ── */
-        button,
-        .clickable,
-        .card,
-        .person-chip,
-        .tab-btn {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            height: 100dvh;
+            background: radial-gradient(circle at top right, #03045e, #001233, #000);
+            color: var(--text);
+            overflow: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── UTILS ── */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+        }
+
+        .scroll {
+            overflow-y: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ── SHELL ── */
+        .app-shell {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100dvh;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ── HEADER ── */
+        header {
+            padding: 1.5rem 1.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 10;
+        }
+
+        .header-title h1 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fff, #90e0ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            font-weight: 500;
+        }
+
+        .countdown {
+            display: flex;
+            gap: 0.4rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+        }
+
+        .cd-num {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            color: var(--sunset);
+            font-size: 0.9rem;
+        }
+
+        /* ── NAVIGATION ── */
+        nav {
+            display: flex;
+            padding: 0.8rem 1.5rem 2rem;
+            gap: 1rem;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            background: none;
+            border: none;
+            color: #fff;
+            opacity: 0.4;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
-        button:active,
-        .tab-btn:active,
-        .person-chip:active {
-            transform: scale(0.96);
+        .nav-btn.active {
+            opacity: 1;
+            transform: translateY(-4px);
+            color: var(--primary);
         }
 
-        .card:hover {
-            background: rgba(255, 255, 255, 0.09);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+        .nav-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
         }
 
-        @keyframes slideInUp {
+        .nav-btn.active .nav-icon {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 8px var(--primary));
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── PANELS ── */
+        .panels {
+            position: relative;
+            padding: 0 1rem;
+        }
+
+        .panel {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            height: 100%;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(10px);
             }
 
             to {
@@ -65,607 +184,200 @@
             }
         }
 
-        .panel.active>* {
-            animation: slideInUp 0.4s ease-out both;
-        }
-
-        .panel.active>*:nth-child(n) {
-            animation-delay: calc(var(--i, 0) * 0.05s);
-        }
-
-        html,
-        body {
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(150deg, #03045e 0%, #0077b6 55%, #00b4d8 100%);
-            color: #fff;
-        }
-
-        /* ── SHELL ── */
-        .shell {
-            display: grid;
-            grid-template-rows: auto auto 1fr;
-            height: 100dvh;
-            overflow: hidden;
-        }
-
-        /* ── HEADER ── */
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.9rem 1.4rem 0.5rem;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .header-left h1 {
-            font-size: clamp(1rem, 3.5vw, 1.4rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-
-        .header-left p {
-            font-size: 0.72rem;
-            opacity: 0.6;
-            margin-top: 1px;
-        }
-
-        .countdown {
-            display: flex;
-            gap: 0.6rem;
-            align-items: center;
-        }
-
-        .cd-unit {
-            text-align: center;
-        }
-
-        .cd-num {
-            font-size: clamp(1.1rem, 3vw, 1.5rem);
-            font-weight: 800;
-            color: var(--sunset);
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            min-width: 2.5ch;
-            text-align: center;
-            display: inline-block;
-        }
-
-        .cd-lbl {
-            font-size: 0.5rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            opacity: 0.55;
-        }
-
-        .cd-sep {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--sunset);
-            opacity: 0.5;
-            margin-top: -4px;
-        }
-
-        /* ── TABS ── */
-        .tabs {
-            display: flex;
-            gap: 0.3rem;
-            padding: 0.5rem 1.2rem 0;
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-            scrollbar-width: none;
-            flex-shrink: 0;
-        }
-
-        .tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            padding: 0.75rem 0.2rem;
-            font-size: 0.72rem;
-            font-weight: 600;
-            border-radius: 12px;
-            opacity: 0.5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .tab-btn.active {
-            opacity: 1;
-            background: var(--card);
-            box-shadow: inset 0 0 10px rgba(0, 180, 216, 0.2);
-            color: var(--primary);
-        }
-
-        .tab-btn:hover {
-            opacity: 0.8;
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        /* ── PANELS ── */
-        .panels {
-            overflow: hidden;
-            position: relative;
-        }
-
-        .panel {
-            display: none;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
-            padding: 1rem 1.2rem;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-        }
-
-        .panel.active {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        /* ── CARD ── */
+        /* ── CARDS ── */
         .card {
-            background: var(--card);
+            background: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 0.9rem 1rem;
-            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 1.2rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
         .card-title {
-            font-size: 0.62rem;
-            letter-spacing: 0.14em;
+            font-size: 0.65rem;
+            font-weight: 800;
             text-transform: uppercase;
-            opacity: 0.55;
-            margin-bottom: 0.6rem;
-        }
-
-        /* ── OVERVIEW GRID ── */
-        .ov-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.6rem;
-        }
-
-        .ov-item {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.7rem 0.8rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        .ov-icon {
-            font-size: 1.3rem;
-            line-height: 1;
-        }
-
-        .ov-label {
-            font-size: 0.6rem;
+            color: var(--primary);
             letter-spacing: 0.1em;
-            text-transform: uppercase;
-            opacity: 0.5;
+            margin-bottom: 0.4rem;
         }
 
-        .ov-val {
-            font-size: 0.82rem;
-            font-weight: 700;
-            line-height: 1.3;
+        /* ── HOME/STATUS ── */
+        .status-badge {
+            background: rgba(82, 183, 136, 0.15);
+            color: #52b788;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            border: 1px solid rgba(82, 183, 136, 0.2);
         }
 
-        /* ── TIMELINE ── */
-        .tl {
+        .timeline {
             display: flex;
             flex-direction: column;
+            gap: 1.2rem;
+            padding: 0.5rem 0;
         }
 
         .tl-item {
             display: grid;
-            grid-template-columns: 58px 22px 1fr;
-            gap: 0 10px;
-            align-items: start;
-            padding-bottom: 1rem;
+            grid-template-columns: 50px 1fr;
+            gap: 1rem;
+            position: relative;
         }
 
         .tl-time {
             text-align: right;
-            font-size: 0.73rem;
-            font-weight: 600;
-            color: var(--foam);
-            padding-top: 2px;
-            line-height: 1.2;
-        }
-
-        .tl-day {
-            font-size: 0.56rem;
-            opacity: 0.55;
-            font-weight: 400;
-        }
-
-        .tl-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .tl-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            flex-shrink: 0;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .tl-line {
-            width: 2px;
-            flex: 1;
-            min-height: 16px;
-            background: rgba(255, 255, 255, 0.15);
-            margin-top: 3px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            opacity: 0.4;
+            padding-top: 0.2rem;
         }
 
         .tl-body h3 {
-            font-size: 0.82rem;
+            font-size: 0.9rem;
             font-weight: 700;
+            margin-bottom: 0.2rem;
         }
 
         .tl-body p {
-            font-size: 0.72rem;
-            opacity: 0.65;
+            font-size: 0.75rem;
+            opacity: 0.6;
             line-height: 1.4;
-            margin-top: 1px;
         }
 
-        /* ── CARPOOL ── */
-        .car-section {
+        .tl-item.timeline-next {
+            opacity: 1;
+        }
+
+        .tl-item.timeline-next .tl-time {
+            color: var(--sunset);
+            opacity: 1;
+        }
+
+        .tl-item.timeline-next h3::before {
+            content: "NEXT";
+            position: absolute;
+            left: -65px;
+            background: var(--sunset);
+            color: #fff;
+            font-size: 0.5rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 900;
+        }
+
+        /* ── LOGISTICS/CARPOOL ── */
+        .car-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            margin-bottom: 0.8rem;
+        }
+
+        .car-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .car-col {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 0.7rem;
-        }
-
-        .car-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            overflow: hidden;
-        }
-
-        .car-header {
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .car-emoji {
-            font-size: 1.5rem;
-        }
-
-        .car-header-info {
-            flex: 1;
-        }
-
-        .car-header-info h3 {
-            font-size: 0.9rem;
-            font-weight: 700;
-        }
-
-        .car-header-info p {
-            font-size: 0.68rem;
-            opacity: 0.6;
-            margin-top: 1px;
-        }
-
-        .car-badge {
-            font-size: 0.62rem;
-            padding: 3px 9px;
-            border-radius: 999px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .badge-driver {
-            background: rgba(247, 127, 0, 0.35);
-            color: #ffb347;
-            border: 1px solid rgba(247, 127, 0, 0.4);
-        }
-
-        .badge-solo {
-            background: rgba(0, 180, 216, 0.25);
-            color: #90e0ef;
-            border: 1px solid rgba(0, 180, 216, 0.3);
-        }
-
-        .badge-ride {
-            background: rgba(45, 106, 79, 0.3);
-            color: #95d5b2;
-            border: 1px solid rgba(45, 106, 79, 0.4);
-        }
-
-        .car-passengers {
-            display: flex;
-            flex-wrap: wrap;
             gap: 0.5rem;
-            padding: 0.7rem 1rem;
-            min-height: 50px;
-            /* Ensure mobile scrolling works even with SortableJS */
-            touch-action: pan-y;
         }
 
         .person-chip {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 999px;
-            padding: 0.3rem 0.7rem 0.3rem 0.3rem;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .chip-avatar {
-            width: 26px;
-            height: 26px;
+        .av {
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 700;
-            flex-shrink: 0;
+            font-size: 0.65rem;
+            font-weight: 800;
         }
 
-        .supply-row {
+        .join-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .join-btn.leave {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+        }
+
+        /* ── POKER ── */
+        .poker-player {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.8rem;
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .supply-row:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .supply-item-name {
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .supply-claimed-by {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.7rem;
-            opacity: 0.8;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.25rem 0.6rem;
-            border-radius: 999px;
-        }
-
-        .claim-btn {
-            font-size: 0.65rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .claim-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .timeline-next {
-            border-left: 2px solid #ffb347 !important;
-            background: rgba(247, 127, 0, 0.05);
-            border-radius: 0 8px 8px 0;
-        }
-
-        .timeline-next .tl-dot {
-            box-shadow: 0 0 10px #f77f00;
-            transform: scale(1.1);
-        }
-
-        .chip-name {
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .chip-role {
-            font-size: 0.62rem;
-            opacity: 0.6;
-        }
-
-        .chip-note {
-            font-size: 0.6rem;
-            opacity: 0.55;
-        }
-
-        /* Night/day badge on person */
-        .stay-badge {
-            font-size: 0.58rem;
-            padding: 2px 6px;
-            border-radius: 999px;
-            margin-left: 0.1rem;
-        }
-
-        .stay-night {
-            background: rgba(3, 4, 94, 0.6);
-        }
-
-        .stay-day {
-            background: rgba(0, 119, 182, 0.4);
-        }
-
-        /* ── IDENTITY MODAL ── */
-        .identity-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-            gap: 0.75rem;
-        }
-
-        .identity-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.72rem;
-            font-weight: 500;
-            padding: 0.8rem 0.4rem;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .identity-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .identity-btn .av {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        /* ── CREW GRID ── */
-        .crew-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 0.6rem;
-        }
-
-        .crew-card {
-            background: var(--card);
+            padding: 0.8rem 1rem;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.75rem 0.8rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
+            margin-bottom: 0.5rem;
         }
 
-        .crew-av {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
+        .poker-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 0.4rem;
+            border-radius: 8px;
+            width: 65px;
+            text-align: right;
+            font-size: 0.8rem;
             font-weight: 700;
         }
 
-        .crew-name {
-            font-size: 0.82rem;
-            font-weight: 700;
-        }
-
-        .crew-tag {
-            font-size: 0.62rem;
-            padding: 2px 7px;
-            border-radius: 999px;
-            display: inline-block;
-            font-weight: 500;
-            width: fit-content;
-        }
-
-        .tag-host {
-            background: var(--sunset);
-        }
-
-        .tag-night {
-            background: rgba(3, 4, 94, 0.7);
-        }
-
-        .tag-day {
-            background: rgba(0, 119, 182, 0.55);
-        }
-
-        .tag-out {
-            background: rgba(120, 120, 120, 0.3);
-            opacity: 0.55;
-        }
-
-        .crew-note {
-            font-size: 0.62rem;
-            opacity: 0.55;
-            line-height: 1.4;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.4;
-                transform: scale(1.4);
-            }
-        }
-
-        @media(max-width:480px) {
-            .ov-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            header {
-                padding: 0.7rem 1rem 0.4rem;
-            }
-        }
-
-        /* ── WHATS NEW TOAST ── */
+        /* ── TOAST ── */
         .toast {
             position: fixed;
-            bottom: 1.2rem;
+            top: 1.5rem;
             left: 50%;
-            transform: translateX(-50%) translateY(120px);
-            background: rgba(3, 4, 94, 0.92);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 180, 216, 0.45);
-            border-radius: 16px;
-            padding: 0.85rem 1.1rem;
-            width: min(90vw, 360px);
-            z-index: 999;
-            transition: transform 0.4s cubic-bezier(.34, 1.56, .64, 1);
+            transform: translateX(-50%) translateY(-100px);
+            width: min(90vw, 380px);
+            background: rgba(0, 18, 51, 0.95);
+            backdrop-filter: blur(25px);
+            padding: 1.2rem;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             cursor: pointer;
         }
 
@@ -673,263 +385,165 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        .toast-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.55rem;
-        }
-
-        .toast-title {
-            font-size: 0.78rem;
-            font-weight: 800;
-        }
-
-        .toast-close {
-            font-size: 0.75rem;
-            opacity: 0.5;
-        }
-
-        .toast-item {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-start;
-            font-size: 0.72rem;
-            opacity: 0.85;
-            line-height: 1.4;
-            padding: 0.2rem 0;
-        }
-
-        .toast-item+.toast-item {
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding-top: 0.35rem;
-            font-weight: 700;
-            cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.2s;
-            flex-shrink: 0;
-        }
-
-        .me-chip-hdr:hover {
-            transform: scale(1.1);
-        }
-
-        /* join / leave */
-        .join-btn {
-            background: rgba(0, 180, 216, 0.2);
-            border: 1px solid rgba(0, 180, 216, 0.5);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.28rem 0.75rem;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .join-btn:hover {
-            background: rgba(0, 180, 216, 0.4);
-        }
-
-        .leave-btn {
-            background: rgba(210, 40, 40, 0.18);
-            border-color: rgba(210, 40, 40, 0.45);
-        }
-
-        .leave-btn:hover {
-            background: rgba(210, 40, 40, 0.4);
-        }
-
-        .my-car {
-            border-color: rgba(0, 180, 216, 0.6) !important;
-        }
-
-        .car-time-pill:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* ── IDENTITY MODAL ── */
-        .identity-modal {
+        /* ── MODALS ── */
+        .modal {
             position: fixed;
             inset: 0;
-            z-index: 1000;
-            background: rgba(3, 4, 94, 0.8);
-            backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            z-index: 2000;
+            padding: 2rem;
         }
 
-        .identity-modal.show {
+        .modal.show {
             display: flex;
         }
 
-        .identity-sheet {
-            background: linear-gradient(160deg, #03045e 0%, #0077b6 100%);
-            border-radius: 24px;
-            padding: 1.8rem;
+        .modal-content {
+            background: linear-gradient(160deg, #03045e, #001233);
             width: 100%;
             max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+            padding: 2rem;
+            border: 1px solid var(--border);
         }
+    </style>
 
-        .identity-sheet h2 {
-            font-size: 1.2rem;
-            margin-bottom: 0.4rem;
-            font-weight: 800;
-        }
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.8rem 0.4rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    }
 
-        .identity-sheet p {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-bottom: 1.5rem;
-        }
+    .identity-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+    border-color: var(--primary);
+    }
 
-        .identity-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 0.8rem;
-            max-height: 50vh;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
+    .identity-btn .av {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
 
-        .identity-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 14px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.8rem 0.4rem;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
+    /* Drag & Drop Styles */
+    .sortable-ghost {
+    opacity: 0.3;
+    transform: scale(0.9);
+    }
 
-        .identity-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.05);
-            border-color: var(--primary);
-        }
+    .sortable-chosen {
+    background: rgba(0, 180, 216, 0.2) !important;
+    border-radius: 8px;
+    }
 
-        .identity-btn .av {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 800;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
+    .car-passengers {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    transition: background 0.2s;
+    border-radius: 8px;
+    border: 1px dashed transparent;
+    -webkit-overflow-scrolling: touch;
+    }
 
-        /* Drag & Drop Styles */
-        .sortable-ghost {
-            opacity: 0.3;
-            transform: scale(0.9);
-        }
+    .car-passengers:empty::after {
+    content: "Drag names here";
+    font-size: 0.65rem;
+    opacity: 0.3;
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    }
 
-        .sortable-chosen {
-            background: rgba(0, 180, 216, 0.2) !important;
-            border-radius: 8px;
-        }
+    .add-car-btn {
+    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    }
 
-        .car-passengers {
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 4px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            transition: background 0.2s;
-            border-radius: 8px;
-            border: 1px dashed transparent;
-            -webkit-overflow-scrolling: touch;
-        }
+    .add-car-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+    transform: scale(1.02);
+    }
 
-        .car-passengers:empty::after {
-            content: "Drag names here";
-            font-size: 0.65rem;
-            opacity: 0.3;
-            display: flex;
-            align-items: center;
-            padding-left: 0.5rem;
-        }
+    /* ── POKER UI ── */
+    .poker-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    }
 
-        .add-car-btn {
-            margin-top: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .poker-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 0.4rem;
+    border-radius: 6px;
+    width: 70px;
+    text-align: right;
+    font-family: inherit;
+    }
 
-        .add-car-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.4);
-            color: #fff;
-            transform: scale(1.02);
-        }
+    .settle-card {
+    background: linear-gradient(135deg, rgba(72, 202, 228, 0.15), rgba(0, 119, 182, 0.15));
+    border: 1px solid rgba(72, 202, 228, 0.3);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    }
 
-        /* ── POKER UI ── */
-        .poker-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            margin-bottom: 0.5rem;
-        }
-
-        .poker-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 0.4rem;
-            border-radius: 6px;
-            width: 70px;
-            text-align: right;
-            font-family: inherit;
-        }
-
-        .settle-card {
-            background: linear-gradient(135deg, rgba(72, 202, 228, 0.15), rgba(0, 119, 182, 0.15));
-            border: 1px solid rgba(72, 202, 228, 0.3);
-            border-radius: 16px;
-            padding: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .beem-tx {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.6rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-top: 0.4rem;
-            font-size: 0.8rem;
-        }
+    .beem-tx {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    }
     </style>
     <!-- Dependencies -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -1424,38 +1038,6 @@
     </div><!-- /shell -->
 
     <script>
-        // Countdown to Fri 6 Mar 2026 10:30 AM AEDT (UTC+11)
-        const target = new Date('2026-03-06T10:30:00+11:00');
-        function tick() {
-            const diff = target - new Date();
-            if (diff <= 0) {
-                document.getElementById('countdown').innerHTML = '<span style="font-size:0.85rem;font-weight:700;color:#f77f00">🎉 Trip started!</span>';
-                return;
-            }
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
-            document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
-            document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
-            setTimeout(tick, 1000);
-        }
-        tick();
-
-        // Tab switching
-        function switchTab(name, btn) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('panel-' + name).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        // What's New toast
-        function dismissToast() {
-            document.getElementById('toast').classList.remove('show');
-        }
-        setTimeout(dismissToast, 10000);
-
         // ── FIREBASE PRESENCE ──
         const firebaseConfig = {
             apiKey: "AIzaSyCcnpQDPsQptHdZKHupXOZNqNbO1JOD1Ss",
@@ -1469,514 +1051,315 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const uid = Math.random().toString(36).slice(2);
-        const myRef = db.ref('boat-dashboard/presence/' + uid);
-        const allRef = db.ref('boat-dashboard/presence');
-        myRef.set(true);
-        myRef.onDisconnect().remove();
-        allRef.on('value', snap => {
-            document.getElementById('online-count').textContent = snap.numChildren();
+        const myPresenceRef = db.ref('boat-dashboard/presence/' + uid);
+        const allPresenceRef = db.ref('boat-dashboard/presence');
+        myPresenceRef.set(true);
+        myPresenceRef.onDisconnect().remove();
+        allPresenceRef.on('value', snap => {
+            const el = document.getElementById('online-count');
+            if (el) el.textContent = snap.numChildren();
         });
 
-        // ── IDENTITY & CARPOOL ──
-        // Firebase poker
-        const pokerRef = db.ref('boat-dashboard/poker');
-        pokerRef.on('value', snap => {
-            renderPoker(snap.val() || {});
-        });
+        const target = new Date('2026-03-06T10:30:00+11:00');
+        let lastCarsSnap = null;
+        let pendingResolve = null;
 
-        function renderPoker(pokerData) {
-            const list = document.getElementById('poker-players-list');
-            if (!list) return;
-            list.innerHTML = '';
+        const CREW = [
+            { name: "Andrey", color: "linear-gradient(135deg,#f77f00,#d62828)", init: "A" },
+            { name: "Oren", color: "linear-gradient(135deg,#0077b6,#48cae4)", init: "O" },
+            { name: "Jonathan", color: "linear-gradient(135deg,#0077b6,#48cae4)", init: "J" },
+            { name: "Eyal", color: "linear-gradient(135deg,#7b2d8b,#9d4edd)", init: "E" },
+            { name: "Nevo", color: "linear-gradient(135deg,#2d6a4f,#52b788)", init: "N" },
+            { name: "Tamir", color: "linear-gradient(135deg,#52b788,#95d5b2)", init: "T" },
+            { name: "Igor", color: "linear-gradient(135deg,#ff4d4d,#ff8fa3)", init: "I" }
+        ];
 
-            CREW.forEach(c => {
-                const data = pokerData[c.name] || { buyin: 0, balance: 0 };
-                const row = document.createElement('div');
-                row.className = 'poker-row';
-                row.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:0.8rem">
-                        <div class="av" style="width:30px;height:30px;font-size:0.75rem;background:${c.color};display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:800;color:#fff">${c.init}</div>
-                        <div style="font-weight:600;font-size:0.85rem">${c.name}</div>
-                    </div>
-                    <div style="display:flex;gap:0.5rem">
-                        <div style="text-align:center">
-                            <div style="font-size:0.55rem;opacity:0.5;margin-bottom:2px">BUY-IN</div>
-                            <input type="number" class="poker-input" value="${data.buyin}" onchange="updatePoker('${c.name}','buyin',this.value)">
-                        </div>
-                        <div style="text-align:center">
-                            <div style="font-size:0.55rem;opacity:0.5;margin-bottom:2px">FINAL</div>
-                            <input type="number" class="poker-input" value="${data.balance}" onchange="updatePoker('${c.name}','balance',this.value)">
+        // ── Navigation ──
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + tabId).classList.add('active');
+            btn.classList.add('active');
+            localStorage.setItem('boat-tab', tabId);
+            try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
+        }
+
+        // ── Logistics: Carpool ──
+        function renderCarpool(cars) {
+            const container = document.getElementById('carpool-list');
+            const statusBox = document.getElementById('missing-rides-box');
+            if (!container || !statusBox) return;
+            container.innerHTML = '';
+
+            // Missing rides summary
+            const allNames = CREW.map(c => c.name);
+            const inArr = new Set(), inDep = new Set();
+            Object.values(cars).forEach(c => {
+                Object.values(c.arrival || {}).forEach(n => inArr.add(n));
+                Object.values(c.departure || {}).forEach(n => inDep.add(n));
+            });
+            const missA = allNames.filter(n => !inArr.has(n));
+            const missD = allNames.filter(n => !inDep.has(n));
+
+            if (missA.length || missD.length) {
+                statusBox.innerHTML = `
+                    <div class="card" style="border-color:var(--danger); background:rgba(255,77,77,0.05); margin-bottom:1rem">
+                        <div class="card-title" style="color:var(--danger)">⚠️ Pending Logistics</div>
+                        <div style="font-size:0.7rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+                            <div><span style="opacity:0.5">NEED ARR:</span><br>${missA.join(', ') || 'Done!'}</div>
+                            <div><span style="opacity:0.5">NEED DEP:</span><br>${missD.join(', ') || 'Done!'}</div>
                         </div>
                     </div>
                 `;
-                list.appendChild(row);
+            } else { statusBox.innerHTML = ''; }
+
+            Object.entries(cars).forEach(([id, car]) => {
+                const arr = Object.entries(car.arrival || {});
+                const dep = Object.entries(car.departure || {});
+                const card = document.createElement('div');
+                card.className = 'car-card';
+                card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                <div>
+                    <div style="font-weight:900; font-size:1rem">${car.emoji || '🚗'} ${car.label}</div>
+                    <div style="font-size:0.65rem; opacity:0.5">${car.route}</div>
+                </div>
+                <div style="font-size:0.6rem; font-weight:800; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px" onclick="editTime('${id}','${car.time}')">${car.time}</div>
+            </div>
+            <div class="car-row">
+                <div class="car-col">
+                    <span class="card-title" style="font-size:0.5rem">Arrival (${arr.length}/${car.seats})</span>
+                    <div id="arr-${id}" style="display:flex; flex-direction:column; gap:6px"></div>
+                    <button class="join-btn" onclick="joinCar('${id}','arrival')" style="margin-top:4px">Join</button>
+                </div>
+                <div class="car-col">
+                    <span class="card-title" style="font-size:0.5rem">Departure (${dep.length}/${car.seats})</span>
+                    <div id="dep-${id}" style="display:flex; flex-direction:column; gap:6px"></div>
+                    <button class="join-btn" onclick="joinCar('${id}','departure')" style="margin-top:4px">Join</button>
+                </div>
+            </div>
+            `;
+                container.appendChild(card);
+                arr.forEach(([k, n]) => renderChip(card.querySelector(`#arr-${id}`), n, id, 'arrival'));
+                dep.forEach(([k, n]) => renderChip(card.querySelector(`#dep-${id}`), n, id, 'departure'));
             });
 
-            calculateSettlement(pokerData);
+            const addBtn = document.createElement('button');
+            addBtn.className = 'join-btn';
+            addBtn.style.cssText = 'width:100%; padding:1rem; background:rgba(255,255,255,0.05); border:1px dashed var(--border); margin-top:0.5rem; text-transform:uppercase; letter-spacing:0.1em; font-size:0.6rem';
+            addBtn.innerHTML = 'Add your car';
+            addBtn.onclick = createNewCar;
+            container.appendChild(addBtn);
         }
 
-        function updatePoker(name, field, val) {
-            pokerRef.child(name).child(field).set(parseFloat(val) || 0);
-            try { if (window.navigator.vibrate) window.navigator.vibrate(5); } catch (e) { }
+        function renderChip(container, name, carId, type) {
+            const c = CREW.find(x => x.name === name) || { color: '#444', init: '?' };
+            const chip = document.createElement('div');
+            chip.className = 'person-chip';
+            chip.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div><span>${name}</span>`;
+            chip.onclick = () => leaveCar(carId, type);
+            container.appendChild(chip);
         }
 
-        // ── SUPPLIES LOGIC ──
-        const suppliesRef = db.ref('boat-dashboard/supplies');
-
-        // Seed initial supplies if empty
-        suppliesRef.once('value', snap => {
-            if (!snap.exists()) {
-                const initial = {
-                    item_1: { name: "Burger Buns", claimedBy: null },
-                    item_2: { name: "Ice (2 bags)", claimedBy: null },
-                    item_3: { name: "Case of Beer", claimedBy: null },
-                    item_4: { name: "Garbage Bags", claimedBy: null }
-                };
-                suppliesRef.set(initial);
-            }
-        });
-
-        suppliesRef.on('value', snap => {
-            renderSupplies(snap.val() || {});
-        });
-
-        async function addSupplyItem() {
-            const input = document.getElementById('new-supply-item');
-            const item = input.value.trim();
-            if (!item) return;
-            const id = 'item_' + Date.now();
-            suppliesRef.child(id).set({ name: item, claimedBy: null });
-            input.value = '';
-        }
-
-        async function claimSupply(itemId) {
-            const id = await getIdentity(true);
-            if (!id) return;
-            suppliesRef.child(itemId).update({ claimedBy: id.name });
-            try { if (window.navigator.vibrate) window.navigator.vibrate(15); } catch (e) { }
-        }
-
-        async function unclaimSupply(itemId) {
-            suppliesRef.child(itemId).update({ claimedBy: null });
-        }
-
+        // ── Logistics: Supplies ──
         function renderSupplies(data) {
             const list = document.getElementById('supplies-list');
             if (!list) return;
             list.innerHTML = '';
-
             Object.entries(data).forEach(([id, item]) => {
                 const row = document.createElement('div');
-                row.className = 'supply-row';
-
-                const claimedUI = item.claimedBy
-                    ? `<div class="supply-claimed-by" onclick="unclaimSupply('${id}')">🙋‍♂️ ${item.claimedBy} (tap to undo)</div>`
-                    : `<button class="claim-btn" onclick="claimSupply('${id}')">✋ I'll bring it</button>`;
-
-                row.innerHTML = `
-                    <div class="supply-item-name">${item.name}</div>
-                    ${claimedUI}
-                `;
+                row.className = 'poker-player';
+                row.style.padding = '0.6rem 0.8rem';
+                const claimed = item.claimedBy
+                    ? `<div style="font-size:0.65rem; font-weight:800; color:var(--success)" onclick="unclaimSupply('${id}')">🙋‍♂️ ${item.claimedBy}</div>`
+                    : `<button class="join-btn" onclick="claimSupply('${id}')" style="font-size:0.55rem; padding:4px 10px">Bring it</button>`;
+                row.innerHTML = `<div style="font-size:0.8rem; font-weight:600">${item.name}</div>${claimed}`;
                 list.appendChild(row);
             });
         }
 
-        // ── SCHEDULE LOGIC ──
-        function highlightNextEvent() {
-            const now = new Date();
-            const items = document.querySelectorAll('.tl-item');
-
-            // Map labels to approximate times for Friday 6th / Sat 7th
-            const times = [
-                { el: items[0], date: new Date('2026-03-06T10:30:00+11:00') }, // Boarding
-                { el: items[1], date: new Date('2026-03-06T19:00:00+11:00') }, // Dinner
-                { el: items[2], date: new Date('2026-03-06T21:00:00+11:00') }, // Poker
-                { el: items[3], date: new Date('2026-03-07T12:00:00+11:00') }  // Return
-            ];
-
-            let nextFound = false;
-            times.forEach(t => {
-                t.el.classList.remove('timeline-next');
-                if (!nextFound && now < t.date) {
-                    t.el.classList.add('timeline-next');
-                    nextFound = true;
-                }
-            });
-        }
-        setInterval(highlightNextEvent, 30000);
-        setTimeout(highlightNextEvent, 500);
-
-        function calculateSettlement(data) {
-            const results = document.getElementById('poker-settlement');
-            const resContent = document.getElementById('settlement-results');
-            if (!results || !resContent) return;
-
-            const nets = Object.entries(data).map(([name, d]) => ({
-                name,
-                net: (d.balance || 0) - (d.buyin || 0)
-            })).filter(n => Math.abs(n.net) > 0.001);
-
-            if (nets.length === 0) {
-                results.style.display = 'none';
-                return;
-            }
-
-            results.style.display = 'block';
-            resContent.innerHTML = '';
-
-            const debtors = nets.filter(n => n.net < 0).map(n => ({ ...n, net: n.net })).sort((a, b) => a.net - b.net);
-            const creditors = nets.filter(n => n.net > 0).map(n => ({ ...n, net: n.net })).sort((a, b) => b.net - a.net);
-
-            let i = 0, j = 0;
-            while (i < debtors.length && j < creditors.length) {
-                const debt = Math.abs(debtors[i].net);
-                const credit = creditors[j].net;
-                const amount = Math.min(debt, credit);
-
-                if (amount < 0.01) break;
-
-                const tx = document.createElement('div');
-                tx.className = 'beem-tx';
-                tx.innerHTML = `
-                    <span style="font-weight:800;color:#ff4d4d">${debtors[i].name}</span>
-                    <span style="opacity:0.5"> pays </span>
-                    <span style="font-weight:800;color:#48cae4">$${amount.toFixed(2)}</span>
-                    <span style="opacity:0.5"> to </span>
-                    <span style="font-weight:800;color:#52b788">${creditors[j].name}</span>
-                `;
-                resContent.appendChild(tx);
-
-                debtors[i].net += amount;
-                creditors[j].net -= amount;
-
-                if (Math.abs(debtors[i].net) < 0.001) i++;
-                if (Math.abs(creditors[j].net) < 0.001) j++;
-            }
-        }
-
-        const CREW = [
-            { name: 'Andrey', color: 'linear-gradient(135deg,#f77f00,#d62828)', init: 'A' },
-            { name: 'Jonathan', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'J' },
-            { name: 'Tamir', color: 'linear-gradient(135deg,#2d6a4f,#52b788)', init: 'T' },
-            { name: 'Eyal', color: 'linear-gradient(135deg,#7b2d8b,#c77dff)', init: 'E' },
-            { name: 'Nevo', color: 'linear-gradient(135deg,#0077b6,#00b4d8)', init: 'N' },
-            { name: 'Nadav', color: 'linear-gradient(135deg,#ee9b00,#ca6702)', init: 'Na' },
-            { name: 'Eran', color: 'linear-gradient(135deg,#9b2226,#ae2012)', init: 'Er' },
-            { name: 'Richard', color: 'linear-gradient(135deg,#2d6a4f,#74c69d)', init: 'R' },
-            { name: 'Hartmut', color: 'linear-gradient(135deg,#555,#888)', init: 'H' },
-            { name: 'Igor', color: 'linear-gradient(135deg,#0a9396,#005f73)', init: 'I' },
-            { name: 'Oren', color: 'linear-gradient(135deg, #4361ee, #4cc9f0)', init: 'O' }
-        ];
-
-        const INITIAL_CARS = {
-            jonathan: {
-                label: "Jonathan's Car", emoji: "🚙", time: "~9:45 AM", route: "Newport → Cottage Point",
-                seats: 5,
-                arrival: { "jonathan": "Jonathan", "andrey": "Andrey", "tamir": "Tamir" },
-                departure: { "jonathan": "Jonathan", "andrey": "Andrey" }
-            },
-            nevo: {
-                label: "Nevo's Car", emoji: "🚗", time: "After poker", route: "Cottage Point → Home",
-                seats: 4,
-                arrival: { "nevo": "Nevo", "oren": "Oren" },
-                departure: { "nevo": "Nevo", "oren": "Oren" }
-            },
-            self: {
-                label: "Self-Drivers", emoji: "🚘", time: "Flexible", route: "Own cars",
-                seats: 99,
-                arrival: { "nadav": "Nadav", "eran": "Eran", "hartmut": "Hartmut", "richard": "Richard", "eyal": "Eyal" },
-                departure: { "tamir": "Tamir", "nadav": "Nadav", "eran": "Eran", "hartmut": "Hartmut", "richard": "Richard", "eyal": "Eyal" }
-            }
-        };
-
-        let pendingResolve = null;
-
-        const getIdentity = (forcePick = false) => {
-            return new Promise((resolve) => {
-                let id = null;
-                if (!forcePick) {
-                    try { id = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
-                }
-                if (id && id.name && !forcePick) return resolve(id);
-
-                pendingResolve = resolve;
-                showIdentityModal();
-            });
-        };
-
-        function showIdentityModal() {
-            const modal = document.getElementById('identity-modal');
-            const grid = document.getElementById('identity-grid');
-            grid.innerHTML = '';
+        // ── Poker ──
+        function renderPoker(data) {
+            const list = document.getElementById('poker-players-list');
+            if (!list) return;
+            list.innerHTML = '';
             CREW.forEach(c => {
-                const btn = document.createElement('button');
-                btn.className = 'identity-btn';
-                btn.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div>${c.name}`;
-                btn.onclick = () => {
-                    localStorage.setItem('boat-identity', JSON.stringify(c));
-                    modal.classList.remove('show');
-                    if (pendingResolve) pendingResolve(c);
-                };
-                grid.appendChild(btn);
-            });
-            modal.classList.add('show');
-        }
-
-        function promptOtherName() {
-            const name = prompt("Enter your name:");
-            if (name) {
-                const id = { name: name, color: `hsl(${Math.random() * 360}, 60%, 50%)`, init: name.slice(0, 2) };
-                localStorage.setItem('boat-identity', JSON.stringify(id));
-                document.getElementById('identity-modal').classList.remove('show');
-                if (pendingResolve) pendingResolve(id);
-            }
-        }
-
-        // Firebase carpool
-        const carsRef = db.ref('boat-dashboard/cars');
-        const userCarRef = db.ref('boat-dashboard/userCar');
-
-        // Seed if missing or empty
-        carsRef.once('value', snap => {
-            const data = snap.val();
-            // Check for presence of old p1 style keys
-            const hasOldKeys = data && data.jonathan && data.jonathan.arrival && data.jonathan.arrival.p1;
-            if (!data || hasOldKeys) {
-                carsRef.set(INITIAL_CARS);
-            }
-        });
-
-        let myCarId = null, lastCarsSnap = null;
-        userCarRef.child(uid).on('value', snap => {
-            myCarId = snap.val();
-            if (lastCarsSnap) renderCarpool(lastCarsSnap);
-        });
-
-        carsRef.on('value', snap => {
-            lastCarsSnap = snap.val() || INITIAL_CARS;
-            renderCarpool(lastCarsSnap);
-        });
-
-        function renderCarpool(cars) {
-            const panel = document.getElementById('panel-carpool');
-            let container = document.getElementById('carpool-container');
-            if (!container) {
-                Array.from(panel.children).forEach(el => { el.style.display = 'none'; });
-                container = document.createElement('div');
-                container.id = 'carpool-container';
-                container.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem';
-                panel.insertBefore(container, panel.firstChild);
-            }
-
-            container.innerHTML = '';
-
-            // Utility: Missing rides summary
-            const allNames = CREW.map(c => c.name);
-            const inArrival = new Set();
-            const inDeparture = new Set();
-            Object.values(cars).forEach(c => {
-                Object.values(c.arrival || {}).forEach(n => inArrival.add(n));
-                Object.values(c.departure || {}).forEach(n => inDeparture.add(n));
-            });
-            const missingArrival = allNames.filter(n => !inArrival.has(n));
-            const missingDeparture = allNames.filter(n => !inDeparture.has(n));
-
-            if (missingArrival.length > 0 || missingDeparture.length > 0) {
-                const summary = document.createElement('div');
-                summary.className = 'card';
-                summary.style.cssText = 'background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);padding:1rem;margin-bottom:0.5rem';
-                summary.innerHTML = `
-                    <h4 style="font-size:0.75rem;margin-bottom:0.8rem;color:#ff6b6b;display:flex;align-items:center;gap:0.5rem">
-                        <span>⚠️ Status Check</span>
-                    </h4>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-                        <div>
-                            <div style="font-size:0.6rem;opacity:0.6;margin-bottom:0.4rem;text-transform:uppercase">Missing Arrival Ride</div>
-                            <div style="font-size:0.75rem;font-weight:600">${missingArrival.length ? missingArrival.join(', ') : 'Everyone settled! ✨'}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:0.6rem;opacity:0.6;margin-bottom:0.4rem;text-transform:uppercase">Missing Departure Ride</div>
-                            <div style="font-size:0.75rem;font-weight:600">${missingDeparture.length ? missingDeparture.join(', ') : 'Everyone settled! ✨'}</div>
-                        </div>
+                const p = data[c.name] || { buyin: 0, balance: 0 };
+                const row = document.createElement('div');
+                row.className = 'poker-player';
+                row.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.6rem">
+                <div class="av" style="background:${c.color}">${c.init}</div>
+                <div style="font-weight:700; font-size:0.85rem">${c.name}</div>
+            </div>
+            <div style="display:flex; gap:0.5rem">
+                <input type="number" step="0.01" class="poker-input" placeholder="In" value="${p.buyin || ''}" onchange="updatePoker('${c.name}','buyin',this.value)">
+                    <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="Out" value="${p.balance || ''}" onchange="updatePoker('${c.name}','balance',this.value)">
                     </div>
-                `;
-                container.appendChild(summary);
-            }
+                    `;
+                list.appendChild(row);
+            });
+            calculateSettlement(data);
+        }
 
-            Object.entries(cars).forEach(([carId, car]) => {
-                const myId = JSON.parse(localStorage.getItem('boat-identity') || '{}');
-                const myKey = myId.name ? myId.name.toLowerCase() : null;
-                const arrivalEntries = Object.entries(car.arrival || {});
-                const departureEntries = Object.entries(car.departure || {});
-                const amInArrival = myKey && car.arrival && car.arrival[myKey];
-                const amInDeparture = myKey && car.departure && car.departure[myKey];
-
+        // ── Info: Crew ──
+        function renderCrew() {
+            const list = document.getElementById('crew-list');
+            if (!list) return;
+            list.innerHTML = '';
+            CREW.forEach(c => {
                 const card = document.createElement('div');
-                card.className = 'car-card';
-                card.style.padding = '1.2rem';
-
-                const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
-
-                card.innerHTML = `
-              <div class="car-header">
-                <div class="car-emoji">${car.emoji || '🚗'}</div>
-                <div class="car-header-info">
-                    <h3 style="display:flex;align-items:center;gap:0.5rem">${car.label} <span style="font-size:0.6rem;opacity:0.5;font-weight:400;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px">${car.seats} seats</span></h3>
-                    <p>${car.route}</p>
-                </div>
-                ${timePill}
-              </div>
-              
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-                <div style="display:flex;flex-direction:column">
-                    <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;margin-bottom:0.5rem;display:flex;justify-content:space-between">
-                        <span>Arrival</span>
-                        <span style="color:${arrivalEntries.length >= car.seats ? '#ff4d4d' : 'inherit'}">${arrivalEntries.length}/${car.seats}</span>
-                    </div>
-                    <div class="car-passengers arrival-list" data-car-id="${carId}" data-type="arrival" style="flex-grow:1;min-height:40px"></div>
-                    <button class="join-btn ${amInArrival ? 'leave-btn' : ''}" style="width:100%;margin-top:0.5rem;font-size:0.6rem" onclick="${amInArrival ? `leaveCar('${carId}','arrival')` : `joinCar('${carId}','arrival')`}">
-                        ${amInArrival ? '✕ Leave' : '✋ Join'}
-                    </button>
-                </div>
-                <div style="display:flex;flex-direction:column">
-                    <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;margin-bottom:0.5rem;display:flex;justify-content:space-between">
-                        <span>Departure</span>
-                        <span style="color:${departureEntries.length >= car.seats ? '#ff4d4d' : 'inherit'}">${departureEntries.length}/${car.seats}</span>
-                    </div>
-                    <div class="car-passengers departure-list" data-car-id="${carId}" data-type="departure" style="flex-grow:1;min-height:40px"></div>
-                    <button class="join-btn ${amInDeparture ? 'leave-btn' : ''}" style="width:100%;margin-top:0.5rem;font-size:0.6rem" onclick="${amInDeparture ? `leaveCar('${carId}','departure')` : `joinCar('${carId}','departure')`}">
-                        ${amInDeparture ? '✕ Leave' : '✋ Join'}
-                    </button>
-                </div>
-              </div>
-            `;
-
-                renderPassengerList(card.querySelector('.arrival-list'), arrivalEntries, carId, 'arrival');
-                renderPassengerList(card.querySelector('.departure-list'), departureEntries, carId, 'departure');
-
-                container.appendChild(card);
+                card.style.cssText = 'background:rgba(255,255,255,0.03); border-radius:12px; padding:0.6rem; display:flex; align-items:center; gap:0.6rem; border:1px solid var(--border)';
+                card.innerHTML = `<div class="av" style="background:${c.color}; width:24px; height:24px; font-size:0.6rem">${c.init}</div><div style="font-size:0.75rem;font-weight:700">${c.name}</div>`;
+                list.appendChild(card);
             });
+        }
 
-            function renderPassengerList(el, entries, carId, type) {
-                entries.forEach(([pid, name]) => {
-                    const c = CREW.find(x => x.name === name) || { color: `hsl(${Math.abs(name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 360}, 60%, 50%)`, init: name.slice(0, 2) };
-                    const chip = document.createElement('div');
-                    chip.className = 'person-chip';
-                    chip.setAttribute('data-id', pid);
-                    chip.setAttribute('data-name', name);
-                    chip.innerHTML = `<div class="chip-avatar" style="background:${c.color}">${c.init}</div><div class="chip-name">${name}</div>`;
-                    el.appendChild(chip);
+        // ── Original Core Logic Re-implemented for 4-Tab ──
+        async function getIdentity(force) {
+            let id = JSON.parse(localStorage.getItem('boat-identity'));
+            if (!id || force) {
+                document.getElementById('identity-modal').classList.add('show');
+                const grid = document.getElementById('identity-grid');
+                grid.innerHTML = '';
+                CREW.forEach(c => {
+                    const b = document.createElement('div');
+                    b.className = 'identity-btn';
+                    b.onclick = () => setIdentity(c.name);
+                    b.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div><span style="font-size:0.6rem;font-weight:800">${c.name}</span>`;
+                    grid.appendChild(b);
                 });
-
-                new Sortable(el, {
-                    group: `carpool-${type}`,
-                    animation: 200,
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    delay: 150,
-                    delayOnTouchOnly: true,
-                    onEnd: async (evt) => {
-                        const fromId = evt.from.getAttribute('data-car-id');
-                        const toId = evt.to.getAttribute('data-car-id');
-                        const personId = evt.item.getAttribute('data-id');
-                        const personName = evt.item.getAttribute('data-name');
-                        const listType = evt.from.getAttribute('data-type');
-
-                        if (fromId !== toId) {
-                            const myId = await getIdentity();
-                            if (!myId) return;
-
-                            // Check capacity in target
-                            const snap = await db.ref(`boat-dashboard/cars/${toId}`).once('value');
-                            const targetCar = snap.val();
-                            const currentCount = Object.keys(targetCar[listType] || {}).length;
-
-                            if (currentCount >= targetCar.seats && targetCar.seats < 99) {
-                                alert("Car is full!");
-                                if (lastCarsSnap) renderCarpool(lastCarsSnap);
-                                return;
-                            }
-
-                            try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
-                            db.ref(`boat-dashboard/cars/${fromId}/${listType}/${personId}`).remove();
-                            db.ref(`boat-dashboard/cars/${toId}/${listType}/${personId}`).set(personName);
-                        }
-                    }
-                });
+                return new Promise(res => { pendingResolve = res; });
             }
+            return id;
+        }
 
-            const addCarBtn = document.createElement('div');
-            addCarBtn.className = 'add-car-btn';
-            addCarBtn.innerHTML = `<span>➕</span> I'm bringing a car`;
-            addCarBtn.onclick = () => createNewCar();
-            container.appendChild(addCarBtn);
+        function setIdentity(name) {
+            localStorage.setItem('boat-identity', JSON.stringify({ name }));
+            document.getElementById('identity-modal').classList.remove('show');
+            if (pendingResolve) pendingResolve({ name });
+        }
 
-            const tip = document.createElement('div');
-            tip.className = 'card';
-            tip.style.cssText = 'background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);padding:0.75rem';
-            tip.innerHTML = `<div style="display:flex;gap:0.6rem;align-items:center;font-size:0.7rem;opacity:0.6"><span style="font-size:1.1rem">💡</span><span><strong>Drag names</strong> within the same category (Arrival or Departure) to move people!</span></div>`;
-            container.appendChild(tip);
+        function updatePoker(name, field, val) {
+            db.ref(`boat-dashboard/poker/${name}/${field}`).set(parseFloat(val) || 0);
         }
 
         async function createNewCar() {
             const id = await getIdentity(true);
             if (!id) return;
-            const label = prompt("Car Name? (e.g. Oren's Jeep)");
+            const label = prompt("Car Name?");
             if (!label) return;
-            const route = prompt("Route? (e.g. City → Cottage Point)");
-            const seats = parseInt(prompt("How many seats (including driver)?", "5")) || 5;
-            const newCarId = 'car_' + Date.now();
-            const nameKey = id.name.toLowerCase();
-            const newCar = {
-                label: label,
-                emoji: '🚘',
-                time: 'TBD',
-                seats: seats,
-                route: route || 'Cottage Point',
-                arrival: { [nameKey]: id.name },
-                departure: { [nameKey]: id.name }
-            };
-            db.ref(`boat-dashboard/cars/${newCarId}`).set(newCar);
-            try { if (window.navigator.vibrate) window.navigator.vibrate(20); } catch (e) { }
+            const seats = parseInt(prompt("Seats?", "5")) || 5;
+            const cid = 'car_' + Date.now();
+            db.ref(`boat-dashboard/cars/${cid}`).set({
+                label, seats, emoji: '🚘', time: '10:30', route: 'City → Newport',
+                arrival: { [id.name.toLowerCase()]: id.name },
+                departure: { [id.name.toLowerCase()]: id.name }
+            });
         }
 
-        async function joinCar(carId, type) {
+        async function joinCar(cid, type) {
             const id = await getIdentity(true);
             if (!id) return;
-            const nameKey = id.name.toLowerCase();
-
-            // Check capacity
-            const snap = await db.ref(`boat-dashboard/cars/${carId}`).once('value');
+            const snap = await db.ref(`boat-dashboard/cars/${cid}`).once('value');
             const car = snap.val();
-            const currentCount = Object.keys(car[type] || {}).length;
-            if (currentCount >= car.seats && car.seats < 99 && !car[type][nameKey]) {
-                alert("This car is full!");
-                return;
-            }
-
-            // Remove from other cars in same direction
-            if (lastCarsSnap) {
-                Object.keys(lastCarsSnap).forEach(cid => {
-                    if (lastCarsSnap[cid][type] && lastCarsSnap[cid][type][nameKey]) {
-                        db.ref(`boat-dashboard/cars/${cid}/${type}/${nameKey}`).remove();
-                    }
-                });
-            }
-
-            db.ref(`boat-dashboard/cars/${carId}/${type}/${nameKey}`).set(id.name);
+            if (Object.keys(car[type] || {}).length >= car.seats) return alert("Full!");
+            Object.keys(lastCarsSnap || {}).forEach(k => db.ref(`boat-dashboard/cars/${k}/${type}/${id.name.toLowerCase()}`).remove());
+            db.ref(`boat-dashboard/cars/${cid}/${type}/${id.name.toLowerCase()}`).set(id.name);
         }
 
-        async function leaveCar(carId, type) {
+        async function leaveCar(cid, type) {
             const id = await getIdentity();
-            if (!id) return;
-            const nameKey = id.name.toLowerCase();
-            db.ref(`boat-dashboard/cars/${carId}/${type}/${nameKey}`).remove();
+            if (id) db.ref(`boat-dashboard/cars/${cid}/${type}/${id.name.toLowerCase()}`).remove();
         }
 
-        function editTime(carId, current) {
-            const t = prompt('Update departure time:', current);
-            if (t !== null) db.ref(`boat-dashboard/cars/${carId}/time`).set(t.trim());
+        function editTime(id, cur) {
+            const t = prompt("Time?", cur);
+            if (t) db.ref(`boat-dashboard/cars/${id}/time`).set(t);
         }
+
+        async function addSupplyItem() {
+            const inp = document.getElementById('new-supply-item');
+            if (!inp.value.trim()) return;
+            db.ref('boat-dashboard/supplies').push({ name: inp.value.trim(), claimedBy: null });
+            inp.value = '';
+        }
+
+        async function claimSupply(sid) {
+            const id = await getIdentity(true);
+            if (id) db.ref(`boat-dashboard/supplies/${sid}/claimedBy`).set(id.name);
+        }
+
+        function unclaimSupply(sid) { db.ref(`boat-dashboard/supplies/${sid}/claimedBy`).set(null); }
+
+        function calculateSettlement(data) {
+            const res = document.getElementById('poker-settlement');
+            const list = document.getElementById('settlement-results');
+            const nets = Object.entries(data).map(([name, d]) => ({ name, net: (d.balance || 0) - (d.buyin || 0) })).filter(n => Math.abs(n.net) > 0.01);
+            if (!nets.length) return res.style.display = 'none';
+            res.style.display = 'block'; list.innerHTML = '';
+            const debtors = nets.filter(n => n.net < 0).sort((a, b) => a.net - b.net);
+            const creditors = nets.filter(n => n.net > 0).sort((a, b) => b.net - a.net);
+            let i = 0, j = 0;
+            while (i < debtors.length && j < creditors.length) {
+                const amt = Math.min(Math.abs(debtors[i].net), creditors[j].net);
+                const tx = document.createElement('div');
+                tx.innerHTML = `<div class="poker-player" style="font-size:0.75rem"><span><b>${debtors[i].name}</b> pays <b>$${amt.toFixed(2)}</b> to <b>${creditors[j].name}</b></span></div>`;
+                list.appendChild(tx);
+                debtors[i].net += amt; creditors[j].net -= amt;
+                if (Math.abs(debtors[i].net) < 0.01) i++;
+                if (Math.abs(creditors[j].net) < 0.01) j++;
+            }
+        }
+
+        // Timeline highlighting
+        function highlight() {
+            const now = new Date();
+            const items = document.querySelectorAll('.tl-item');
+            const times = [
+                new Date('2026-03-06T10:30:00+11:00'),
+                new Date('2026-03-06T19:00:00+11:00'),
+                new Date('2026-03-06T21:00:00+11:00'),
+                new Date('2026-03-07T12:00:00+11:00')
+            ];
+            let found = false;
+            items.forEach((item, i) => {
+                item.classList.remove('timeline-next');
+                if (!found && now < times[i]) { item.classList.add('timeline-next'); found = true; }
+            });
+        }
+
+        // Init
+        setInterval(() => {
+            const diff = target - new Date();
+            if (diff > 0) {
+                document.getElementById('cd-h').innerText = Math.floor(diff / 36e5).toString().padStart(2, '0');
+                document.getElementById('cd-m').innerText = Math.floor((diff % 36e5) / 6e4).toString().padStart(2, '0');
+            }
+        }, 1000);
+
+        db.ref('boat-dashboard/cars').on('value', s => { lastCarsSnap = s.val() || {}; renderCarpool(lastCarsSnap); });
+        db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
+        db.ref('boat-dashboard/supplies').on('value', s => renderSupplies(s.val() || {}));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const last = localStorage.getItem('boat-tab') || 'home';
+            const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(last));
+            if (btn) switchTab(last, btn);
+            renderCrew();
+            highlight();
+            db.ref('.info/connected').on('value', s => {
+                if (s.val()) {
+                    const p = db.ref('boat-dashboard/online').push(true); p.onDisconnect().remove();
+                }
+            });
+            db.ref('boat-dashboard/online').on('value', s => {
+                document.getElementById('online-count').innerText = Object.keys(s.val() || {}).length;
+            });
+        });
+
+        function dismissToast() { document.getElementById('toast').classList.remove('show'); }
+        setTimeout(() => document.getElementById('toast').classList.add('show'), 2000);
     </script>
 </body>
 
