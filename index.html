@@ -684,19 +684,91 @@
             border-color: rgba(0, 180, 216, 0.6) !important;
         }
 
-        .car-time-pill {
-            font-size: 0.64rem;
-            white-space: nowrap;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.1);
+        .car-time-pill:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── IDENTITY MODAL ── */
+        .identity-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(3, 4, 94, 0.8);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .identity-modal.show {
+            display: flex;
+        }
+
+        .identity-sheet {
+            background: linear-gradient(160deg, #03045e 0%, #0077b6 100%);
+            border-radius: 24px;
+            padding: 1.8rem;
+            width: 100%;
+            max-width: 400px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 999px;
-            padding: 3px 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .identity-sheet h2 {
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            font-weight: 800;
+        }
+
+        .identity-sheet p {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.8rem;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .identity-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.8rem 0.4rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
             transition: all 0.2s;
         }
 
-        .car-time-pill:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .identity-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        .identity-btn .av {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         /* Drag & Drop Styles */
@@ -711,7 +783,8 @@
         }
 
         .car-passengers {
-            min-height: 40px;
+            max-height: 200px;
+            overflow-y: auto;
             padding: 4px;
             display: flex;
             flex-wrap: wrap;
@@ -719,6 +792,7 @@
             transition: background 0.2s;
             border-radius: 8px;
             border: 1px dashed transparent;
+            -webkit-overflow-scrolling: touch;
         }
 
         .car-passengers:empty::after {
@@ -763,18 +837,32 @@
 <body>
 
     <!-- WHATS NEW TOAST -->
-    <div class="toast" id="toast" onclick="dismissToast()">
+    <div class="toast show" id="toast" onclick="dismissToast()">
         <div class="toast-header">
             <span class="toast-title">🆕 What's New</span>
             <span class="toast-close">tap to dismiss ✕</span>
         </div>
-        <div class="toast-item"><span>✏️</span><span>Fixed <strong>Eyal</strong>'s name (it's with an E!) &nbsp;<span
-                    class="toast-who">— reported by Eyal</span></span></div>
-        <div class="toast-item"><span>📱</span><span>Fixed <strong>mobile scrolling</strong> within tabs &nbsp;<span
-                    class="toast-who">— reported by Andrey</span></span></div>
-        <div class="toast-item"><span>🕘</span><span>Added <strong>Jonathan's pickup time: ~9:45 AM</strong> &nbsp;<span
-                    class="toast-who">— confirmed by Andrey</span></span></div>
+        <div class="toast-item"><span>🛏️</span><span>Sleeping bags <strong>not needed!</strong> enough beds for
+                everyone &nbsp;<span class="toast-who">— from Andrey</span></span></div>
+        <div class="toast-item"><span>✋</span><span>Added <strong>Interactive Carpool</strong>: Join/Leave and drag
+                people! &nbsp;<span class="toast-who">— from Oren</span></span></div>
+        <div class="toast-item"><span>👤</span><span>Tap <strong>"Not you?"</strong> to change your name &nbsp;<span
+                    class="toast-who">— new feature</span></span></div>
+        <div class="toast-item"><span>📱</span><span>Fixed <strong>scrolling</strong> within car lists on mobile
+                &nbsp;<span class="toast-who">— reported by Andrey</span></span></div>
     </div>
+    <!-- IDENTITY MODAL -->
+    <div id="identity-modal" class="identity-modal" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="identity-sheet">
+            <h2>👋 Who are you?</h2>
+            <p>Select your name to manage carpool</p>
+            <div class="identity-grid" id="identity-grid"></div>
+            <button class="add-car-btn"
+                style="margin-top:1.5rem;width:100%;border-style:solid;background:rgba(255,255,255,0.1)"
+                onclick="promptOtherName()">Other...</button>
+        </div>
+    </div>
+
     <div class="shell">
 
         <!-- HEADER -->
@@ -865,7 +953,8 @@
                         <div style="display:flex;gap:0.6rem;align-items:flex-start">
                             <span style="font-size:1rem">🛏️</span>
                             <div style="font-size:0.76rem;opacity:0.85;line-height:1.4"><strong>Staying
-                                    overnight?</strong> Bring a sleeping bag. Let Andrey know in advance.</div>
+                                    overnight?</strong> Sleeping bags <strong>not needed</strong> (enough beds for the 4
+                                staying over).</div>
                         </div>
                     </div>
                 </div>
@@ -1245,6 +1334,10 @@
         });
 
         // ── IDENTITY & CARPOOL ──
+        function dismissToast() {
+            document.getElementById('toast').classList.remove('show');
+        }
+
         const CREW = [
             { name: 'Andrey', color: 'linear-gradient(135deg,#f77f00,#d62828)', init: 'A' },
             { name: 'Jonathan', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'J' },
@@ -1273,18 +1366,48 @@
             }
         };
 
-        const getIdentity = () => {
-            let id = null;
-            try { id = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
-            if (!id || !id.name) {
-                const name = prompt("What's your name?");
-                if (!name) return null;
-                const existing = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
-                id = existing || { name: name, color: `hsl(${Math.random() * 360}, 60%, 50%)`, init: name.slice(0, 2) };
-                localStorage.setItem('boat-identity', JSON.stringify(id));
-            }
-            return id;
+        let pendingResolve = null;
+
+        const getIdentity = (forcePick = false) => {
+            return new Promise((resolve) => {
+                let id = null;
+                if (!forcePick) {
+                    try { id = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
+                }
+                if (id && id.name) return resolve(id);
+
+                pendingResolve = resolve;
+                showIdentityModal();
+            });
         };
+
+        function showIdentityModal() {
+            const modal = document.getElementById('identity-modal');
+            const grid = document.getElementById('identity-grid');
+            grid.innerHTML = '';
+            CREW.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'identity-btn';
+                btn.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div>${c.name}`;
+                btn.onclick = () => {
+                    localStorage.setItem('boat-identity', JSON.stringify(c));
+                    modal.classList.remove('show');
+                    if (pendingResolve) pendingResolve(c);
+                };
+                grid.appendChild(btn);
+            });
+            modal.classList.add('show');
+        }
+
+        function promptOtherName() {
+            const name = prompt("Enter your name:");
+            if (name) {
+                const id = { name: name, color: `hsl(${Math.random() * 360}, 60%, 50%)`, init: name.slice(0, 2) };
+                localStorage.setItem('boat-identity', JSON.stringify(id));
+                document.getElementById('identity-modal').classList.remove('show');
+                if (pendingResolve) pendingResolve(id);
+            }
+        }
 
         // Firebase carpool
         const carsRef = db.ref('boat-dashboard/cars');
@@ -1335,6 +1458,8 @@
                 const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
                 const joinBtn = amIn ? `<button class="join-btn leave-btn" onclick="leaveCar('${carId}')">✕ Leave</button>` : `<button class="join-btn" onclick="joinCar('${carId}')">✋ Join</button>`;
 
+                const notYou = myId.name ? `<div style="font-size:0.6rem;opacity:0.4;margin-right:0.8rem;align-self:center;cursor:pointer" onclick="getIdentity(true)">Not ${myId.name}? Tap to change</div>` : '';
+
                 card.innerHTML = `
               <div class="car-header">
                 <div class="car-emoji">${car.emoji || '🚗'}</div>
@@ -1342,7 +1467,7 @@
                 ${timePill}
               </div>
               <div class="car-passengers" data-car-id="${carId}"></div>
-              <div style="margin-top:0.6rem;display:flex;justify-content:flex-end">${joinBtn}</div>
+              <div style="margin-top:0.6rem;display:flex;justify-content:flex-end;align-items:center">${notYou}${joinBtn}</div>
             `;
 
                 const pList = card.querySelector('.car-passengers');
@@ -1367,7 +1492,7 @@
                     delay: 150, // Long press for mobile to prevent accidental scrolls
                     delayOnTouchOnly: true,
                     touchStartThreshold: 5,
-                    onEnd: (evt) => {
+                    onEnd: async (evt) => {
                         const fromId = evt.from.getAttribute('data-car-id');
                         const toId = evt.to.getAttribute('data-car-id');
                         const personId = evt.item.getAttribute('data-id');
@@ -1377,7 +1502,7 @@
                             try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
 
                             // Check if moving self, or prompt for ID if moving others
-                            const myId = getIdentity();
+                            const myId = await getIdentity();
                             if (!myId) return;
 
                             db.ref(`boat-dashboard/cars/${fromId}/passengers/${personId}`).remove();
@@ -1403,8 +1528,8 @@
             container.appendChild(tip);
         }
 
-        function createNewCar() {
-            const id = getIdentity();
+        async function createNewCar() {
+            const id = await getIdentity();
             if (!id) return;
             const label = prompt("Car Name? (e.g. Oren's Jeep)");
             if (!label) return;
@@ -1422,8 +1547,8 @@
             try { if (window.navigator.vibrate) window.navigator.vibrate(20); } catch (e) { }
         }
 
-        function joinCar(carId) {
-            const id = getIdentity();
+        async function joinCar(carId) {
+            const id = await getIdentity();
             if (!id) return;
             if (myCarId) db.ref(`boat-dashboard/cars/${myCarId}/passengers/${uid}`).remove();
             db.ref(`boat-dashboard/cars/${carId}/passengers/${uid}`).set(id.name);
