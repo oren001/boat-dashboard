@@ -432,6 +432,64 @@
             flex-shrink: 0;
         }
 
+        .supply-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .supply-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .supply-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .supply-claimed-by {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .claim-btn {
+            font-size: 0.65rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .claim-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .timeline-next {
+            border-left: 2px solid #ffb347 !important;
+            background: rgba(247, 127, 0, 0.05);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .timeline-next .tl-dot {
+            box-shadow: 0 0 10px #f77f00;
+            transform: scale(1.1);
+        }
+
         .chip-name {
             font-size: 0.75rem;
             font-weight: 600;
@@ -887,14 +945,14 @@
             <span class="toast-title">🆕 What's New</span>
             <span class="toast-close">tap to dismiss ✕</span>
         </div>
-        <div class="toast-item"><span>🏎️</span><span><strong>Refactored Carpool</strong>: Separate Arrival/Departure
-                splits & seat limits &nbsp;<span class="toast-who">— from Eyal</span></span></div>
-        <div class="toast-item"><span>🃏</span><span><strong>Poker Manager</strong>: Track buy-ins & auto-calculate Beem
-                settlements &nbsp;<span class="toast-who">— new!</span></span></div>
-        <div class="toast-item"><span>📍</span><span><strong>Map Update</strong>: Direct pin to Cottage Point Wharf
-                &nbsp;<span class="toast-who">— from Andrey</span></span></div>
-        <div class="toast-item"><span>🛏️</span><span>Sleeping bags <strong>not needed</strong> for the 4 stay-overs
-                &nbsp;<span class="toast-who">— from Andrey</span></span></div>
+        <div class="toast-item"><span>🍖</span><span><strong>Supplies Tracker</strong>: Coordinate who's bringing what
+                gear & food &nbsp;<span class="toast-who">— new!</span></span></div>
+        <div class="toast-item"><span>⚠️</span><span><strong>Ride Status</strong>: See who's still missing a ride at a
+                glance &nbsp;<span class="toast-who">— utility</span></span></div>
+        <div class="toast-item"><span>🗓️</span><span><strong>Smart Schedule</strong>: Auto-highlights the "Next Up"
+                event &nbsp;<span class="toast-who">— update</span></span></div>
+        <div class="toast-item"><span>🏎️</span><span><strong>Carpool Fix</strong>: Explicit name selection & mobile
+                scroll fix &nbsp;<span class="toast-who">— resolved</span></span></div>
     </div>
     <!-- IDENTITY MODAL -->
     <div id="identity-modal" class="identity-modal" onclick="if(event.target===this)this.classList.remove('show')">
@@ -939,6 +997,7 @@
             <button class="tab-btn active" onclick="switchTab('overview', this)">📋 Overview</button>
             <button class="tab-btn" onclick="switchTab('carpool', this)">🚗 Carpool</button>
             <button class="tab-btn" onclick="switchTab('poker', this)">🃏 Poker</button>
+            <button class="tab-btn" onclick="switchTab('supplies', this)">🍖 Supplies</button>
             <button class="tab-btn" onclick="switchTab('schedule', this)">🗓️ Schedule</button>
             <button class="tab-btn" onclick="switchTab('crew', this)">👥 Crew</button>
             <button class="tab-btn" onclick="switchTab('map', this)">📍 Map</button>
@@ -1307,6 +1366,25 @@
                 </div>
             </div>
 
+            <!-- ── SUPPLIES ── -->
+            <div class="panel" id="panel-supplies">
+                <div class="card">
+                    <div class="card-title">🍖 Supplies & Gear</div>
+                    <p style="font-size:0.75rem;opacity:0.6;margin-bottom:1rem">Coordinate who's bringing what. Claim an
+                        item to let others know!</p>
+
+                    <div id="supplies-list" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem">
+                    </div>
+
+                    <div
+                        style="display:flex;gap:0.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05)">
+                        <input type="text" id="new-supply-item" placeholder="Add item (e.g. Ice, Beer...)"
+                            style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:0.6rem;font-size:0.8rem;color:white">
+                        <button class="join-btn" onclick="addSupplyItem()" style="padding:0 1rem">+ Add</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── CREW ── -->
             <div class="panel" id="panel-crew">
                 <div id="crew-list" class="crew-grid"></div>
@@ -1441,6 +1519,92 @@
             pokerRef.child(name).child(field).set(parseFloat(val) || 0);
             try { if (window.navigator.vibrate) window.navigator.vibrate(5); } catch (e) { }
         }
+
+        // ── SUPPLIES LOGIC ──
+        const suppliesRef = db.ref('boat-dashboard/supplies');
+
+        // Seed initial supplies if empty
+        suppliesRef.once('value', snap => {
+            if (!snap.exists()) {
+                const initial = {
+                    item_1: { name: "Burger Buns", claimedBy: null },
+                    item_2: { name: "Ice (2 bags)", claimedBy: null },
+                    item_3: { name: "Case of Beer", claimedBy: null },
+                    item_4: { name: "Garbage Bags", claimedBy: null }
+                };
+                suppliesRef.set(initial);
+            }
+        });
+
+        suppliesRef.on('value', snap => {
+            renderSupplies(snap.val() || {});
+        });
+
+        async function addSupplyItem() {
+            const input = document.getElementById('new-supply-item');
+            const item = input.value.trim();
+            if (!item) return;
+            const id = 'item_' + Date.now();
+            suppliesRef.child(id).set({ name: item, claimedBy: null });
+            input.value = '';
+        }
+
+        async function claimSupply(itemId) {
+            const id = await getIdentity(true);
+            if (!id) return;
+            suppliesRef.child(itemId).update({ claimedBy: id.name });
+            try { if (window.navigator.vibrate) window.navigator.vibrate(15); } catch (e) { }
+        }
+
+        async function unclaimSupply(itemId) {
+            suppliesRef.child(itemId).update({ claimedBy: null });
+        }
+
+        function renderSupplies(data) {
+            const list = document.getElementById('supplies-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            Object.entries(data).forEach(([id, item]) => {
+                const row = document.createElement('div');
+                row.className = 'supply-row';
+
+                const claimedUI = item.claimedBy
+                    ? `<div class="supply-claimed-by" onclick="unclaimSupply('${id}')">🙋‍♂️ ${item.claimedBy} (tap to undo)</div>`
+                    : `<button class="claim-btn" onclick="claimSupply('${id}')">✋ I'll bring it</button>`;
+
+                row.innerHTML = `
+                    <div class="supply-item-name">${item.name}</div>
+                    ${claimedUI}
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        // ── SCHEDULE LOGIC ──
+        function highlightNextEvent() {
+            const now = new Date();
+            const items = document.querySelectorAll('.tl-item');
+
+            // Map labels to approximate times for Friday 6th / Sat 7th
+            const times = [
+                { el: items[0], date: new Date('2026-03-06T10:30:00+11:00') }, // Boarding
+                { el: items[1], date: new Date('2026-03-06T19:00:00+11:00') }, // Dinner
+                { el: items[2], date: new Date('2026-03-06T21:00:00+11:00') }, // Poker
+                { el: items[3], date: new Date('2026-03-07T12:00:00+11:00') }  // Return
+            ];
+
+            let nextFound = false;
+            times.forEach(t => {
+                t.el.classList.remove('timeline-next');
+                if (!nextFound && now < t.date) {
+                    t.el.classList.add('timeline-next');
+                    nextFound = true;
+                }
+            });
+        }
+        setInterval(highlightNextEvent, 30000);
+        setTimeout(highlightNextEvent, 500);
 
         function calculateSettlement(data) {
             const results = document.getElementById('poker-settlement');
