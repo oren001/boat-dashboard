@@ -645,16 +645,7 @@
                 <h1>🛥️ Andrey's Boat Night</h1>
                 <p>Fri 6 – Sat 7 Mar 2026 &nbsp;·&nbsp; Cottage Point</p>
             </div>
-            <div style="display:flex;align-items:center;gap:0.9rem">
-                <div id="online-pill"
-                    style="display:flex;align-items:center;gap:0.35rem;background:rgba(0,180,216,0.18);border:1px solid rgba(0,180,216,0.4);border-radius:999px;padding:3px 10px 3px 7px;font-size:0.7rem;font-weight:600;opacity:0.85">
-                    <span
-                        style="width:7px;height:7px;border-radius:50%;background:#00b4d8;display:inline-block;animation:pulse 1.8s infinite"></span>
-                    <span id="online-count">...</span> online
-                </div>
-                <div id="me-chip" class="me-chip-hdr"
-                    onclick="document.getElementById('identity-modal').classList.toggle('show')" title="Who are you?">👤
-                </div>
+            <div class="countdown" id="countdown">
                 <div class="cd-unit">
                     <div class="cd-num" id="cd-h">--</div>
                     <div class="cd-lbl">hrs</div>
@@ -1048,6 +1039,15 @@
             </div>
 
         </div><!-- /panels -->
+        <div
+            style="text-align:center;padding:1.5rem 1rem 2rem;font-size:0.65rem;opacity:0.4;display:flex;flex-direction:column;gap:0.4rem;align-items:center">
+            <div>Made for Andrey's Crew 🛥️</div>
+            <div style="display:flex;align-items:center;gap:0.3rem">
+                <span
+                    style="width:5px;height:5px;border-radius:50%;background:#00b4d8;display:inline-block;animation:pulse 1.8s infinite"></span>
+                <span id="online-count">...</span> online now
+            </div>
+        </div>
     </div><!-- /shell -->
 
     <script>
@@ -1159,7 +1159,7 @@
             }
         }
         updateMeChip();
-        if (!myIdentity) setTimeout(() => document.getElementById('identity-modal').classList.add('show'), 900);
+        // Removed auto-show of identity modal
 
         // Firebase carpool
         const carsRef = db.ref('boat-dashboard/cars');
