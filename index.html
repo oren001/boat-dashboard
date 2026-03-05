@@ -722,7 +722,7 @@
         }
 
         .car-passengers:empty::after {
-            content: "Drag here";
+            content: "Drag names here";
             font-size: 0.65rem;
             opacity: 0.3;
             display: flex;
@@ -775,15 +775,6 @@
         <div class="toast-item"><span>🕘</span><span>Added <strong>Jonathan's pickup time: ~9:45 AM</strong> &nbsp;<span
                     class="toast-who">— confirmed by Andrey</span></span></div>
     </div>
-    <!-- IDENTITY MODAL -->
-    <div id="identity-modal" class="identity-modal" onclick="if(event.target===this)this.classList.remove('show')">
-        <div class="identity-sheet">
-            <h2>👋 Who are you?</h2>
-            <p>Pick your name so others can see you in the carpool</p>
-            <div class="identity-grid" id="identity-grid"></div>
-        </div>
-    </div>
-
     <div class="shell">
 
         <!-- HEADER -->
@@ -1273,41 +1264,18 @@
             self: { label: "Self-Drivers", emoji: "🚘", time: "", route: "Own cars • leaving after poker", passengers: {} }
         };
 
-        let myIdentity = null;
-        try { myIdentity = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
-
-        // Build identity picker
-        const igrid = document.getElementById('identity-grid');
-        CREW.forEach(c => {
-            const btn = document.createElement('button');
-            btn.className = 'identity-btn';
-            btn.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div>${c.name}`;
-            btn.onclick = () => chooseIdentity(c);
-            igrid.appendChild(btn);
-        });
-
-        function chooseIdentity(c) {
-            myIdentity = c;
-            localStorage.setItem('boat-identity', JSON.stringify(c));
-            document.getElementById('identity-modal').classList.remove('show');
-            updateMeChip();
-            if (lastCarsSnap) renderCarpool(lastCarsSnap);
-        }
-
-        function updateMeChip() {
-            const chip = document.getElementById('me-chip');
-            if (!chip) return; // Safeguard if element was removed
-            if (myIdentity) {
-                chip.textContent = myIdentity.init;
-                chip.style.background = myIdentity.color;
-                chip.title = myIdentity.name + ' (tap to change)';
-            } else {
-                chip.textContent = '👤';
-                chip.style.background = 'rgba(255,255,255,0.15)';
+        const getIdentity = () => {
+            let id = null;
+            try { id = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
+            if (!id || !id.name) {
+                const name = prompt("What's your name?");
+                if (!name) return null;
+                const existing = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
+                id = existing || { name: name, color: `hsl(${Math.random() * 360}, 60%, 50%)`, init: name.slice(0, 2) };
+                localStorage.setItem('boat-identity', JSON.stringify(id));
             }
-        }
-        updateMeChip();
-        // Removed auto-show of identity modal
+            return id;
+        };
 
         // Firebase carpool
         const carsRef = db.ref('boat-dashboard/cars');
@@ -1340,15 +1308,15 @@
 
             Object.entries(cars).forEach(([carId, car]) => {
                 const pEntries = Object.entries(car.passengers || {});
-                const amIn = myIdentity && pEntries.some(([, n]) => n === myIdentity.name);
+                const myId = JSON.parse(localStorage.getItem('boat-identity') || '{}');
+                const amIn = myId.name && pEntries.some(([, n]) => n === myId.name);
                 const isMyCar = myCarId === carId;
 
                 const card = document.createElement('div');
                 card.className = `car-card${isMyCar ? ' my-car' : ''}`;
 
                 const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
-                const joinBtn = myIdentity && !amIn ? `<button class="join-btn" onclick="joinCar('${carId}')">✋ Join</button>` : '';
-                const leaveBtn = amIn ? `<button class="join-btn leave-btn" onclick="leaveCar('${carId}')">✕ Leave</button>` : '';
+                const joinBtn = amIn ? `<button class="join-btn leave-btn" onclick="leaveCar('${carId}')">✕ Leave</button>` : `<button class="join-btn" onclick="joinCar('${carId}')">✋ Join</button>`;
 
                 card.innerHTML = `
               <div class="car-header">
@@ -1357,12 +1325,12 @@
                 ${timePill}
               </div>
               <div class="car-passengers" data-car-id="${carId}"></div>
-              <div style="margin-top:0.6rem;display:flex;justify-content:flex-end">${joinBtn}${leaveBtn}</div>
+              <div style="margin-top:0.6rem;display:flex;justify-content:flex-end">${joinBtn}</div>
             `;
 
                 const pList = card.querySelector('.car-passengers');
                 pEntries.forEach(([pid, name]) => {
-                    const c = CREW.find(x => x.name === name) || { color: '#555', init: name[0] };
+                    const c = CREW.find(x => x.name === name) || { color: `hsl(${Math.abs(name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 360}, 60%, 50%)`, init: name.slice(0, 2) };
                     const chip = document.createElement('div');
                     chip.className = 'person-chip';
                     chip.setAttribute('data-id', pid);
@@ -1414,7 +1382,8 @@
         }
 
         function createNewCar() {
-            if (!myIdentity) { document.getElementById('identity-modal').classList.add('show'); return; }
+            const id = getIdentity();
+            if (!id) return;
             const label = prompt("Car Name? (e.g. Oren's Jeep)");
             if (!label) return;
             const route = prompt("Route? (e.g. City → Cottage Point)");
@@ -1424,7 +1393,7 @@
                 emoji: '🚘',
                 time: 'TBD',
                 route: route || 'Cottage Point',
-                passengers: { [uid]: myIdentity.name }
+                passengers: { [uid]: id.name }
             };
             db.ref(`boat-dashboard/cars/${newCarId}`).set(newCar);
             userCarRef.child(uid).set(newCarId);
@@ -1432,10 +1401,10 @@
         }
 
         function joinCar(carId) {
-            if (!myIdentity) { document.getElementById('identity-modal').classList.add('show'); return; }
-            // Remove from previous car if any
+            const id = getIdentity();
+            if (!id) return;
             if (myCarId) db.ref(`boat-dashboard/cars/${myCarId}/passengers/${uid}`).remove();
-            db.ref(`boat-dashboard/cars/${carId}/passengers/${uid}`).set(myIdentity.name);
+            db.ref(`boat-dashboard/cars/${carId}/passengers/${uid}`).set(id.name);
             userCarRef.child(uid).set(carId);
         }
 
