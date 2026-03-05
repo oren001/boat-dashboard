@@ -182,6 +182,46 @@
             border: 1px solid var(--danger);
         }
 
+        .quick-btn {
+            padding: 2px 6px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+
+        .poker-log {
+            font-size: 0.6rem;
+            max-height: 100px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border: 1px dashed var(--border);
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            opacity: 0.7;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chip-assist {
+            font-size: 0.65rem;
+            background: var(--night);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
         .nav-label {
             font-size: 0.65rem;
             font-weight: 700;
@@ -637,6 +677,7 @@
                     </div>
                     <div id="poker-players-list"></div>
                     <div id="pot-validation"></div>
+                    <div id="poker-history" class="poker-log"></div>
                     <div id="manager-actions" style="margin-top:1.5rem; display:flex; gap:0.5rem"></div>
                 </div>
                 <div class="card" id="poker-settlement" style="display:none">
@@ -883,18 +924,37 @@
                         <div class="av" style="background:${c.color}">${c.init}</div>
                         <div style="font-weight:700; font-size:0.85rem">${c.name}</div>
                     </div>
-                    <div style="display:flex; gap:0.5rem">
-                        <input type="number" step="0.01" class="poker-input" placeholder="In" 
-                            value="${p.buyin || ''}" 
-                            ${!isManager ? 'readonly' : ''} 
-                            onchange="updatePoker('${c.name}','buyin',this.value)">
-                        <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="Out" 
-                            value="${p.balance || ''}" 
-                            ${!isManager ? 'readonly' : ''} 
-                            onchange="updatePoker('${c.name}','balance',this.value)">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem">
+                        <div style="display:flex; gap:0.5rem">
+                            <input type="number" step="0.01" class="poker-input" placeholder="In" 
+                                value="${p.buyin || ''}" 
+                                ${!isManager ? 'readonly' : ''} 
+                                onchange="updatePoker('${c.name}','buyin',this.value)">
+                            <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="Out" 
+                                value="${p.balance || ''}" 
+                                ${!isManager ? 'readonly' : ''} 
+                                onchange="updatePoker('${c.name}','balance',this.value)">
+                        </div>
+                        ${isManager ? `
+                            <div style="display:flex; gap:4px">
+                                <button class="quick-btn" onclick="quickAdd('${c.name}', 20)">+$20</button>
+                                <button class="quick-btn" onclick="quickAdd('${c.name}', 50)">+$50</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
                 list.appendChild(row);
+            });
+
+            // Render History
+            const hist = document.getElementById('poker-history');
+            hist.innerHTML = '<div style="font-weight:800; margin-bottom:4px; opacity:0.4">TRANSACTION LOG</div>';
+            const logEntries = Object.values(data.log || {}).sort((a, b) => b.ts - a.ts).slice(0, 10);
+            logEntries.forEach(l => {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `<span>${l.msg}</span><span style="opacity:0.4">${new Date(l.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
+                hist.appendChild(entry);
             });
 
             // Render Validation
@@ -905,6 +965,11 @@
                     <span>${isOk ? '✅ Pot Balanced' : '⚠️ Pot Imbalanced'}</span>
                     <span>$${totalIn.toFixed(2)} in / $${totalOut.toFixed(2)} out</span>
                 </div>
+                ${isManager ? `
+                <div class="chip-assist">
+                    <span>💡 <b>Chip Rule:</b> $100 = 10 Red ($5), 5 Blue ($10)</span>
+                </div>
+                ` : ''}
             ` : '';
 
             calculateSettlement(data.players || {});
@@ -949,7 +1014,23 @@
         }
 
         function updatePoker(name, field, val) {
-            db.ref(`boat-dashboard/poker/players/${name}/${field}`).set(parseFloat(val) || 0);
+            const num = parseFloat(val) || 0;
+            db.ref(`boat-dashboard/poker/players/${name}/${field}`).set(num);
+            if (field === 'buyin' && num > 0) {
+                logPoker(`${name} changed buy-in to $${num}`);
+            }
+        }
+
+        async function quickAdd(name, amt) {
+            const ref = db.ref(`boat-dashboard/poker/players/${name}/buyin`);
+            const snap = await ref.once('value');
+            const current = snap.val() || 0;
+            ref.set(current + amt);
+            logPoker(`${name} added $${amt} (Total: $${current + amt})`);
+        }
+
+        function logPoker(msg) {
+            db.ref('boat-dashboard/poker/log').push({ msg, ts: Date.now() });
         }
 
         async function takePokerRole() {
@@ -962,8 +1043,9 @@
         }
 
         function clearPokerData() {
-            if (confirm("Clear ALL poker data?")) {
+            if (confirm("Clear ALL poker data & logs?")) {
                 db.ref('boat-dashboard/poker/players').remove();
+                db.ref('boat-dashboard/poker/log').remove();
             }
         }
 
@@ -1027,12 +1109,25 @@
             while (i < debtors.length && j < creditors.length) {
                 const amt = Math.min(Math.abs(debtors[i].net), creditors[j].net);
                 const tx = document.createElement('div');
-                tx.innerHTML = `<div class="poker-player" style="font-size:0.75rem"><span><b>${debtors[i].name}</b> pays <b>$${amt.toFixed(2)}</b> to <b>${creditors[j].name}</b></span></div>`;
+                const text = `${debtors[i].name} pays $${amt.toFixed(2)} to ${creditors[j].name}`;
+                tx.innerHTML = `
+                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between">
+                        <span><b>${debtors[i].name}</b> → <b>${creditors[j].name}</b></span>
+                        <div style="display:flex; gap:0.6rem; align-items:center">
+                            <b style="color:var(--sunset)">$${amt.toFixed(2)}</b>
+                            <button class="quick-btn" onclick="copyToClipboard('${text}')">Copy</button>
+                        </div>
+                    </div>`;
                 list.appendChild(tx);
                 debtors[i].net += amt; creditors[j].net -= amt;
                 if (Math.abs(debtors[i].net) < 0.01) i++;
                 if (Math.abs(creditors[j].net) < 0.01) j++;
             }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("Copied: " + text);
         }
 
         // Timeline highlighting
