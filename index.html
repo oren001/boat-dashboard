@@ -1435,7 +1435,7 @@
         }
 
         function updatePoker(name, field, val) {
-            pokerRef.child(name).child(field).set(parseInt(val) || 0);
+            pokerRef.child(name).child(field).set(parseFloat(val) || 0);
             try { if (window.navigator.vibrate) window.navigator.vibrate(5); } catch (e) { }
         }
 
@@ -1447,7 +1447,7 @@
             const nets = Object.entries(data).map(([name, d]) => ({
                 name,
                 net: (d.balance || 0) - (d.buyin || 0)
-            })).filter(n => Math.abs(n.net) > 0.1);
+            })).filter(n => Math.abs(n.net) > 0.001);
 
             if (nets.length === 0) {
                 results.style.display = 'none';
@@ -1464,24 +1464,26 @@
             while (i < debtors.length && j < creditors.length) {
                 const debt = Math.abs(debtors[i].net);
                 const credit = creditors[j].net;
-                const amount = Math.min(debt, credit).toFixed(2);
+                const amount = Math.min(debt, credit);
+
+                if (amount < 0.01) break;
 
                 const tx = document.createElement('div');
                 tx.className = 'beem-tx';
                 tx.innerHTML = `
                     <span style="font-weight:800;color:#ff4d4d">${debtors[i].name}</span>
                     <span style="opacity:0.5"> pays </span>
-                    <span style="font-weight:800;color:#48cae4">$${amount}</span>
+                    <span style="font-weight:800;color:#48cae4">$${amount.toFixed(2)}</span>
                     <span style="opacity:0.5"> to </span>
                     <span style="font-weight:800;color:#52b788">${creditors[j].name}</span>
                 `;
                 resContent.appendChild(tx);
 
-                debtors[i].net += parseFloat(amount);
-                creditors[j].net -= parseFloat(amount);
+                debtors[i].net += amount;
+                creditors[j].net -= amount;
 
-                if (Math.abs(debtors[i].net) < 0.1) i++;
-                if (Math.abs(creditors[j].net) < 0.1) j++;
+                if (Math.abs(debtors[i].net) < 0.001) i++;
+                if (Math.abs(creditors[j].net) < 0.001) j++;
             }
         }
 
@@ -1491,31 +1493,32 @@
             { name: 'Tamir', color: 'linear-gradient(135deg,#2d6a4f,#52b788)', init: 'T' },
             { name: 'Eyal', color: 'linear-gradient(135deg,#7b2d8b,#c77dff)', init: 'E' },
             { name: 'Nevo', color: 'linear-gradient(135deg,#0077b6,#00b4d8)', init: 'N' },
-            { name: 'Nadav', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'Na' },
-            { name: 'Eran', color: 'linear-gradient(135deg,#d62828,#f77f00)', init: 'Er' },
+            { name: 'Nadav', color: 'linear-gradient(135deg,#ee9b00,#ca6702)', init: 'Na' },
+            { name: 'Eran', color: 'linear-gradient(135deg,#9b2226,#ae2012)', init: 'Er' },
             { name: 'Richard', color: 'linear-gradient(135deg,#2d6a4f,#74c69d)', init: 'R' },
-            { name: 'Hartmut', color: 'linear-gradient(135deg,#555,#999)', init: 'H' },
-            { name: 'Oren', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'O' }
+            { name: 'Hartmut', color: 'linear-gradient(135deg,#555,#888)', init: 'H' },
+            { name: 'Igor', color: 'linear-gradient(135deg,#0a9396,#005f73)', init: 'I' },
+            { name: 'Oren', color: 'linear-gradient(135deg, #4361ee, #4cc9f0)', init: 'O' }
         ];
 
         const INITIAL_CARS = {
             jonathan: {
                 label: "Jonathan's Car", emoji: "🚙", time: "~9:45 AM", route: "Newport → Cottage Point",
                 seats: 5,
-                arrival: { "p1": "Jonathan", "p2": "Andrey", "p3": "Tamir" },
-                departure: { "p1": "Jonathan", "p2": "Andrey" }
+                arrival: { "jonathan": "Jonathan", "andrey": "Andrey", "tamir": "Tamir" },
+                departure: { "jonathan": "Jonathan", "andrey": "Andrey" }
             },
             nevo: {
                 label: "Nevo's Car", emoji: "🚗", time: "After poker", route: "Cottage Point → Home",
                 seats: 4,
-                arrival: { "p4": "Nevo", "p5": "Oren" },
-                departure: { "p4": "Nevo", "p5": "Oren" }
+                arrival: { "nevo": "Nevo", "oren": "Oren" },
+                departure: { "nevo": "Nevo", "oren": "Oren" }
             },
             self: {
                 label: "Self-Drivers", emoji: "🚘", time: "Flexible", route: "Own cars",
                 seats: 99,
-                arrival: { "p6": "Nadav", "p7": "Eran", "p8": "Hartmut", "p9": "Richard", "p10": "Eyal" },
-                departure: { "p3": "Tamir", "p6": "Nadav", "p7": "Eran", "p8": "Hartmut", "p9": "Richard", "p10": "Eyal" }
+                arrival: { "nadav": "Nadav", "eran": "Eran", "hartmut": "Hartmut", "richard": "Richard", "eyal": "Eyal" },
+                departure: { "tamir": "Tamir", "nadav": "Nadav", "eran": "Eran", "hartmut": "Hartmut", "richard": "Richard", "eyal": "Eyal" }
             }
         };
 
@@ -1527,7 +1530,7 @@
                 if (!forcePick) {
                     try { id = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
                 }
-                if (id && id.name) return resolve(id);
+                if (id && id.name && !forcePick) return resolve(id);
 
                 pendingResolve = resolve;
                 showIdentityModal();
@@ -1569,9 +1572,9 @@
         // Seed if missing or empty
         carsRef.once('value', snap => {
             const data = snap.val();
-            // Check if it's the old structure or empty
-            const isOld = data && data.jonathan && data.jonathan.passengers;
-            if (!data || isOld) {
+            // Check for presence of old p1 style keys
+            const hasOldKeys = data && data.jonathan && data.jonathan.arrival && data.jonathan.arrival.p1;
+            if (!data || hasOldKeys) {
                 carsRef.set(INITIAL_CARS);
             }
         });
@@ -1602,10 +1605,11 @@
 
             Object.entries(cars).forEach(([carId, car]) => {
                 const myId = JSON.parse(localStorage.getItem('boat-identity') || '{}');
+                const myKey = myId.name ? myId.name.toLowerCase() : null;
                 const arrivalEntries = Object.entries(car.arrival || {});
                 const departureEntries = Object.entries(car.departure || {});
-                const amInArrival = myId.name && arrivalEntries.some(([, n]) => n === myId.name);
-                const amInDeparture = myId.name && departureEntries.some(([, n]) => n === myId.name);
+                const amInArrival = myKey && car.arrival && car.arrival[myKey];
+                const amInDeparture = myKey && car.departure && car.departure[myKey];
 
                 const card = document.createElement('div');
                 card.className = 'car-card';
@@ -1625,28 +1629,28 @@
               </div>
               
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-                <div>
+                <div style="display:flex;flex-direction:column">
                     <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;margin-bottom:0.5rem;display:flex;justify-content:space-between">
                         <span>Arrival</span>
                         <span style="color:${arrivalEntries.length >= car.seats ? '#ff4d4d' : 'inherit'}">${arrivalEntries.length}/${car.seats}</span>
                     </div>
-                    <div class="car-passengers arrival-list" data-car-id="${carId}" data-type="arrival"></div>
+                    <div class="car-passengers arrival-list" data-car-id="${carId}" data-type="arrival" style="flex-grow:1;min-height:40px"></div>
                     <button class="join-btn ${amInArrival ? 'leave-btn' : ''}" style="width:100%;margin-top:0.5rem;font-size:0.6rem" onclick="${amInArrival ? `leaveCar('${carId}','arrival')` : `joinCar('${carId}','arrival')`}">
                         ${amInArrival ? '✕ Leave' : '✋ Join'}
                     </button>
                 </div>
-                <div>
+                <div style="display:flex;flex-direction:column">
                     <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;opacity:0.5;margin-bottom:0.5rem;display:flex;justify-content:space-between">
                         <span>Departure</span>
                         <span style="color:${departureEntries.length >= car.seats ? '#ff4d4d' : 'inherit'}">${departureEntries.length}/${car.seats}</span>
                     </div>
-                    <div class="car-passengers departure-list" data-car-id="${carId}" data-type="departure"></div>
+                    <div class="car-passengers departure-list" data-car-id="${carId}" data-type="departure" style="flex-grow:1;min-height:40px"></div>
                     <button class="join-btn ${amInDeparture ? 'leave-btn' : ''}" style="width:100%;margin-top:0.5rem;font-size:0.6rem" onclick="${amInDeparture ? `leaveCar('${carId}','departure')` : `joinCar('${carId}','departure')`}">
                         ${amInDeparture ? '✕ Leave' : '✋ Join'}
                     </button>
                 </div>
               </div>
-              <div style="margin-top:0.8rem;display:flex;justify-content:center">${notYou}</div>
+              <div style="margin-top:1.2rem;display:flex;justify-content:center">${notYou}</div>
             `;
 
                 renderPassengerList(card.querySelector('.arrival-list'), arrivalEntries, carId, 'arrival');
@@ -1724,14 +1728,15 @@
             const route = prompt("Route? (e.g. City → Cottage Point)");
             const seats = parseInt(prompt("How many seats (including driver)?", "5")) || 5;
             const newCarId = 'car_' + Date.now();
+            const nameKey = id.name.toLowerCase();
             const newCar = {
                 label: label,
                 emoji: '🚘',
                 time: 'TBD',
                 seats: seats,
                 route: route || 'Cottage Point',
-                arrival: { [uid]: id.name },
-                departure: { [uid]: id.name }
+                arrival: { [nameKey]: id.name },
+                departure: { [nameKey]: id.name }
             };
             db.ref(`boat-dashboard/cars/${newCarId}`).set(newCar);
             try { if (window.navigator.vibrate) window.navigator.vibrate(20); } catch (e) { }
@@ -1740,12 +1745,13 @@
         async function joinCar(carId, type) {
             const id = await getIdentity();
             if (!id) return;
+            const nameKey = id.name.toLowerCase();
 
             // Check capacity
             const snap = await db.ref(`boat-dashboard/cars/${carId}`).once('value');
             const car = snap.val();
             const currentCount = Object.keys(car[type] || {}).length;
-            if (currentCount >= car.seats && car.seats < 99) {
+            if (currentCount >= car.seats && car.seats < 99 && !car[type][nameKey]) {
                 alert("This car is full!");
                 return;
             }
@@ -1753,17 +1759,20 @@
             // Remove from other cars in same direction
             if (lastCarsSnap) {
                 Object.keys(lastCarsSnap).forEach(cid => {
-                    if (lastCarsSnap[cid][type] && lastCarsSnap[cid][type][uid]) {
-                        db.ref(`boat-dashboard/cars/${cid}/${type}/${uid}`).remove();
+                    if (lastCarsSnap[cid][type] && lastCarsSnap[cid][type][nameKey]) {
+                        db.ref(`boat-dashboard/cars/${cid}/${type}/${nameKey}`).remove();
                     }
                 });
             }
 
-            db.ref(`boat-dashboard/cars/${carId}/${type}/${uid}`).set(id.name);
+            db.ref(`boat-dashboard/cars/${carId}/${type}/${nameKey}`).set(id.name);
         }
 
-        function leaveCar(carId, type) {
-            db.ref(`boat-dashboard/cars/${carId}/${type}/${uid}`).remove();
+        async function leaveCar(carId, type) {
+            const id = await getIdentity();
+            if (!id) return;
+            const nameKey = id.name.toLowerCase();
+            db.ref(`boat-dashboard/cars/${carId}/${type}/${nameKey}`).remove();
         }
 
         function editTime(carId, current) {
