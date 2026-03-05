@@ -1,7 +1,6 @@
 services:
   - type: web
     name: boat-dashboard
-    env: node
-    buildCommand: npm install
-    startCommand: npm start
-    plan: free
+    env: static
+    staticPublishPath: .
+    buildCommand: echo "no build needed"
