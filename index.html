@@ -149,6 +149,39 @@
             filter: drop-shadow(0 0 8px var(--primary));
         }
 
+        .manager-badge {
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+            background: var(--primary);
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .pot-status {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pot-ok {
+            background: rgba(45, 106, 79, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .pot-err {
+            background: rgba(208, 0, 0, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
         .nav-label {
             font-size: 0.65rem;
             font-weight: 700;
@@ -598,8 +631,13 @@
             <!-- ── POKER ── -->
             <div class="panel" id="panel-poker">
                 <div class="card">
-                    <div class="card-title">🃏 Players</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                        <div class="card-title">🃏 Poker Table</div>
+                        <div id="poker-manager-status"></div>
+                    </div>
                     <div id="poker-players-list"></div>
+                    <div id="pot-validation"></div>
+                    <div id="manager-actions" style="margin-top:1.5rem; display:flex; gap:0.5rem"></div>
                 </div>
                 <div class="card" id="poker-settlement" style="display:none">
                     <div class="card-title">💰 Settlement</div>
@@ -801,27 +839,75 @@
         }
 
         // ── Poker ──
+        let currentPokerManager = null;
+
         function renderPoker(data) {
             const list = document.getElementById('poker-players-list');
+            const status = document.getElementById('poker-manager-status');
+            const actions = document.getElementById('manager-actions');
+            const validation = document.getElementById('pot-validation');
             if (!list) return;
+
+            const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+            currentPokerManager = data.manager || null;
+            const isManager = myId && currentPokerManager === myId;
+
+            // Render Status
+            status.innerHTML = currentPokerManager
+                ? `<span class="manager-badge">Manager: ${currentPokerManager}</span>`
+                : `<span class="manager-badge" style="background:#888">No Manager</span>`;
+
+            // Render Actions
+            actions.innerHTML = '';
+            if (!currentPokerManager) {
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">Become Manager</button>`;
+            } else if (isManager) {
+                actions.innerHTML = `
+                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">Release Role</button>
+                    <button class="join-btn" onclick="clearPokerData()" style="flex:1; background:var(--danger)">Clear All</button>
+                `;
+            }
+
+            // Render Players
             list.innerHTML = '';
+            let totalIn = 0, totalOut = 0;
             CREW.forEach(c => {
-                const p = data[c.name] || { buyin: 0, balance: 0 };
+                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
+                totalIn += (p.buyin || 0);
+                totalOut += (p.balance || 0);
+
                 const row = document.createElement('div');
                 row.className = 'poker-player';
                 row.innerHTML = `
-            <div style="display:flex; align-items:center; gap:0.6rem">
-                <div class="av" style="background:${c.color}">${c.init}</div>
-                <div style="font-weight:700; font-size:0.85rem">${c.name}</div>
-            </div>
-            <div style="display:flex; gap:0.5rem">
-                <input type="number" step="0.01" class="poker-input" placeholder="In" value="${p.buyin || ''}" onchange="updatePoker('${c.name}','buyin',this.value)">
-                    <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="Out" value="${p.balance || ''}" onchange="updatePoker('${c.name}','balance',this.value)">
+                    <div style="display:flex; align-items:center; gap:0.6rem">
+                        <div class="av" style="background:${c.color}">${c.init}</div>
+                        <div style="font-weight:700; font-size:0.85rem">${c.name}</div>
                     </div>
-                    `;
+                    <div style="display:flex; gap:0.5rem">
+                        <input type="number" step="0.01" class="poker-input" placeholder="In" 
+                            value="${p.buyin || ''}" 
+                            ${!isManager ? 'readonly' : ''} 
+                            onchange="updatePoker('${c.name}','buyin',this.value)">
+                        <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="Out" 
+                            value="${p.balance || ''}" 
+                            ${!isManager ? 'readonly' : ''} 
+                            onchange="updatePoker('${c.name}','balance',this.value)">
+                    </div>
+                `;
                 list.appendChild(row);
             });
-            calculateSettlement(data);
+
+            // Render Validation
+            const diff = Math.abs(totalIn - totalOut);
+            const isOk = diff < 0.01 && totalIn > 0;
+            validation.innerHTML = totalIn > 0 ? `
+                <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
+                    <span>${isOk ? '✅ Pot Balanced' : '⚠️ Pot Imbalanced'}</span>
+                    <span>$${totalIn.toFixed(2)} in / $${totalOut.toFixed(2)} out</span>
+                </div>
+            ` : '';
+
+            calculateSettlement(data.players || {});
         }
 
         // ── Info: Crew ──
@@ -863,7 +949,22 @@
         }
 
         function updatePoker(name, field, val) {
-            db.ref(`boat-dashboard/poker/${name}/${field}`).set(parseFloat(val) || 0);
+            db.ref(`boat-dashboard/poker/players/${name}/${field}`).set(parseFloat(val) || 0);
+        }
+
+        async function takePokerRole() {
+            const id = await getIdentity(true);
+            if (id) db.ref('boat-dashboard/poker/manager').set(id.name);
+        }
+
+        function releasePokerRole() {
+            db.ref('boat-dashboard/poker/manager').remove();
+        }
+
+        function clearPokerData() {
+            if (confirm("Clear ALL poker data?")) {
+                db.ref('boat-dashboard/poker/players').remove();
+            }
         }
 
         async function createNewCar() {
