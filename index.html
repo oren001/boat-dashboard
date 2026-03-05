@@ -942,6 +942,7 @@
                             <div style="display:flex; gap:4px">
                                 <button class="quick-btn" onclick="quickAdd('${c.name}', 20)">+$20</button>
                                 <button class="quick-btn" onclick="quickAdd('${c.name}', 50)">+$50</button>
+                                <button class="quick-btn" onclick="quickAddCustom('${c.name}')" style="background:rgba(0,0,0,0.08)">+ Custom</button>
                             </div>
                         ` : ''}
                     </div>
@@ -1048,11 +1049,18 @@
         }
 
         async function quickAdd(name, amt) {
+            const val = parseFloat(amt);
+            if (isNaN(val)) return;
             const ref = db.ref(`boat-dashboard/poker/players/${name}/buyin`);
             const snap = await ref.once('value');
             const current = snap.val() || 0;
-            ref.set(current + amt);
-            logPoker(`${name} added $${amt} (Total: $${current + amt})`);
+            ref.set(current + val);
+            logPoker(`${name} added $${val} (Total: $${current + val})`);
+        }
+
+        async function quickAddCustom(name) {
+            const val = prompt("Enter amount to ADD to " + name + "'s buy-in:");
+            if (val !== null) quickAdd(name, val);
         }
 
         function logPoker(msg) {
