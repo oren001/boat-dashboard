@@ -82,6 +82,10 @@
             font-weight: 800;
             color: var(--sunset);
             line-height: 1;
+            font-variant-numeric: tabular-nums;
+            min-width: 2.5ch;
+            text-align: center;
+            display: inline-block;
         }
 
         .cd-lbl {
@@ -548,12 +552,60 @@
         .toast-item+.toast-item {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             padding-top: 0.35rem;
-            margin-top: 0.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.2s;
+            flex-shrink: 0;
         }
 
-        .toast-who {
-            opacity: 0.5;
-            font-style: italic;
+        .me-chip-hdr:hover {
+            transform: scale(1.1);
+        }
+
+        /* join / leave */
+        .join-btn {
+            background: rgba(0, 180, 216, 0.2);
+            border: 1px solid rgba(0, 180, 216, 0.5);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.28rem 0.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .join-btn:hover {
+            background: rgba(0, 180, 216, 0.4);
+        }
+
+        .leave-btn {
+            background: rgba(210, 40, 40, 0.18);
+            border-color: rgba(210, 40, 40, 0.45);
+        }
+
+        .leave-btn:hover {
+            background: rgba(210, 40, 40, 0.4);
+        }
+
+        .my-car {
+            border-color: rgba(0, 180, 216, 0.6) !important;
+        }
+
+        .car-time-pill {
+            font-size: 0.64rem;
+            white-space: nowrap;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            padding: 3px 8px;
+        }
+
+        .car-time-pill:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
     <!-- Firebase -->
@@ -576,6 +628,15 @@
         <div class="toast-item"><span>🕘</span><span>Added <strong>Jonathan's pickup time: ~9:45 AM</strong> &nbsp;<span
                     class="toast-who">— confirmed by Andrey</span></span></div>
     </div>
+    <!-- IDENTITY MODAL -->
+    <div id="identity-modal" class="identity-modal" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="identity-sheet">
+            <h2>👋 Who are you?</h2>
+            <p>Pick your name so others can see you in the carpool</p>
+            <div class="identity-grid" id="identity-grid"></div>
+        </div>
+    </div>
+
     <div class="shell">
 
         <!-- HEADER -->
@@ -590,6 +651,9 @@
                     <span
                         style="width:7px;height:7px;border-radius:50%;background:#00b4d8;display:inline-block;animation:pulse 1.8s infinite"></span>
                     <span id="online-count">...</span> online
+                </div>
+                <div id="me-chip" class="me-chip-hdr"
+                    onclick="document.getElementById('identity-modal').classList.toggle('show')" title="Who are you?">👤
                 </div>
                 <div class="cd-unit">
                     <div class="cd-num" id="cd-h">--</div>
@@ -1041,6 +1105,129 @@
         allRef.on('value', snap => {
             document.getElementById('online-count').textContent = snap.numChildren();
         });
+
+        // ── IDENTITY & CARPOOL ──
+        const CREW = [
+            { name: 'Andrey', color: 'linear-gradient(135deg,#f77f00,#d62828)', init: 'A' },
+            { name: 'Jonathan', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'J' },
+            { name: 'Tamir', color: 'linear-gradient(135deg,#2d6a4f,#52b788)', init: 'T' },
+            { name: 'Eyal', color: 'linear-gradient(135deg,#7b2d8b,#c77dff)', init: 'E' },
+            { name: 'Nevo', color: 'linear-gradient(135deg,#0077b6,#00b4d8)', init: 'N' },
+            { name: 'Nadav', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'Na' },
+            { name: 'Eran', color: 'linear-gradient(135deg,#d62828,#f77f00)', init: 'Er' },
+            { name: 'Richard', color: 'linear-gradient(135deg,#2d6a4f,#74c69d)', init: 'R' },
+            { name: 'Hartmut', color: 'linear-gradient(135deg,#555,#999)', init: 'H' },
+            { name: 'Oren', color: 'linear-gradient(135deg,#0077b6,#48cae4)', init: 'O' }
+        ];
+
+        const INITIAL_CARS = {
+            jonathan: { label: "Jonathan's Car", emoji: "🚙", time: "~9:45 AM", route: "Newport → Cottage Point → Newport", passengers: {} },
+            nevo: { label: "Nevo's Car", emoji: "🚗", time: "After poker", route: "Cottage Point → home", passengers: {} },
+            self: { label: "Self-Drivers", emoji: "🚘", time: "", route: "Own cars • leaving after poker", passengers: {} }
+        };
+
+        let myIdentity = null;
+        try { myIdentity = JSON.parse(localStorage.getItem('boat-identity')); } catch (e) { }
+
+        // Build identity picker
+        const igrid = document.getElementById('identity-grid');
+        CREW.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'identity-btn';
+            btn.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div>${c.name}`;
+            btn.onclick = () => chooseIdentity(c);
+            igrid.appendChild(btn);
+        });
+
+        function chooseIdentity(c) {
+            myIdentity = c;
+            localStorage.setItem('boat-identity', JSON.stringify(c));
+            document.getElementById('identity-modal').classList.remove('show');
+            updateMeChip();
+            if (lastCarsSnap) renderCarpool(lastCarsSnap);
+        }
+
+        function updateMeChip() {
+            const chip = document.getElementById('me-chip');
+            if (myIdentity) {
+                chip.textContent = myIdentity.init;
+                chip.style.background = myIdentity.color;
+                chip.title = myIdentity.name + ' (tap to change)';
+            } else {
+                chip.textContent = '👤';
+                chip.style.background = 'rgba(255,255,255,0.15)';
+            }
+        }
+        updateMeChip();
+        if (!myIdentity) setTimeout(() => document.getElementById('identity-modal').classList.add('show'), 900);
+
+        // Firebase carpool
+        const carsRef = db.ref('boat-dashboard/cars');
+        const userCarRef = db.ref('boat-dashboard/userCar');
+        carsRef.once('value', snap => { if (!snap.exists()) carsRef.set(INITIAL_CARS); });
+
+        let myCarId = null, lastCarsSnap = null;
+        userCarRef.child(uid).on('value', snap => {
+            myCarId = snap.val();
+            if (lastCarsSnap) renderCarpool(lastCarsSnap);
+        });
+
+        carsRef.on('value', snap => {
+            lastCarsSnap = snap.val() || INITIAL_CARS;
+            renderCarpool(lastCarsSnap);
+        });
+
+        function renderCarpool(cars) {
+            const panel = document.getElementById('panel-carpool');
+            let container = document.getElementById('carpool-container');
+            if (!container) {
+                Array.from(panel.children).forEach(el => { el.style.display = 'none'; });
+                container = document.createElement('div');
+                container.id = 'carpool-container';
+                container.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem';
+                panel.insertBefore(container, panel.firstChild);
+            }
+            let html = '';
+            Object.entries(cars).forEach(([carId, car]) => {
+                const pEntries = Object.entries(car.passengers || {});
+                const amIn = myIdentity && pEntries.some(([, n]) => n === myIdentity.name);
+                const pChips = pEntries.map(([, name]) => {
+                    const c = CREW.find(x => x.name === name) || { color: '#555', init: name[0] };
+                    return `<div class="person-chip"><div class="chip-avatar" style="background:${c.color}">${c.init}</div><div class="chip-name">${name}</div></div>`;
+                }).join('');
+                const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
+                const joinBtn = myIdentity && !amIn ? `<button class="join-btn" onclick="joinCar('${carId}')">✋ Join</button>` : '';
+                const leaveBtn = amIn ? `<button class="join-btn leave-btn" onclick="leaveCar('${carId}')">✕ Leave</button>` : '';
+                html += `<div class="car-card${myCarId === carId ? ' my-car' : ''}">
+              <div class="car-header">
+                <div class="car-emoji">${car.emoji}</div>
+                <div class="car-header-info"><h3>${car.label}</h3><p>${car.route}</p></div>
+                ${timePill}
+              </div>
+              <div class="car-passengers">${pChips}${joinBtn}${leaveBtn}</div>
+            </div>`;
+            });
+            html += `<div class="card" style="background:rgba(247,127,0,0.12);border-color:rgba(247,127,0,0.35);padding:0.8rem 1rem"><div style="display:flex;gap:0.6rem;align-items:center;font-size:0.76rem"><span>🚙</span><span>Tap <strong>✋ Join</strong> to add yourself — updates live for everyone!</span></div></div>`;
+            container.innerHTML = html;
+        }
+
+        function joinCar(carId) {
+            if (!myIdentity) { document.getElementById('identity-modal').classList.add('show'); return; }
+            // Remove from previous car if any
+            if (myCarId) db.ref(`boat-dashboard/cars/${myCarId}/passengers/${uid}`).remove();
+            db.ref(`boat-dashboard/cars/${carId}/passengers/${uid}`).set(myIdentity.name);
+            userCarRef.child(uid).set(carId);
+        }
+
+        function leaveCar(carId) {
+            db.ref(`boat-dashboard/cars/${carId}/passengers/${uid}`).remove();
+            userCarRef.child(uid).remove();
+        }
+
+        function editTime(carId, current) {
+            const t = prompt('Update departure time:', current);
+            if (t !== null) db.ref(`boat-dashboard/cars/${carId}/time`).set(t.trim());
+        }
     </script>
 </body>
 
