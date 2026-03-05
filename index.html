@@ -10,23 +10,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
-            --ocean: #0077b6;
-            --sky: #00b4d8;
-            --foam: #caf0f8;
-            --navy: #03045e;
+            --bg: #000814;
+            --glass: rgba(255, 255, 255, 0.04);
+            --card: rgba(255, 255, 255, 0.07);
+            --border: rgba(255, 255, 255, 0.12);
+            --text: #f0f4f8;
+            --primary: #00b4d8;
+            --secondary: #0077b6;
+            --accent: #caf0f8;
             --sunset: #f77f00;
-            --card: rgba(255, 255, 255, 0.09);
-            --border: rgba(255, 255, 255, 0.16);
+            --night: #7b2d8b;
             --h: 100dvh;
+        }
+
+        /* ── INTERACTION LAYER ── */
+        button,
+        .clickable,
+        .card,
+        .person-chip,
+        .tab-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        button:active,
+        .tab-btn:active,
+        .person-chip:active {
+            transform: scale(0.96);
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel.active>* {
+            animation: slideInUp 0.4s ease-out both;
+        }
+
+        .panel.active>*:nth-child(n) {
+            animation-delay: calc(var(--i, 0) * 0.05s);
         }
 
         html,
@@ -120,28 +164,31 @@
         }
 
         .tab-btn {
-            padding: 0.45rem 0.9rem;
-            border-radius: 10px 10px 0 0;
-            border: none;
+            flex: 1;
             background: transparent;
-            color: rgba(255, 255, 255, 0.5);
-            font-family: inherit;
-            font-size: 0.78rem;
+            border: none;
+            color: #fff;
+            padding: 0.75rem 0.2rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
+            border-radius: 12px;
+            opacity: 0.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         .tab-btn.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            border-bottom: 2px solid var(--sunset);
+            opacity: 1;
+            background: var(--card);
+            box-shadow: inset 0 0 10px rgba(0, 180, 216, 0.2);
+            color: var(--primary);
         }
 
-        .tab-btn:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.8);
+        .tab-btn:hover {
+            opacity: 0.8;
+            background: rgba(255, 255, 255, 0.03);
         }
 
         /* ── PANELS ── */
@@ -645,15 +692,72 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 999px;
             padding: 3px 8px;
+            transition: all 0.2s;
         }
 
         .car-time-pill:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* Drag & Drop Styles */
+        .sortable-ghost {
+            opacity: 0.3;
+            transform: scale(0.9);
+        }
+
+        .sortable-chosen {
+            background: rgba(0, 180, 216, 0.2) !important;
+            border-radius: 8px;
+        }
+
+        .car-passengers {
+            min-height: 40px;
+            padding: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            border-radius: 8px;
+            border: 1px dashed transparent;
+        }
+
+        .car-passengers:empty::after {
+            content: "Drag here";
+            font-size: 0.65rem;
+            opacity: 0.3;
+            display: flex;
+            align-items: center;
+            padding-left: 0.5rem;
+        }
+
+        .add-car-btn {
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-car-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #fff;
+            transform: scale(1.02);
+        }
     </style>
-    <!-- Firebase -->
+    <!-- Dependencies -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 
 <body>
@@ -1231,28 +1335,100 @@
                 container.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem';
                 panel.insertBefore(container, panel.firstChild);
             }
-            let html = '';
+
+            container.innerHTML = ''; // Clear for fresh render
+
             Object.entries(cars).forEach(([carId, car]) => {
                 const pEntries = Object.entries(car.passengers || {});
                 const amIn = myIdentity && pEntries.some(([, n]) => n === myIdentity.name);
-                const pChips = pEntries.map(([, name]) => {
-                    const c = CREW.find(x => x.name === name) || { color: '#555', init: name[0] };
-                    return `<div class="person-chip"><div class="chip-avatar" style="background:${c.color}">${c.init}</div><div class="chip-name">${name}</div></div>`;
-                }).join('');
+                const isMyCar = myCarId === carId;
+
+                const card = document.createElement('div');
+                card.className = `car-card${isMyCar ? ' my-car' : ''}`;
+
                 const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
                 const joinBtn = myIdentity && !amIn ? `<button class="join-btn" onclick="joinCar('${carId}')">✋ Join</button>` : '';
                 const leaveBtn = amIn ? `<button class="join-btn leave-btn" onclick="leaveCar('${carId}')">✕ Leave</button>` : '';
-                html += `<div class="car-card${myCarId === carId ? ' my-car' : ''}">
+
+                card.innerHTML = `
               <div class="car-header">
-                <div class="car-emoji">${car.emoji}</div>
+                <div class="car-emoji">${car.emoji || '🚗'}</div>
                 <div class="car-header-info"><h3>${car.label}</h3><p>${car.route}</p></div>
                 ${timePill}
               </div>
-              <div class="car-passengers">${pChips}${joinBtn}${leaveBtn}</div>
-            </div>`;
+              <div class="car-passengers" data-car-id="${carId}"></div>
+              <div style="margin-top:0.6rem;display:flex;justify-content:flex-end">${joinBtn}${leaveBtn}</div>
+            `;
+
+                const pList = card.querySelector('.car-passengers');
+                pEntries.forEach(([pid, name]) => {
+                    const c = CREW.find(x => x.name === name) || { color: '#555', init: name[0] };
+                    const chip = document.createElement('div');
+                    chip.className = 'person-chip';
+                    chip.setAttribute('data-id', pid);
+                    chip.setAttribute('data-name', name);
+                    chip.innerHTML = `<div class="chip-avatar" style="background:${c.color}">${c.init}</div><div class="chip-name">${name}</div>`;
+                    pList.appendChild(chip);
+                });
+
+                container.appendChild(card);
+
+                // Initialize Sortable on this car
+                new Sortable(pList, {
+                    group: 'carpool',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    delay: 150, // Long press for mobile to prevent accidental scrolls
+                    delayOnTouchOnly: true,
+                    touchStartThreshold: 5,
+                    onEnd: (evt) => {
+                        const fromId = evt.from.getAttribute('data-car-id');
+                        const toId = evt.to.getAttribute('data-car-id');
+                        const personId = evt.item.getAttribute('data-id');
+                        const personName = evt.item.getAttribute('data-name');
+
+                        if (fromId !== toId) {
+                            try { if (window.navigator.vibrate) window.navigator.vibrate(10); } catch (e) { }
+                            db.ref(`boat-dashboard/cars/${fromId}/passengers/${personId}`).remove();
+                            db.ref(`boat-dashboard/cars/${toId}/passengers/${personId}`).set(personName);
+                            if (personId === uid) {
+                                userCarRef.child(uid).set(toId);
+                            }
+                        }
+                    }
+                });
             });
-            html += `<div class="card" style="background:rgba(247,127,0,0.12);border-color:rgba(247,127,0,0.35);padding:0.8rem 1rem"><div style="display:flex;gap:0.6rem;align-items:center;font-size:0.76rem"><span>🚙</span><span>Tap <strong>✋ Join</strong> to add yourself — updates live for everyone!</span></div></div>`;
-            container.innerHTML = html;
+
+            const addCarBtn = document.createElement('div');
+            addCarBtn.className = 'add-car-btn';
+            addCarBtn.innerHTML = `<span>➕</span> I'm bringing a car`;
+            addCarBtn.onclick = () => createNewCar();
+            container.appendChild(addCarBtn);
+
+            const tip = document.createElement('div');
+            tip.className = 'card';
+            tip.style.cssText = 'background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);padding:0.75rem';
+            tip.innerHTML = `<div style="display:flex;gap:0.6rem;align-items:center;font-size:0.7rem;opacity:0.6"><span style="font-size:1.1rem">💡</span><span><strong>Drag names</strong> to move people between cars!</span></div>`;
+            container.appendChild(tip);
+        }
+
+        function createNewCar() {
+            if (!myIdentity) { document.getElementById('identity-modal').classList.add('show'); return; }
+            const label = prompt("Car Name? (e.g. Oren's Jeep)");
+            if (!label) return;
+            const route = prompt("Route? (e.g. City → Cottage Point)");
+            const newCarId = 'car_' + Date.now();
+            const newCar = {
+                label: label,
+                emoji: '🚘',
+                time: 'TBD',
+                route: route || 'Cottage Point',
+                passengers: { [uid]: myIdentity.name }
+            };
+            db.ref(`boat-dashboard/cars/${newCarId}`).set(newCar);
+            userCarRef.child(uid).set(newCarId);
+            try { if (window.navigator.vibrate) window.navigator.vibrate(20); } catch (e) { }
         }
 
         function joinCar(carId) {
