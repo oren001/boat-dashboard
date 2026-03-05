@@ -1292,7 +1292,9 @@
 
         // Seed if missing or empty
         carsRef.once('value', snap => {
-            if (!snap.exists() || !snap.child('jonathan/passengers').exists()) {
+            const data = snap.val();
+            const hasPassengers = data && data.jonathan && data.jonathan.passengers && Object.keys(data.jonathan.passengers).length > 0;
+            if (!hasPassengers) {
                 carsRef.set(INITIAL_CARS);
             }
         });
