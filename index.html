@@ -405,6 +405,9 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             padding: 0.7rem 1rem;
+            min-height: 50px;
+            /* Ensure mobile scrolling works even with SortableJS */
+            touch-action: pan-y;
         }
 
         .person-chip {
@@ -1603,6 +1606,39 @@
 
             container.innerHTML = '';
 
+            // Utility: Missing rides summary
+            const allNames = CREW.map(c => c.name);
+            const inArrival = new Set();
+            const inDeparture = new Set();
+            Object.values(cars).forEach(c => {
+                Object.values(c.arrival || {}).forEach(n => inArrival.add(n));
+                Object.values(c.departure || {}).forEach(n => inDeparture.add(n));
+            });
+            const missingArrival = allNames.filter(n => !inArrival.has(n));
+            const missingDeparture = allNames.filter(n => !inDeparture.has(n));
+
+            if (missingArrival.length > 0 || missingDeparture.length > 0) {
+                const summary = document.createElement('div');
+                summary.className = 'card';
+                summary.style.cssText = 'background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);padding:1rem;margin-bottom:0.5rem';
+                summary.innerHTML = `
+                    <h4 style="font-size:0.75rem;margin-bottom:0.8rem;color:#ff6b6b;display:flex;align-items:center;gap:0.5rem">
+                        <span>⚠️ Status Check</span>
+                    </h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+                        <div>
+                            <div style="font-size:0.6rem;opacity:0.6;margin-bottom:0.4rem;text-transform:uppercase">Missing Arrival Ride</div>
+                            <div style="font-size:0.75rem;font-weight:600">${missingArrival.length ? missingArrival.join(', ') : 'Everyone settled! ✨'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.6rem;opacity:0.6;margin-bottom:0.4rem;text-transform:uppercase">Missing Departure Ride</div>
+                            <div style="font-size:0.75rem;font-weight:600">${missingDeparture.length ? missingDeparture.join(', ') : 'Everyone settled! ✨'}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(summary);
+            }
+
             Object.entries(cars).forEach(([carId, car]) => {
                 const myId = JSON.parse(localStorage.getItem('boat-identity') || '{}');
                 const myKey = myId.name ? myId.name.toLowerCase() : null;
@@ -1616,7 +1652,6 @@
                 card.style.padding = '1.2rem';
 
                 const timePill = car.time !== undefined ? `<span class="car-time-pill" onclick="editTime('${carId}','${car.time.replace(/'/g, "\\'")}')">🕐 ${car.time || 'Set time'}</span>` : '';
-                const notYou = myId.name ? `<div style="font-size:0.6rem;opacity:0.4;cursor:pointer" onclick="getIdentity(true)">Not ${myId.name}? Tap to change</div>` : '';
 
                 card.innerHTML = `
               <div class="car-header">
@@ -1650,7 +1685,6 @@
                     </button>
                 </div>
               </div>
-              <div style="margin-top:1.2rem;display:flex;justify-content:center">${notYou}</div>
             `;
 
                 renderPassengerList(card.querySelector('.arrival-list'), arrivalEntries, carId, 'arrival');
@@ -1721,7 +1755,7 @@
         }
 
         async function createNewCar() {
-            const id = await getIdentity();
+            const id = await getIdentity(true);
             if (!id) return;
             const label = prompt("Car Name? (e.g. Oren's Jeep)");
             if (!label) return;
@@ -1743,7 +1777,7 @@
         }
 
         async function joinCar(carId, type) {
-            const id = await getIdentity();
+            const id = await getIdentity(true);
             if (!id) return;
             const nameKey = id.name.toLowerCase();
 
