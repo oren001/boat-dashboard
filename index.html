@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🛥️ Andrey's Boat Trip – 7 March 2026</title>
+    <meta name="description" content="All the details you need for Andrey's boat trip at Cottage Point this Friday." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --ocean: #0077b6;
+            --sky: #00b4d8;
+            --foam: #caf0f8;
+            --navy: #03045e;
+            --sand: #f8f3e6;
+            --sunset: #f77f00;
+            --green: #2d6a4f;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(160deg, #03045e 0%, #0077b6 50%, #00b4d8 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ── HERO ─────────────────────────────────── */
+        .hero {
+            position: relative;
+            height: 420px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .hero-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.55) saturate(1.3);
+        }
+
+        .hero-wave {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 2rem 3.5rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background: var(--sunset);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 6vw, 3.6rem);
+            font-weight: 800;
+            line-height: 1.1;
+            text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-sub {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-top: 0.4rem;
+        }
+
+        /* ── LAYOUT ───────────────────────────────── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--foam);
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        /* ── GLASS CARD ───────────────────────────── */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 1.6rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ── TIMELINE ─────────────────────────────── */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: 2.5rem;
+        }
+
+        .tl-item {
+            display: grid;
+            grid-template-columns: 80px 28px 1fr;
+            align-items: start;
+            gap: 0 14px;
+            padding: 0 0 1.5rem;
+        }
+
+        .tl-time {
+            text-align: right;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--foam);
+            padding-top: 2px;
+            line-height: 1.3;
+        }
+
+        .tl-day {
+            font-size: 0.62rem;
+            opacity: 0.6;
+            font-weight: 400;
+        }
+
+        .tl-line {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tl-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .tl-connector {
+            width: 2px;
+            flex: 1;
+            min-height: 24px;
+            background: rgba(255, 255, 255, 0.18);
+            margin-top: 4px;
+        }
+
+        .tl-content h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .tl-content p {
+            font-size: 0.82rem;
+            opacity: 0.75;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            background: rgba(247, 127, 0, 0.25);
+            border-radius: 8px;
+            padding: 2px 8px;
+        }
+
+        /* ── INFO GRID ─────────────────────────────── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .info-icon {
+            font-size: 2rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .info-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        /* ── CREW ──────────────────────────────────── */
+        .crew-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .crew-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .crew-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .crew-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .crew-badge {
+            font-size: 0.68rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .badge-night {
+            background: rgba(3, 4, 94, 0.6);
+            color: var(--foam);
+        }
+
+        .badge-day {
+            background: rgba(0, 119, 182, 0.5);
+            color: #fff;
+        }
+
+        .badge-host {
+            background: var(--sunset);
+            color: #fff;
+        }
+
+        .badge-out {
+            background: rgba(200, 200, 200, 0.15);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .crew-note {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            line-height: 1.4;
+        }
+
+        /* ── MAP CARD ──────────────────────────────── */
+        .map-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+
+        .map-header {
+            padding: 1.2rem 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .map-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .map-frame {
+            width: 100%;
+            height: 300px;
+            border: none;
+            display: block;
+        }
+
+        .map-footer {
+            padding: 0.9rem 1.6rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── TIPS ──────────────────────────────────── */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 0.8rem;
+            align-items: flex-start;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+        }
+
+        .tip-emoji {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .tip-text h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .tip-text p {
+            font-size: 0.78rem;
+            opacity: 0.7;
+            line-height: 1.5;
+        }
+
+        /* ── FOOTER ────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 0.78rem;
+            opacity: 0.45;
+        }
+
+        /* ── COUNTDOWN ─────────────────────────────── */
+        .countdown-bar {
+            background: rgba(247, 127, 0, 0.2);
+            border: 1px solid rgba(247, 127, 0, 0.5);
+            border-radius: 16px;
+            padding: 1.1rem 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .countdown-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .countdown-units {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .count-unit {
+            text-align: center;
+        }
+
+        .count-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--sunset);
+        }
+
+        .count-lbl {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+
+        @media(max-width:600px) {
+            .hero {
+                height: 320px;
+            }
+
+            .tl-item {
+                grid-template-columns: 64px 24px 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <section class="hero">
+        <img class="hero-img" src="boat_hero.png" alt="Boat at Cottage Point" />
+        <svg class="hero-wave" viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none" style="height:80px;">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="url(#grad1)" />
+            <defs>
+                <linearDef id="grad1">
+                    <stop offset="0%" stop-color="#03045e" />
+                    <stop offset="100%" stop-color="#0077b6" />
+                </linearDef>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#03045e" />
+                    <stop offset="100%" stop-color="#0077b6" />
+                </linearGradient>
+            </defs>
+        </svg>
+        <div class="hero-content">
+            <span class="hero-tag">🛥️ Boat Weekend</span>
+            <h1>Andrey's Poker Night<br />at Sea ⚓</h1>
+            <p class="hero-sub">Friday 6 – Saturday 7 March 2026 &nbsp;·&nbsp; Cottage Point, Sydney</p>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <!-- COUNTDOWN -->
+        <div class="countdown-bar">
+            <div>
+                <div class="countdown-label">⏳ Trip starts in…</div>
+            </div>
+            <div class="countdown-units" id="countdown">
+                <div class="count-unit">
+                    <div class="count-num" id="cd-h">--</div>
+                    <div class="count-lbl">Hours</div>
+                </div>
+                <div class="count-unit">
+                    <div class="count-num" id="cd-m">--</div>
+                    <div class="count-lbl">Mins</div>
+                </div>
+                <div class="count-unit">
+                    <div class="count-num" id="cd-s">--</div>
+                    <div class="count-lbl">Secs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KEY INFO -->
+        <p class="section-title">📋 Key Details</p>
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-icon">🏠</div>
+                <div>
+                    <div class="info-label">Pickup Point</div>
+                    <div class="info-value">Newport Marina<br /><span
+                            style="font-weight:400;font-size:0.82rem;opacity:0.7">10:30 AM Friday</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">⚓</div>
+                <div>
+                    <div class="info-label">Mooring Spot</div>
+                    <div class="info-value">50m from<br />Cottage Point Wharf</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🚗</div>
+                <div>
+                    <div class="info-label">Drive-in Option</div>
+                    <div class="info-value">Drive to Cottage Point<br /><span
+                            style="font-weight:400;font-size:0.82rem;opacity:0.7">Andrey picks you up ~noon</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🍔</div>
+                <div>
+                    <div class="info-label">Dinner</div>
+                    <div class="info-value">Hamburgers<br /><span
+                            style="font-weight:400;font-size:0.82rem;opacity:0.7">Friday evening</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🎴</div>
+                <div>
+                    <div class="info-label">Main Event</div>
+                    <div class="info-value">Poker Night!<br /><span
+                            style="font-weight:400;font-size:0.82rem;opacity:0.7">Friday evening</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🌅</div>
+                <div>
+                    <div class="info-label">Return to Newport</div>
+                    <div class="info-value">Sat noon – early afternoon<br /><span
+                            style="font-weight:400;font-size:0.82rem;opacity:0.7">Need rope helpers!</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <p class="section-title">🗓️ Schedule</p>
+        <div class="timeline">
+
+            <div class="tl-item">
+                <div class="tl-time">10:30 AM<div class="tl-day">FRIDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(247,127,0,0.35)">🏁</div>
+                    <div class="tl-connector"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Andrey picks up the boat</h3>
+                    <p>Newport Marina – hoisting off from here</p>
+                </div>
+            </div>
+
+            <div class="tl-item">
+                <div class="tl-time">~Noon<div class="tl-day">FRIDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(0,180,216,0.4)">⚓</div>
+                    <div class="tl-connector"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Moored at Cottage Point</h3>
+                    <p>50 metres from the wharf. Drive up & get picked up, or come from Newport!</p>
+                </div>
+            </div>
+
+            <div class="tl-item">
+                <div class="tl-time">From noon<div class="tl-day">FRIDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(45,106,79,0.5)">🛥️</div>
+                    <div class="tl-connector"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Boarding – whenever you arrive</h3>
+                    <p>Andrey will pick everyone up from the wharf – just text when you're there</p>
+                </div>
+            </div>
+
+            <div class="tl-item">
+                <div class="tl-time">Evening<div class="tl-day">FRIDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(247,127,0,0.5)">🍔</div>
+                    <div class="tl-connector"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Hamburger dinner</h3>
+                    <p>Andrey cooks – gather round the deck!</p>
+                </div>
+            </div>
+
+            <div class="tl-item">
+                <div class="tl-time">Night<div class="tl-day">FRIDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(3,4,94,0.8)">🎴</div>
+                    <div class="tl-connector"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Poker night!</h3>
+                    <p>Texas Hold'em • Bring your chips 🃏</p>
+                </div>
+            </div>
+
+            <div class="tl-item">
+                <div class="tl-time">~Noon<div class="tl-day">SATURDAY</div>
+                </div>
+                <div class="tl-line">
+                    <div class="tl-dot" style="background:rgba(0,119,182,0.5)">🌅</div>
+                    <div class="tl-connector" style="opacity:0"></div>
+                </div>
+                <div class="tl-content">
+                    <h3>Return to Newport</h3>
+                    <p>Boat back by noon – early afternoon Sat. <span class="highlight">Help with ropes
+                            appreciated!</span></p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MAP -->
+        <p class="section-title">📍 Location</p>
+        <div class="map-card">
+            <div class="map-header">
+                <span style="font-size:1.4rem">🗺️</span>
+                <h2>Cottage Point Wharf</h2>
+            </div>
+            <iframe class="map-frame"
+                src="https://maps.google.com/maps?q=Cottage+Point+Wharf,+NSW+Australia&t=k&z=15&ie=UTF8&iwloc=&output=embed"
+                allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                title="Map to Cottage Point Wharf"></iframe>
+            <div class="map-footer">📌 Andrey will be moored 50m from the wharf. Text him when you arrive!</div>
+        </div>
+
+        <!-- CREW -->
+        <p class="section-title">👥 Who's Coming</p>
+        <div class="crew-grid">
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#f77f00,#d62828)">A</div>
+                <div class="crew-name">Andrey</div>
+                <span class="crew-badge badge-host">🛥️ Host</span>
+                <div class="crew-note">Picks up boat at Newport 10:30 AM</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#0077b6,#00b4d8)">J</div>
+                <div class="crew-name">Jonathan</div>
+                <span class="crew-badge badge-night">🌙 Night</span>
+                <div class="crew-note">Driving; giving Andrey & Tamir a lift. Must be back Sat noon.</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#2d6a4f,#52b788)">T</div>
+                <div class="crew-name">Tamir</div>
+                <span class="crew-badge badge-night">🌙 Night</span>
+                <div class="crew-note">In for day & night; joining Jonatan's car</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#7b2d8b,#c77dff)">א</div>
+                <div class="crew-name">Ayal</div>
+                <span class="crew-badge badge-night">🌙 Night</span>
+                <div class="crew-note">Likely in, staying overnight</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">N</div>
+                <div class="crew-name">Nevo</div>
+                <span class="crew-badge badge-day">☀️ Day only</span>
+                <div class="crew-note">Driving home after poker</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#0077b6,#48cae4)">N</div>
+                <div class="crew-name">Nadav</div>
+                <span class="crew-badge badge-day">☀️ Day only</span>
+                <div class="crew-note">In if quorum; driving home after</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#d62828,#f77f00)">E</div>
+                <div class="crew-name">Eran</div>
+                <span class="crew-badge badge-day">☀️ Day only</span>
+                <div class="crew-note">In; not staying overnight</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#2d6a4f,#74c69d)">R</div>
+                <div class="crew-name">Richard</div>
+                <span class="crew-badge badge-day">☀️ In</span>
+                <div class="crew-note">Confirmed in</div>
+            </div>
+
+            <div class="crew-card">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#555,#999)">H</div>
+                <div class="crew-name">Hartmut</div>
+                <span class="crew-badge badge-day">☀️ Day only</span>
+                <div class="crew-note">In; not staying overnight</div>
+            </div>
+
+            <div class="crew-card" style="opacity:0.55">
+                <div class="crew-avatar" style="background:linear-gradient(135deg,#444,#666)">I</div>
+                <div class="crew-name">Igor</div>
+                <span class="crew-badge badge-out">❌ Out</span>
+                <div class="crew-note">Family staying over Friday</div>
+            </div>
+
+        </div>
+
+        <!-- TIPS -->
+        <p class="section-title">💡 Good to Know</p>
+        <div class="tips-grid">
+            <div class="tip-item">
+                <div class="tip-emoji">🚢</div>
+                <div class="tip-text">
+                    <h3>Getting there</h3>
+                    <p>Drive to Cottage Point Wharf and text Andrey – he'll come pick you up by dinghy / tender from the
+                        boat.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-emoji">⛵</div>
+                <div class="tip-text">
+                    <h3>Newport riders</h3>
+                    <p>If you'd like to join from Newport at 10:30 AM, come straight to the marina – welcome aboard!</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-emoji">🪢</div>
+                <div class="tip-text">
+                    <h3>Rope helpers needed</h3>
+                    <p>Andrey needs someone to help with the ropes when returning the boat to Newport on Saturday.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-emoji">🛏️</div>
+                <div class="tip-text">
+                    <h3>Staying the night?</h3>
+                    <p>Bring a sleeping bag or overnight bag. Let Andrey know in advance so he can plan space.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-emoji">🃏</div>
+                <div class="tip-text">
+                    <h3>Poker on board</h3>
+                    <p>Texas Hold'em style. Bring cash or chips and your poker face 😎</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-emoji">📱</div>
+                <div class="tip-text">
+                    <h3>Let Andrey know</h3>
+                    <p>Text him your arrival time so he can be ready at the wharf to pick you up.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>Made with ❤️ for the crew &nbsp;·&nbsp; Andrey's Boat Trip — March 2026</footer>
+
+    <script>
+        // Countdown to Friday 6 March 2026 10:30 AM AEDT (UTC+11)
+        const target = new Date('2026-03-06T10:30:00+11:00');
+        function tick() {
+            const now = new Date();
+            const diff = target - now;
+            if (diff <= 0) {
+                document.getElementById('countdown').innerHTML = '<span style="font-size:1.2rem;font-weight:700;color:var(--sunset)">🎉 The trip has started!</span>';
+                return;
+            }
+            const totalSecs = Math.floor(diff / 1000);
+            const h = Math.floor(totalSecs / 3600);
+            const m = Math.floor((totalSecs % 3600) / 60);
+            const s = totalSecs % 60;
+            document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
+            document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
+            document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
+            setTimeout(tick, 1000);
+        }
+        tick();
+    </script>
+
+</body>
+
+</html>
