@@ -1037,21 +1037,32 @@
             });
 
             // Render Validation
-            const diff = totalIn - totalOut;
-            const isOk = Math.abs(diff) < 0.01 && totalIn > 0;
-            validation.innerHTML = totalIn > 0 ? `
+            const calcTotalOut = Object.values(data.players || {}).reduce((s, p) => s + (p.balance || 0), 0);
+
+            // Heuristic to detect mode: 
+            // If any value is negative OR sum is close to 0 compared to totalIn, it's likely "Net Mode"
+            const hasNegatives = Object.values(data.players || {}).some(p => (p.balance || 0) < 0);
+            const isNetMode = hasNegatives || (Math.abs(calcTotalOut) < Math.abs(calcTotalOut - totalIn));
+
+            const gap = isNetMode ? calcTotalOut : calcTotalOut - totalIn;
+            const isOk = Math.abs(gap) < 0.01 && (isNetMode || totalIn > 0);
+
+            validation.innerHTML = (totalIn > 0 || calcTotalOut !== 0) ? `
                 <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
-                    <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${diff.toFixed(2)}`}</span>
-                    <span>$${totalIn.toFixed(2)} in / $${totalOut.toFixed(2)} out</span>
+                    <div>
+                        <div style="font-size:0.6rem; opacity:0.6; margin-bottom:2px">${isNetMode ? 'MODE: NET WINNINGS (+/-)' : 'MODE: TOTAL CHIPS'}</div>
+                        <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${gap.toFixed(2)}`}</span>
+                    </div>
+                    <span style="text-align:right">$${totalIn.toFixed(2)} in<br>${isNetMode ? `Σ Winnings: $${calcTotalOut.toFixed(2)}` : `$${calcTotalOut.toFixed(2)} out`}</span>
                 </div>
                 ${isManager ? `
                 <div class="chip-assist">
-                    <span>💡 <b>Chip Rule:</b> $100 = 10 Red ($5), 5 Blue ($10)</span>
+                    <span>💡 <b>Tip:</b> ${isNetMode ? 'Entering wins (e.g. +50) and losses (e.g. -20). Sum should be $0.' : 'Entering final chip counts. Sum should match Total In.'}</span>
                 </div>
                 ` : ''}
             ` : '';
 
-            calculateSettlement(data.players || {});
+            calculateSettlement(data.players || {}, isNetMode);
         }
 
         // ── Info: Crew ──
@@ -1219,14 +1230,20 @@
 
         function unclaimSupply(sid) { db.ref(`boat-dashboard/supplies/${sid}/claimedBy`).set(null); }
 
-        function calculateSettlement(data) {
+        function calculateSettlement(data, isNetMode) {
             const res = document.getElementById('poker-settlement');
             const list = document.getElementById('settlement-results');
-            const nets = Object.entries(data).map(([name, d]) => ({ name, net: (d.balance || 0) - (d.buyin || 0) })).filter(n => Math.abs(n.net) > 0.01);
+            if (!data) return res.style.display = 'none';
+
+            // In Net Mode, net value is exactly Out. In Total Mode, it's Out - In.
+            const nets = Object.entries(data).map(([name, d]) => ({
+                name,
+                net: isNetMode ? (d.balance || 0) : (d.balance || 0) - (d.buyin || 0)
+            })).filter(n => Math.abs(n.net) > 0.01);
+
             if (!nets.length) return res.style.display = 'none';
             res.style.display = 'block'; list.innerHTML = '';
 
-            // Greedily match debtors to creditors to minimize transactions
             const debtors = nets.filter(n => n.net < 0).sort((a, b) => a.net - b.net);
             const creditors = nets.filter(n => n.net > 0).sort((a, b) => b.net - a.net);
             let i = 0, j = 0;
@@ -1236,10 +1253,9 @@
                 const creditorName = creditors[j].name;
                 const creditor = CREW.find(c => c.name === creditorName);
                 const beemHandle = creditor?.beem || '';
-
-                const tx = document.createElement('div');
                 const text = `${debtors[i].name} pays $${amt.toFixed(2)} to ${creditorName}`;
 
+                const tx = document.createElement('div');
                 tx.innerHTML = `
                     <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem">
                         <span><b>${debtors[i].name}</b> → <b>${creditorName}</b></span>
