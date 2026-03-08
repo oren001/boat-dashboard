@@ -639,6 +639,12 @@
                 style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-bottom:1.5rem"></div>
             <div style="border-top:1px solid var(--border); padding-top:1.5rem">
                 <p style="font-size:0.7rem; opacity:0.5; margin-bottom:0.8rem">Personalize your profile:</p>
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem">
+                    <input type="text" id="beem-handle" class="poker-input"
+                        style="flex:1; text-align:left; font-size:0.9rem; padding:0.6rem" placeholder="Beem @handle">
+                    <button class="join-btn" onclick="saveBeemHandle()"
+                        style="padding:0.6rem 1rem; font-size:0.8rem">Save</button>
+                </div>
                 <input type="file" id="avatar-upload" style="display:none" accept="image/*"
                     onchange="handlePhotoUpload(this)">
                 <button class="join-btn" onclick="document.getElementById('avatar-upload').click()"
@@ -1031,11 +1037,11 @@
             });
 
             // Render Validation
-            const diff = Math.abs(totalIn - totalOut);
-            const isOk = diff < 0.01 && totalIn > 0;
+            const diff = totalIn - totalOut;
+            const isOk = Math.abs(diff) < 0.01 && totalIn > 0;
             validation.innerHTML = totalIn > 0 ? `
                 <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
-                    <span>${isOk ? '✅ Pot Balanced' : '⚠️ Pot Imbalanced'}</span>
+                    <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${diff.toFixed(2)}`}</span>
                     <span>$${totalIn.toFixed(2)} in / $${totalOut.toFixed(2)} out</span>
                 </div>
                 ${isManager ? `
@@ -1085,6 +1091,19 @@
             document.getElementById('identity-modal').classList.remove('show');
             if (pendingResolve) pendingResolve({ name });
             renderCrew(); // Refresh with potential new data
+
+            // Populate Beem handle if exists
+            const snap = await db.ref(`boat-dashboard/crew/${name}/beem`).once('value');
+            if (snap.val()) document.getElementById('beem-handle').value = snap.val();
+        }
+
+        async function saveBeemHandle() {
+            const name = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+            if (!name) return alert("Select yourself first!");
+            const handle = document.getElementById('beem-handle').value.trim().replace('@', '');
+            if (!handle) return;
+            await db.ref(`boat-dashboard/crew/${name}/beem`).set(handle);
+            alert("Beem handle saved!");
         }
 
         function handlePhotoUpload(input) {
@@ -1206,19 +1225,33 @@
             const nets = Object.entries(data).map(([name, d]) => ({ name, net: (d.balance || 0) - (d.buyin || 0) })).filter(n => Math.abs(n.net) > 0.01);
             if (!nets.length) return res.style.display = 'none';
             res.style.display = 'block'; list.innerHTML = '';
+
+            // Greedily match debtors to creditors to minimize transactions
             const debtors = nets.filter(n => n.net < 0).sort((a, b) => a.net - b.net);
             const creditors = nets.filter(n => n.net > 0).sort((a, b) => b.net - a.net);
             let i = 0, j = 0;
+
             while (i < debtors.length && j < creditors.length) {
                 const amt = Math.min(Math.abs(debtors[i].net), creditors[j].net);
+                const creditorName = creditors[j].name;
+                const creditor = CREW.find(c => c.name === creditorName);
+                const beemHandle = creditor?.beem || '';
+
                 const tx = document.createElement('div');
-                const text = `${debtors[i].name} pays $${amt.toFixed(2)} to ${creditors[j].name}`;
+                const text = `${debtors[i].name} pays $${amt.toFixed(2)} to ${creditorName}`;
+
                 tx.innerHTML = `
-                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between">
-                        <span><b>${debtors[i].name}</b> → <b>${creditors[j].name}</b></span>
-                        <div style="display:flex; gap:0.6rem; align-items:center">
+                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem">
+                        <span><b>${debtors[i].name}</b> → <b>${creditorName}</b></span>
+                        <div style="display:flex; gap:0.4rem; align-items:center">
                             <b style="color:var(--sunset)">$${amt.toFixed(2)}</b>
-                            <button class="quick-btn" onclick="copyToClipboard('${text}')">Copy</button>
+                            <button class="quick-btn" onclick="copyToClipboard('${text}')">📋</button>
+                            ${beemHandle ? `
+                                <button class="quick-btn" style="background:#00d1b2; color:white; border:none" 
+                                    onclick="window.open('https://me.beem.com.au/${beemHandle}/${amt.toFixed(2)}', '_blank')">
+                                    Beem It
+                                </button>
+                            ` : ''}
                         </div>
                     </div>`;
                 list.appendChild(tx);
@@ -1268,7 +1301,8 @@
                 name,
                 init: name.slice(0, 2),
                 color: data[name]?.color || COLORS[i % COLORS.length],
-                photo: data[name]?.photo || null
+                photo: data[name]?.photo || null,
+                beem: data[name]?.beem || null
             }));
             renderCrew();
             if (lastCarsSnap) renderCarpool(lastCarsSnap);
