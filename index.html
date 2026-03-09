@@ -888,7 +888,7 @@
             logEntries.forEach(l => {
                 const entry = document.createElement('div');
                 entry.className = 'log-entry';
-                entry.innerHTML = `< span > ${l.msg}</span > <span style="opacity:0.4">${new Date(l.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
+                entry.innerHTML = `<span>${l.msg}</span> <span style="opacity:0.4">${new Date(l.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
                 hist.appendChild(entry);
             });
 
@@ -904,13 +904,13 @@
             const isOk = Math.abs(gap) < 0.01 && (isNetMode || totalIn > 0);
 
             validation.innerHTML = (totalIn > 0 || calcTotalOut !== 0) ? `
-                    < div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}" >
+                    <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
                     <div>
                         <div style="font-size:0.6rem; opacity:0.6; margin-bottom:2px">${isNetMode ? 'MODE: NET WINNINGS (+/-)' : 'MODE: TOTAL CHIPS'}</div>
                         <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${gap.toFixed(2)}`}</span>
                     </div>
                     <span style="text-align:right">$${totalIn.toFixed(2)} in<br>${isNetMode ? `Σ Winnings: $${calcTotalOut.toFixed(2)}` : `$${calcTotalOut.toFixed(2)} out`}</span>
-                </div >
+                </div>
                     ${isManager ? `
                 <div class="chip-assist">
                     <span>💡 <b>Tip:</b> ${isNetMode ? 'Entering wins (e.g. +50) and losses (e.g. -20). Sum should be $0.' : 'Entering final chip counts. Sum should match Total In.'}</span>
