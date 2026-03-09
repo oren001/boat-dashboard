@@ -684,10 +684,15 @@
         <div class="panels scroll">
             <!-- ── HOME ── -->
             <div class="panel active" id="panel-home">
-                <div class="card" style="border: 2px solid var(--primary); background: rgba(0, 119, 182, 0.05);">
-                    <div class="card-title" style="display:flex; align-items:center; gap:0.5rem">
-                        <span>🆕 What's New</span>
-                        <span class="status-badge" style="background:var(--primary); color:#fff">v2.2</span>
+                <div id="home-whats-new" class="card"
+                    style="border: 2px solid var(--primary); background: rgba(0, 119, 182, 0.05); display:none">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center">
+                        <div style="display:flex; align-items:center; gap:0.5rem">
+                            <span>🆕 What's New</span>
+                            <span class="status-badge" style="background:var(--primary); color:#fff">v2.3</span>
+                        </div>
+                        <span style="font-size:1.2rem; cursor:pointer; opacity:0.3"
+                            onclick="dismissToast()">&times;</span>
                     </div>
                     <div style="font-size:0.8rem; line-height:1.5; margin-top:0.5rem">
                         <p style="margin-bottom:0.5rem">We've automated the Poker math based on your feedback!</p>
@@ -1431,11 +1436,19 @@
         });
 
         function dismissToast() {
-            document.getElementById('toast').classList.remove('show');
+            const t = document.getElementById('toast');
+            const c = document.getElementById('home-whats-new');
+            if (t) t.classList.remove('show');
+            if (c) c.style.display = 'none';
             localStorage.setItem('poker-whats-new-v2.3', 'dismissed');
         }
         if (localStorage.getItem('poker-whats-new-v2.3') !== 'dismissed') {
-            setTimeout(() => document.getElementById('toast').classList.add('show'), 2000);
+            setTimeout(() => {
+                const t = document.getElementById('toast');
+                const c = document.getElementById('home-whats-new');
+                if (t) t.classList.add('show');
+                if (c) c.style.display = 'block';
+            }, 2000);
         }
     </script>
 </body>
