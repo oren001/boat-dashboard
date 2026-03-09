@@ -626,9 +626,13 @@
 <body>
     <!-- WHAT'S NEW TOAST -->
     <div class="toast" id="toast" onclick="dismissToast()">
-        <span style="font-size:0.8rem; font-weight:800">🆕 What's New</span>
-        <div style="font-size:0.75rem; opacity:0.6; margin-top:0.4rem">Premium 4-tab app redesign is now live!
-            Consolidate & simplify.</div>
+        <span style="font-size:0.8rem; font-weight:800">🆕 What's New: Poker Overhaul!</span>
+        <div style="font-size:0.7rem; opacity:0.8; margin-top:0.4rem; line-height:1.3">
+            • Smart "Net Mode" detection<br>
+            • Exact Gap Reporting (-$30)<br>
+            • One-tap "Beem It" links<br>
+            • Huge buttons for mobile
+        </div>
     </div>
 
     <!-- IDENTITY MODAL -->
@@ -672,6 +676,23 @@
         <div class="panels scroll">
             <!-- ── HOME ── -->
             <div class="panel active" id="panel-home">
+                <div class="card" style="border: 2px solid var(--primary); background: rgba(0, 119, 182, 0.05);">
+                    <div class="card-title" style="display:flex; align-items:center; gap:0.5rem">
+                        <span>🆕 What's New</span>
+                        <span class="status-badge" style="background:var(--primary); color:#fff">v2.0</span>
+                    </div>
+                    <div style="font-size:0.8rem; line-height:1.5; margin-top:0.5rem">
+                        <p style="margin-bottom:0.5rem">We've automated the Poker math based on your feedback!</p>
+                        <ul style="padding-left:1.2rem; margin:0">
+                            <li><b>Smart Net Mode:</b> Enter just your wins (+50) or losses (-20). We handle the rest.
+                            </li>
+                            <li><b>Gap Alerts:</b> See exactly what's missing (e.g., <i>Gap: -$30</i>).</li>
+                            <li><b>Beem & Settlement:</b> Pre-filled payment links + minimum number of transfers.</li>
+                            <li><b>Accessibility:</b> Giant buttons and inputs for easier mobile use.</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center">
                         <div class="card-title">📍 Cottage Point</div>
