@@ -214,9 +214,11 @@
         }
 
         .poker-input[readonly] {
-            background: transparent;
+            background: rgba(0, 0, 0, 0.02);
             border-color: transparent;
             box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .pot-status {
@@ -824,12 +826,14 @@
             // Render Actions
             actions.innerHTML = '';
             if (!currentPokerManager) {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">Become Manager</button>`;
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager (Unlock Table)</button>`;
             } else if (isManager) {
                 actions.innerHTML = `
-                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">Release Role</button>
-                    <button class="join-btn" onclick="clearPokerData()" style="flex:1; background:var(--danger)">Clear All</button>
+                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
+                    <button class="join-btn" onclick="clearPokerData()" style="flex:1; background:var(--danger)">🗑️ Clear All</button>
                 `;
+            } else {
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
             }
 
             // Render Players
