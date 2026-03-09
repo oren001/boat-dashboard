@@ -587,7 +587,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.0</span>
+                        3.1</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -675,7 +675,21 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ── INSIGHTS ── -->
+            <div class="panel" id="panel-insights">
+                <div class="card">
+                    <div class="card-title">📈 Global Leaderboard</div>
+                    <div id="leaderboard-list"></div>
+                </div>
+                <div class="card" style="margin-top:1rem">
+                    <div class="card-title">📁 Session History</div>
+                    <div id="session-history-list" class="scroll" style="max-height:300px"></div>
+                </div>
+            </div>
         </div>
+    </div>
+    </div>
     </div>
 
     <!-- NAV -->
@@ -694,6 +708,10 @@
         <button class="nav-btn" id="btn-settlement" onclick="switchTab('settlement', this)">
             <span class="nav-icon">💰</span>
             <span class="nav-label">Settlement</span>
+        </button>
+        <button class="nav-btn" id="btn-insights" onclick="switchTab('insights', this)">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Insights</span>
         </button>
     </nav>
 
@@ -954,6 +972,73 @@
             calculateSettlement(data.players || {}, isNetMode);
         }
 
+        // ── Insights Logic ──
+        function renderInsights(sessions) {
+            const leaderboard = document.getElementById('leaderboard-list');
+            const history = document.getElementById('session-history-list');
+            if (!leaderboard || !history) return;
+
+            const stats = {};
+            const sessionArray = Object.entries(sessions || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+            // Calculate All-Time Net
+            sessionArray.forEach(([id, s]) => {
+                Object.entries(s.players || {}).forEach(([name, p]) => {
+                    if (!stats[name]) stats[name] = 0;
+                    // Support both Net and Absolute modes in history
+                    const hasNegatives = Object.values(s.players).some(x => (x.balance || 0) < 0);
+                    const net = hasNegatives ? (p.balance || 0) : (p.balance || 0) - (p.buyin || 0);
+                    stats[name] += net;
+                });
+            });
+
+            // Render Leaderboard
+            leaderboard.innerHTML = '';
+            const sortedPlayers = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+
+            if (sortedPlayers.length === 0) {
+                leaderboard.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">No archived games yet.</div>';
+            }
+
+            sortedPlayers.forEach(([name, net], i) => {
+                const c = CREW.find(x => x.name === name) || { color: '#888', init: name.slice(0, 2) };
+                const row = document.createElement('div');
+                row.className = 'poker-player';
+                row.style.background = i === 0 ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.03)';
+                row.style.borderColor = i === 0 ? 'rgba(255, 215, 0, 0.3)' : 'var(--border)';
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.8rem">
+                        <div style="font-weight:900; opacity:0.4; width:15px">${i + 1}</div>
+                        <div class="av" style="${getAvStyle(c)}; width:32px; height:32px">${c.init}</div>
+                        <div style="font-weight:800">${name}</div>
+                    </div>
+                    <div style="font-weight:900; color:${net >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                        ${net >= 0 ? '+' : ''}$${net.toFixed(2)}
+                    </div>
+                `;
+                leaderboard.appendChild(row);
+            });
+
+            // Render History
+            history.innerHTML = '';
+            sessionArray.forEach(([id, s]) => {
+                const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
+                const item = document.createElement('div');
+                item.className = 'log-entry';
+                item.style.padding = '0.8rem';
+                item.style.borderBottom = '1px solid var(--border)';
+                item.innerHTML = `
+                    <div style="display:flex; flex-direction:column">
+                        <b style="font-size:0.8rem">Session - ${date}</b>
+                        <span style="font-size:0.6rem; opacity:0.5">Manager: ${s.finalizedBy || 'Unknown'}</span>
+                    </div>
+                    <b style="color:var(--primary)">$${totalPot.toFixed(0)} Pot</b>
+                `;
+                history.appendChild(item);
+            });
+        }
+
         // ── Info: Crew ──
         function renderCrew() {
             const list = document.getElementById('crew-list');
@@ -1211,6 +1296,7 @@
         }, 1000);
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
+        db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
         db.ref('boat-dashboard/crew').on('value', s => {
             const data = s.val() || {};
             CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
