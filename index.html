@@ -445,6 +445,31 @@
             display: flex;
         }
 
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px 4px 4px;
+            border-radius: 40px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .user-badge:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .user-badge .av {
+            width: 24px;
+            height: 24px;
+            font-size: 0.6rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         #update-toast {
             position: fixed;
             top: 1rem;
@@ -633,15 +658,20 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.8</span>
+                        3.9</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
-            <div class="countdown" id="countdown">
-                <div class="cd-num" id="cd-h">--</div>
-                <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">hrs</div>
-                <div class="cd-num" id="cd-m">--</div>
-                <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">min</div>
+            <div style="display:flex; align-items:center; gap:0.8rem">
+                <div id="header-user" class="user-badge" style="display:none" onclick="getIdentity(true)">
+                    <!-- Profile content injected here -->
+                </div>
+                <div class="countdown" id="countdown">
+                    <div class="cd-num" id="cd-h">--</div>
+                    <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">hrs</div>
+                    <div class="cd-num" id="cd-m">--</div>
+                    <div class="cd-lbl" style="font-size:0.5rem; opacity:0.5">min</div>
+                </div>
             </div>
         </header>
 
@@ -807,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "3.8";
+        const APP_VERSION = "3.9";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1279,6 +1309,7 @@
                     document.getElementById('identity-modal').classList.remove('show');
                     if (pendingResolve) pendingResolve({ name: finalName });
                     renderCrew();
+                    updateHeaderProfile();
                 }
             } catch (err) {
                 console.error("Redirect error:", err);
@@ -1290,6 +1321,7 @@
             document.getElementById('identity-modal').classList.remove('show');
             if (pendingResolve) pendingResolve({ name });
             renderCrew(); // Refresh with potential new data
+            updateHeaderProfile();
 
             // Populate Beem handle if exists
             const snap = await db.ref(`boat-dashboard/crew/${name}/beem`).once('value');
@@ -1303,6 +1335,21 @@
             if (!handle) return;
             await db.ref(`boat-dashboard/crew/${name}/beem`).set(handle);
             alert("Beem handle saved!");
+        }
+
+        function updateHeaderProfile() {
+            const el = document.getElementById('header-user');
+            const id = JSON.parse(localStorage.getItem('boat-identity'));
+            if (!id || !el) return el ? el.style.display = 'none' : null;
+
+            const crew = CREW.find(c => c.name === id.name) || { name: id.name, init: id.name[0] };
+            el.innerHTML = `
+                <div class="av" style="${getAvStyle(crew)}; background-image: url('${id.photo || ''}'); background-size: cover;">
+                    ${id.photo ? '' : (crew.init || crew.name[0])}
+                </div>
+                <div style="font-size:0.7rem; font-weight:800; opacity:0.9">${id.name}</div>
+            `;
+            el.style.display = 'flex';
         }
 
         function handlePhotoUpload(input) {
@@ -1511,7 +1558,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("3.8"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("3.9"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
@@ -1551,6 +1598,7 @@
             if (btn) switchTab(last, btn, true);
             // Handle Google Auth Redirect result
             handleAuthRedirect();
+            updateHeaderProfile();
 
             db.ref('.info/connected').on('value', s => {
                 if (s.val()) myPresenceRef.set(true);
