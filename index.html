@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.9</span>
+                        4.0</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "3.9";
+        const APP_VERSION = "4.0";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -963,7 +963,9 @@
 
             // Render Actions
             actions.innerHTML = '';
-            if (!currentPokerManager) {
+            if (!myId) {
+                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to manage the table</div>`;
+            } else if (!currentPokerManager) {
                 actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager (Unlock Table)</button>`;
             } else if (isManager) {
                 actions.innerHTML = `
@@ -1344,12 +1346,25 @@
 
             const crew = CREW.find(c => c.name === id.name) || { name: id.name, init: id.name[0] };
             el.innerHTML = `
-                <div class="av" style="${getAvStyle(crew)}; background-image: url('${id.photo || ''}'); background-size: cover;">
-                    ${id.photo ? '' : (crew.init || crew.name[0])}
+                <div style="display:flex; align-items:center; gap:0.5rem" onclick="getIdentity(true)">
+                    <div class="av" style="${getAvStyle(crew)}; background-image: url('${id.photo || ''}'); background-size: cover;">
+                        ${id.photo ? '' : (crew.init || crew.name[0])}
+                    </div>
+                    <div style="font-size:0.7rem; font-weight:800; opacity:0.9">${id.name}</div>
                 </div>
-                <div style="font-size:0.7rem; font-weight:800; opacity:0.9">${id.name}</div>
+                <div style="width:1px; height:12px; background:rgba(0,0,0,0.1); margin: 0 2px"></div>
+                <button onclick="logout(event)" style="background:none; border:none; padding:4px; cursor:pointer; font-size:0.8rem; opacity:0.4; display:flex; align-items:center" title="Logout">🚪</button>
             `;
             el.style.display = 'flex';
+        }
+
+        async function logout(e) {
+            if (e) e.stopPropagation();
+            if (!confirm("Logout and clear identity?")) return;
+            localStorage.removeItem('boat-identity');
+            await auth.signOut();
+            updateHeaderProfile();
+            location.reload(); // Refresh to clear all states
         }
 
         function handlePhotoUpload(input) {
@@ -1558,7 +1573,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("3.9"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("4.0"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
