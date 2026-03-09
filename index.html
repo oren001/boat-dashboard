@@ -708,79 +708,19 @@
 
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center">
-                        <div class="card-title">📍 Cottage Point</div>
-                        <div class="status-badge">ONLINE</div>
+                        <div class="card-title">📅 Next Weekly Game</div>
+                        <div class="status-badge" style="background:var(--sunset)">FRI 9:00 PM</div>
                     </div>
                     <p style="font-size:0.75rem; opacity:0.6; line-height:1.4; margin-top:0.5rem">
-                        Andrey's moored 50m from <strong>Cottage Point Wharf</strong>.
-                        Text him when you arrive for a tender pickup!
+                        Join the crew every Friday at 9:00 PM for the main event.
+                        Make sure to update your Beem handle in your profile!
                     </p>
-                    <a href="https://maps.app.goo.gl/2V3RgriTK8gvKepS6" target="_blank"
-                        style="display:inline-block; margin-top:1rem; font-size:0.7rem; color:var(--primary); text-decoration:none; font-weight:800">📍
-                        OPEN GOOGLE MAPS →</a>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">🗓️ Schedule</div>
-                    <div class="timeline">
-                        <div class="tl-item">
-                            <div class="tl-time">10:30</div>
-                            <div class="tl-body">
-                                <h3>Boarding</h3>
-                                <p>Newport Marina departure. Andrey picks up the boat.</p>
-                            </div>
-                        </div>
-                        <div class="tl-item">
-                            <div class="tl-time">12:30</div>
-                            <div class="tl-body">
-                                <h3>Mooring</h3>
-                                <p>Anchoring at Cottage Point. Crew pickup starts.</p>
-                            </div>
-                        </div>
-                        <div class="tl-item">
-                            <div class="tl-time">19:00</div>
-                            <div class="tl-body">
-                                <h3>Dinner</h3>
-                                <p>Burgers on deck 🔥</p>
-                            </div>
-                        </div>
-                        <div class="tl-item">
-                            <div class="tl-time">21:00</div>
-                            <div class="tl-body">
-                                <h3>Poker</h3>
-                                <p>The main event 🃏</p>
-                            </div>
-                        </div>
-                        <div class="tl-item" style="padding-bottom:0">
-                            <div class="tl-time">Sat 12:00</div>
-                            <div class="tl-body">
-                                <h3>Return</h3>
-                                <p>Back to Newport. Help with ropes welcome!</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- No more boat schedule -->
             </div>
 
-            <!-- ── LOGISTICS ── -->
-            <div class="panel" id="panel-logistics">
-                <div id="missing-rides-box"></div>
-                <div class="card">
-                    <div class="card-title">🚗 Carpool</div>
-                    <div id="carpool-list"></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">🍖 Supplies</div>
-                    <p style="font-size:0.7rem; opacity:0.5; margin-bottom:1rem">Coordinate who's bringing gear & food.
-                    </p>
-                    <div id="supplies-list"></div>
-                    <div style="margin-top:1.5rem; display:flex; gap:0.5rem">
-                        <input type="text" id="new-supply-item" class="poker-input"
-                            style="flex:1; text-align:left; width:auto; padding:0.6rem" placeholder="Ice, Beer, etc...">
-                        <button class="join-btn" onclick="addSupplyItem()" style="padding:0 1.2rem">Add</button>
-                    </div>
-                </div>
-            </div>
+            <!-- ── LOGISTICS & INFO REMOVED ── -->
 
             <!-- ── POKER ── -->
             <div class="panel" id="panel-poker">
@@ -794,59 +734,47 @@
                     <div id="poker-history" class="poker-log"></div>
                     <div id="manager-actions" style="margin-top:1.5rem; display:flex; gap:0.5rem"></div>
                 </div>
-                <div class="card" id="poker-settlement" style="display:none">
-                    <div class="card-title">💰 Settlement</div>
-                    <div id="settlement-results"></div>
-                </div>
             </div>
 
-            <!-- ── INFO ── -->
-            <div class="panel" id="panel-info">
-                <div class="card">
-                    <div class="card-title">👥 The Crew</div>
-                    <div id="crew-list" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem"></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">📞 Contacts</div>
-                    <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:0.8rem">
-                        <div style="display:flex; justify-content:space-between"><span>Andrey (Host)</span><span
-                                style="font-weight:800">0XXX XXX XXX</span></div>
-                        <div style="display:flex; justify-content:space-between"><span>Emergency (Oren)</span><span
-                                style="font-weight:800">0XXX XXX XXX</span></div>
+            <!-- ── SETTLEMENT ── -->
+            <div class="panel" id="panel-settlement">
+                <div class="card" id="poker-settlement">
+                    <div class="card-title">💰 Settlement</div>
+                    <div id="settlement-results">
+                        <div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">
+                            Table is not balanced or no scores entered.
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- NAV -->
-        <nav id="main-nav">
-            <button class="nav-btn" id="btn-poker" onclick="switchTab('poker', this)">
-                <div style="position:relative">
-                    <span class="nav-icon">🃏</span>
-                    <span id="poker-live-tag" style="display:none" class="live-badge">Live</span>
-                </div>
-                <span class="nav-label">Poker</span>
-            </button>
-            <button class="nav-btn active" id="btn-home" onclick="switchTab('home', this)">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Home</span>
-            </button>
-            <button class="nav-btn" id="btn-logistics" onclick="switchTab('logistics', this)">
-                <span class="nav-icon">🚛</span>
-                <span class="nav-label">Logistics</span>
-            </button>
-            <button class="nav-btn" id="btn-info" onclick="switchTab('info', this)">
-                <span class="nav-icon">ℹ️</span>
-                <span class="nav-label">Info</span>
-            </button>
-        </nav>
+    <!-- NAV -->
+    <nav id="main-nav">
+        <button class="nav-btn active" id="btn-home" onclick="switchTab('home', this)">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-btn" id="btn-poker" onclick="switchTab('poker', this)">
+            <div style="position:relative">
+                <span class="nav-icon">🃏</span>
+                <span id="poker-live-tag" style="display:none" class="live-badge">Live</span>
+            </div>
+            <span class="nav-label">Poker</span>
+        </button>
+        <button class="nav-btn" id="btn-settlement" onclick="switchTab('settlement', this)">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Settlement</span>
+        </button>
+    </nav>
 
-        <div
-            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem">
-            <span
-                style="width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse 2s infinite"></span>
-            <span id="online-count">...</span> crew members online
-        </div>
+    <div
+        style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem">
+        <span
+            style="width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse 2s infinite"></span>
+        <span id="online-count">...</span> crew members online
+    </div>
     </div>
 
     <script>
@@ -1216,74 +1144,32 @@
             }
         }
 
-        async function createNewCar() {
-            const id = await getIdentity(true);
-            if (!id) return;
-            const label = prompt("Car Name?");
-            if (!label) return;
-            const seats = parseInt(prompt("Seats?", "5")) || 5;
-            const cid = 'car_' + Date.now();
-            db.ref(`boat-dashboard/cars/${cid}`).set({
-                label, seats, emoji: '🚘', time: '10:30', route: 'City → Newport',
-                arrival: { [id.name.toLowerCase()]: id.name },
-                departure: { [id.name.toLowerCase()]: id.name }
-            });
-        }
+        // Legacy Boat Functions Removed
 
-        async function joinCar(cid, type) {
-            const id = await getIdentity(true);
-            if (!id) return;
-            const snap = await db.ref(`boat-dashboard/cars/${cid}`).once('value');
-            const car = snap.val();
-            if (Object.keys(car[type] || {}).length >= car.seats) return alert("Full!");
-            Object.keys(lastCarsSnap || {}).forEach(k => db.ref(`boat-dashboard/cars/${k}/${type}/${id.name.toLowerCase()}`).remove());
-            db.ref(`boat-dashboard/cars/${cid}/${type}/${id.name.toLowerCase()}`).set(id.name);
-        }
-
-        async function leaveCar(cid, type) {
-            const id = await getIdentity();
-            if (id) db.ref(`boat-dashboard/cars/${cid}/${type}/${id.name.toLowerCase()}`).remove();
-        }
-
-        function editTime(id, cur) {
-            const t = prompt("Time?", cur);
-            if (t) db.ref(`boat-dashboard/cars/${id}/time`).set(t);
-        }
-
-        async function addSupplyItem() {
-            const inp = document.getElementById('new-supply-item');
-            if (!inp.value.trim()) return;
-            db.ref('boat-dashboard/supplies').push({ name: inp.value.trim(), claimedBy: null });
-            inp.value = '';
-        }
-
-        async function claimSupply(sid) {
-            const id = await getIdentity(true);
-            if (id) db.ref(`boat-dashboard/supplies/${sid}/claimedBy`).set(id.name);
-        }
-
-        function unclaimSupply(sid) { db.ref(`boat-dashboard/supplies/${sid}/claimedBy`).set(null); }
 
         function calculateSettlement(data, isNetMode) {
-            const res = document.getElementById('poker-settlement');
             const list = document.getElementById('settlement-results');
-            if (!data) return res.style.display = 'none';
+            if (!data) {
+                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is not balanced or no scores entered.</div>';
+                return;
+            }
 
             let nets = Object.entries(data).map(([name, d]) => ({
                 name,
                 net: isNetMode ? (d.balance || 0) : (d.balance || 0) - (d.buyin || 0)
             })).filter(n => Math.abs(n.net) > 0.01);
 
-            if (!nets.length) return res.style.display = 'none';
-            res.style.display = 'block'; list.innerHTML = '';
+            if (!nets.length) {
+                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is not balanced or no scores entered.</div>';
+                return;
+            }
+            list.innerHTML = '';
 
-            const transactions = [];
             while (nets.length > 0) {
                 let debtors = nets.filter(n => n.net < -0.01).sort((a, b) => a.net - b.net);
                 let creditors = nets.filter(n => n.net > 0.01).sort((a, b) => b.net - a.net);
                 if (!debtors.length || !creditors.length) break;
 
-                // Priority 1: Exact Match (1-to-1)
                 let match = null;
                 for (let d of debtors) {
                     match = creditors.find(c => Math.abs(c.net + d.net) < 0.01);
@@ -1295,7 +1181,6 @@
                 }
                 if (match === true) continue;
 
-                // Priority 2: 1-to-2 match (One creditor equals sum of two debtors)
                 for (let c of creditors) {
                     for (let i = 0; i < debtors.length; i++) {
                         for (let j = i + 1; j < debtors.length; j++) {
@@ -1312,7 +1197,6 @@
                 }
                 if (match === true) continue;
 
-                // Priority 3: Greedy
                 const d = debtors[0]; const c = creditors[0];
                 const amt = Math.min(Math.abs(d.net), c.net);
                 addTx(d.name, c.name, amt);
@@ -1390,9 +1274,7 @@
             }
         }, 1000);
 
-        db.ref('boat-dashboard/cars').on('value', s => { lastCarsSnap = s.val() || {}; renderCarpool(lastCarsSnap); });
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
-        db.ref('boat-dashboard/supplies').on('value', s => renderSupplies(s.val() || {}));
         db.ref('boat-dashboard/crew').on('value', s => {
             const data = s.val() || {};
             CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
@@ -1402,10 +1284,9 @@
                 photo: data[name]?.photo || null,
                 beem: data[name]?.beem || null
             }));
-            renderCrew();
-            if (lastCarsSnap) renderCarpool(lastCarsSnap);
             const pokerSnap = db.ref('boat-dashboard/poker').once('value').then(snap => renderPoker(snap.val() || {}));
         });
+
         document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
             const isFridayNight = now.getDay() === 5 && now.getHours() >= 18;
