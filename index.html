@@ -826,7 +826,7 @@
             } else if (isManager) {
                 actions.innerHTML = `
                     <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
-                    <button class="join-btn" onclick="clearPokerData()" style="flex:1; background:var(--danger)">🗑️ Clear All</button>
+                    <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
                 `;
             } else {
                 actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
@@ -888,7 +888,7 @@
             logEntries.forEach(l => {
                 const entry = document.createElement('div');
                 entry.className = 'log-entry';
-                entry.innerHTML = `<span>${l.msg}</span><span style="opacity:0.4">${new Date(l.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
+                entry.innerHTML = `< span > ${l.msg}</span > <span style="opacity:0.4">${new Date(l.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
                 hist.appendChild(entry);
             });
 
@@ -904,19 +904,20 @@
             const isOk = Math.abs(gap) < 0.01 && (isNetMode || totalIn > 0);
 
             validation.innerHTML = (totalIn > 0 || calcTotalOut !== 0) ? `
-                <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
+                    < div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}" >
                     <div>
                         <div style="font-size:0.6rem; opacity:0.6; margin-bottom:2px">${isNetMode ? 'MODE: NET WINNINGS (+/-)' : 'MODE: TOTAL CHIPS'}</div>
                         <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${gap.toFixed(2)}`}</span>
                     </div>
                     <span style="text-align:right">$${totalIn.toFixed(2)} in<br>${isNetMode ? `Σ Winnings: $${calcTotalOut.toFixed(2)}` : `$${calcTotalOut.toFixed(2)} out`}</span>
-                </div>
-                ${isManager ? `
+                </div >
+                    ${isManager ? `
                 <div class="chip-assist">
                     <span>💡 <b>Tip:</b> ${isNetMode ? 'Entering wins (e.g. +50) and losses (e.g. -20). Sum should be $0.' : 'Entering final chip counts. Sum should match Total In.'}</span>
                 </div>
-                ` : ''}
-            ` : '';
+                ` : ''
+                }
+                ` : '';
 
             calculateSettlement(data.players || {}, isNetMode);
         }
@@ -929,7 +930,7 @@
             CREW.forEach(c => {
                 const card = document.createElement('div');
                 card.style.cssText = 'background:rgba(255,255,255,0.03); border-radius:12px; padding:0.6rem; display:flex; align-items:center; gap:0.6rem; border:1px solid var(--border)';
-                card.innerHTML = `<div class="av" style="background:${c.color}; width:24px; height:24px; font-size:0.6rem">${c.init}</div><div style="font-size:0.75rem;font-weight:700">${c.name}</div>`;
+                card.innerHTML = `< div class="av" style = "background:${c.color}; width:24px; height:24px; font-size:0.6rem" > ${c.init}</div > <div style="font-size:0.75rem;font-weight:700">${c.name}</div>`;
                 list.appendChild(card);
             });
         }
@@ -945,7 +946,7 @@
                     const b = document.createElement('div');
                     b.className = 'identity-btn';
                     b.onclick = () => setIdentity(c.name);
-                    b.innerHTML = `<div class="av" style="background:${c.color}">${c.init}</div><span style="font-size:0.6rem;font-weight:800">${c.name}</span>`;
+                    b.innerHTML = `< div class="av" style = "background:${c.color}" > ${c.init}</div > <span style="font-size:0.6rem;font-weight:800">${c.name}</span>`;
                     grid.appendChild(b);
                 });
                 return new Promise(res => { pendingResolve = res; });
@@ -960,7 +961,7 @@
             renderCrew(); // Refresh with potential new data
 
             // Populate Beem handle if exists
-            const snap = await db.ref(`boat-dashboard/crew/${name}/beem`).once('value');
+            const snap = await db.ref(`boat - dashboard / crew / ${name}/beem`).once('value');
             if (snap.val()) document.getElementById('beem-handle').value = snap.val();
         }
 
@@ -1031,11 +1032,31 @@
             db.ref('boat-dashboard/poker/manager').remove();
         }
 
-        function clearPokerData() {
-            if (confirm("Clear ALL poker data & logs?")) {
-                db.ref('boat-dashboard/poker/players').remove();
-                db.ref('boat-dashboard/poker/log').remove();
+        async function archiveSession() {
+            const id = await getIdentity();
+            if (!id) return;
+
+            const snap = await db.ref('boat-dashboard/poker').once('value');
+            const data = snap.val();
+            if (!data || !data.players) {
+                alert("Nothing to archive!");
+                return;
             }
+
+            if (!confirm("Finalize this session and start a new game?\nCurrent balances will be saved to history.")) return;
+
+            const sessionData = {
+                timestamp: Date.now(),
+                finalizedBy: id.name,
+                players: data.players,
+                log: data.log || {}
+            };
+
+            await db.ref('boat-dashboard/poker/sessions').push(sessionData);
+            await db.ref('boat-dashboard/poker/players').remove();
+            await db.ref('boat-dashboard/poker/log').remove();
+
+            alert("Session archived successfully! Table is now fresh.");
         }
 
         // Legacy Boat Functions Removed
