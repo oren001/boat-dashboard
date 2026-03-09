@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        5.0</span>
+                        5.1</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -696,7 +696,7 @@
                             <div
                                 style="font-size: 0.6rem; opacity: 0.7; font-weight: 800; margin-bottom: 0.2rem; text-transform: uppercase;">
                                 Next Session</div>
-                            <div style="font-size: 1rem; font-weight: 800;">Fri 9:00 PM</div>
+                            <div style="font-size: 1rem; font-weight: 800;">Fri 8:30 PM</div>
                         </div>
                         <div style="height: 20px; background: rgba(255,255,255,0.2); width: 1px;"></div>
                         <div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "5.0";
+        const APP_VERSION = "5.1";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1654,16 +1654,16 @@
 
         // Settlement Logic (Already Refactored)
 
-        // Initialized dynamic target: Next Friday 9:00 PM
-        function getNextFriday9PM() {
+        // Initialized dynamic target: Next Friday 8:30 PM
+        function getNextFriday830PM() {
             const now = new Date();
             const next = new Date();
             next.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
-            next.setHours(21, 0, 0, 0);
+            next.setHours(20, 30, 0, 0);
             if (next < now) next.setDate(next.getDate() + 7);
             return next;
         }
-        let currentTarget = getNextFriday9PM();
+        let currentTarget = getNextFriday830PM();
 
         // Init
         setInterval(() => {
@@ -1673,7 +1673,7 @@
                 document.getElementById('cd-h').innerText = Math.floor(diff / 36e5).toString().padStart(2, '0');
                 document.getElementById('cd-m').innerText = Math.floor((diff % 36e5) / 6e4).toString().padStart(2, '0');
             } else if (now - currentTarget > 8 * 36e5) { // 8 hours after, reset to next week
-                currentTarget = getNextFriday9PM();
+                currentTarget = getNextFriday830PM();
             } else {
                 document.getElementById('cd-h').innerText = "00";
                 document.getElementById('cd-m').innerText = "00";
@@ -1682,7 +1682,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("5.0"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("5.1"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
