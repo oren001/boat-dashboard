@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        4.1</span>
+                        4.2</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "4.1";
+        const APP_VERSION = "4.2";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1119,7 +1119,8 @@
                 const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
                 const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-                const isManager = myId && currentPokerManager === myId;
+                // Show restore if I am manager OR if there is no manager and I am logged in
+                const canRestore = myId && (!currentPokerManager || currentPokerManager === myId);
 
                 const item = document.createElement('div');
                 item.className = 'log-entry';
@@ -1135,7 +1136,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:0.8rem">
                         <b style="color:var(--primary); font-size:0.8rem">$${totalPot.toFixed(0)}</b>
-                        ${isManager ? `<button class="quick-btn" style="background:var(--primary); color:white; border:none; padding:4px 8px; font-size:0.6rem" onclick="restoreSession('${id}')">♻️ Restore</button>` : ''}
+                        ${canRestore ? `<button class="quick-btn" style="background:var(--primary); color:white; border:none; padding:4px 8px; font-size:0.6rem" onclick="restoreSession('${id}')">♻️ Restore</button>` : ''}
                     </div>
                 `;
                 history.appendChild(item);
@@ -1263,9 +1264,19 @@
 
         async function restoreSession(sessionId) {
             const me = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-            if (me !== currentPokerManager) return alert("Only the current Manager can restore sessions.");
+            if (!me) return alert("Please select your profile first.");
+
+            // Allow restore if no manager OR if I am the manager
+            if (currentPokerManager && currentPokerManager !== me) {
+                return alert(`Only the current Manager (${currentPokerManager}) can restore sessions.`);
+            }
 
             if (!confirm("Restore this archived session to the active table?\nThis will overwrite the current live table data!")) return;
+
+            // Automatically take role if no manager
+            if (!currentPokerManager) {
+                await db.ref('boat-dashboard/poker/manager').set(me);
+            }
 
             const snap = await db.ref(`boat-dashboard/poker/sessions/${sessionId}`).once('value');
             const session = snap.val();
@@ -1605,7 +1616,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("4.1"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("4.2"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
