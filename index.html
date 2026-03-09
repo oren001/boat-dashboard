@@ -587,7 +587,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.1</span>
+                        3.2</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -1038,6 +1038,83 @@
                 history.appendChild(item);
             });
         }
+
+        // ── Poker Logic Hall (Restored) ──
+        async function updatePoker(name, field, val) {
+            const v = parseFloat(val) || 0;
+            const myName = JSON.parse(localStorage.getItem('boat-identity'))?.name || 'Unknown';
+            await db.ref(`boat-dashboard/poker/players/${name}/${field}`).set(v);
+            await db.ref('boat-dashboard/poker/log').push({
+                ts: Date.now(),
+                msg: `${myName} changed ${name}'s ${field} to $${v}`
+            });
+        }
+
+        async function quickAdd(name, amt) {
+            const ref = db.ref(`boat-dashboard/poker/players/${name}/buyin`);
+            const snap = await ref.once('value');
+            const current = snap.val() || 0;
+            const next = current + amt;
+            await ref.set(next);
+            await db.ref('boat-dashboard/poker/log').push({
+                ts: Date.now(),
+                msg: `${name} added $${amt} (Total: $${next})`
+            });
+        }
+
+        async function quickAddCustom(name) {
+            const val = prompt(`Enter custom buy-in amount for ${name}:`);
+            if (val === null) return;
+            const amt = parseFloat(val);
+            if (isNaN(amt)) return alert("Invalid number");
+            await quickAdd(name, amt);
+        }
+
+        async function takePokerRole() {
+            const id = await getIdentity(true);
+            if (id) db.ref('boat-dashboard/poker/manager').set(id.name);
+        }
+
+        async function releasePokerRole() {
+            if (confirm("Release manager role?")) {
+                db.ref('boat-dashboard/poker/manager').remove();
+            }
+        }
+
+        async function archiveSession() {
+            const snap = await db.ref('boat-dashboard/poker').once('value');
+            const data = snap.val() || {};
+            if (!data.players) return alert("No players to archive.");
+
+            const calcTotalOut = Object.values(data.players).reduce((s, p) => s + (p.balance || 0), 0);
+            const totalIn = Object.values(data.players).reduce((s, p) => s + (p.buyin || 0), 0);
+            const hasNegatives = Object.values(data.players).some(p => (p.balance || 0) < 0);
+            const isNetMode = hasNegatives || (Math.abs(calcTotalOut) < Math.abs(calcTotalOut - totalIn));
+            const gap = isNetMode ? calcTotalOut : calcTotalOut - totalIn;
+
+            if (Math.abs(gap) > 0.01) {
+                if (!confirm(`Warning: Table is not balanced (Gap: $${gap.toFixed(2)}). Archive anyway?`)) return;
+            } else {
+                if (!confirm("Finalize session and start fresh? All data will be saved to history.")) return;
+            }
+
+            const me = JSON.parse(localStorage.getItem('boat-identity'))?.name || 'Unknown';
+            const sessionData = {
+                timestamp: Date.now(),
+                finalizedBy: me,
+                players: data.players,
+                log: data.log || {},
+                totalIn: totalIn,
+                gap: gap
+            };
+
+            await db.ref('boat-dashboard/poker/sessions').push(sessionData);
+            await db.ref('boat-dashboard/poker/players').remove();
+            await db.ref('boat-dashboard/poker/log').remove();
+            await db.ref('boat-dashboard/poker/manager').remove();
+            alert("Session archived successfully! Table reset.");
+        }
+
 
         // ── Info: Crew ──
         function renderCrew() {
