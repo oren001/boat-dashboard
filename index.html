@@ -432,13 +432,40 @@
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
             padding: 2rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        #update-toast {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200%);
+            background: var(--night);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: calc(100% - 2rem);
+            max-width: 400px;
+        }
+
+        #update-toast.show {
+            transform: translateX(-50%) translateY(0);
         }
 
         #identity-grid {
@@ -587,7 +614,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.3</span>
+                        3.4</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -719,6 +746,15 @@
         </div>
     </div> <!-- end app-shell -->
 
+    <div id="update-toast">
+        <div style="flex:1">
+            <div style="font-weight:900; font-size:0.8rem">🚀 Update Available!</div>
+            <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
+        </div>
+        <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
+            onclick="location.reload()">Refresh Now</button>
+    </div>
+
     <div id="identity-modal" class="modal">
         <div class="modal-content glass">
             <h2 style="font-weight:900; margin-bottom:1.5rem">Who are you?</h2>
@@ -764,6 +800,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
+        const APP_VERSION = "3.4";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1392,6 +1429,13 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
+        db.ref('boat-dashboard/version').on('value', s => {
+            const remoteVersion = s.val();
+            if (remoteVersion && remoteVersion !== APP_VERSION) {
+                document.getElementById('update-rev-text').innerText = `Version ${remoteVersion} is out.`;
+                document.getElementById('update-toast').classList.add('show');
+            }
+        });
         db.ref('boat-dashboard/crew').on('value', s => {
             const data = s.val() || {};
             CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
