@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        5.4</span>
+                        5.5</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "5.1";
+        const APP_VERSION = "5.5";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -983,6 +983,7 @@
                 const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
                 totalIn += (p.buyin || 0);
                 totalOut += (p.balance || 0);
+                const net = (p.balance || 0) - (p.buyin || 0);
 
                 const row = document.createElement('div');
                 row.className = 'poker-player';
@@ -1006,11 +1007,17 @@
                                     onchange="updatePoker('${c.name}','buyin',this.value)">
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center;">
-                                <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase; color: var(--success);">Out</span>
-                                <input type="number" step="0.01" class="poker-input" style="color:var(--success)" placeholder="0" 
+                                <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">Out</span>
+                                <input type="number" step="0.01" class="poker-input" placeholder="0" 
                                     value="${p.balance || ''}" 
                                     ${!isManager ? 'readonly' : ''} 
                                     onchange="updatePoker('${c.name}','balance',this.value)">
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; min-width: 40px;">
+                                <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">Net</span>
+                                <span style="font-size: 0.8rem; font-weight: 800; color: ${net >= 0 ? 'var(--success)' : 'var(--sunset)'}">
+                                    ${net > 0 ? '+' : ''}${net.toFixed(2)}
+                                </span>
                             </div>
                         </div>
                         ${isManager ? `
@@ -1036,34 +1043,28 @@
                 hist.appendChild(entry);
             });
 
-            // Render Validation
+            // Render Validation (Strict Physical Chip Model)
             const calcTotalOut = Object.values(data.players || {}).reduce((s, p) => s + (p.balance || 0), 0);
-
-            // Heuristic to detect mode: 
-            // If any value is negative OR sum is close to 0 compared to totalIn, it's likely "Net Mode"
-            const hasNegatives = Object.values(data.players || {}).some(p => (p.balance || 0) < 0);
-            const isNetMode = hasNegatives || (Math.abs(calcTotalOut) < Math.abs(calcTotalOut - totalIn));
-
-            const gap = isNetMode ? calcTotalOut : calcTotalOut - totalIn;
-            const isOk = Math.abs(gap) < 0.01 && (isNetMode || totalIn > 0);
+            const gap = calcTotalOut - totalIn;
+            const isOk = Math.abs(gap) < 0.01 && totalIn > 0;
 
             validation.innerHTML = (totalIn > 0 || calcTotalOut !== 0) ? `
                     <div class="pot-status ${isOk ? 'pot-ok' : 'pot-err'}">
                     <div>
-                        <div style="font-size:0.6rem; opacity:0.6; margin-bottom:2px">${isNetMode ? 'MODE: NET WINNINGS (+/-)' : 'MODE: TOTAL CHIPS'}</div>
-                        <span>${isOk ? '✅ Pot Balanced' : `⚠️ Gap: $${gap.toFixed(2)}`}</span>
+                        <div style="font-size:0.6rem; opacity:0.6; margin-bottom:2px">MODE: TOTAL CHIPS (In vs Out)</div>
+                        <span>${isOk ? '✅ Table Balanced' : `⚠️ Gap: $${gap.toFixed(2)}`}</span>
                     </div>
-                    <span style="text-align:right">$${totalIn.toFixed(2)} in<br>${isNetMode ? `Σ Winnings: $${calcTotalOut.toFixed(2)}` : `$${calcTotalOut.toFixed(2)} out`}</span>
+                    <span style="text-align:right">$${totalIn.toFixed(2)} in<br>$${calcTotalOut.toFixed(2)} out</span>
                 </div>
                     ${isManager ? `
                 <div class="chip-assist">
-                    <span>💡 <b>Tip:</b> ${isNetMode ? 'Entering wins (e.g. +50) and losses (e.g. -20). Sum should be $0.' : 'Entering final chip counts. Sum should match Total In.'}</span>
+                    <span>💡 <b>Tip:</b> Enter final chip counts for everyone. Total "Out" must match Total "In".</span>
                 </div>
                 ` : ''
                 }
                 ` : '';
 
-            calculateSettlement(data.players || {}, isNetMode, data.settled || {});
+            calculateSettlement(data.players || {}, false, data.settled || {});
         }
 
         // ── Insights Logic ──
@@ -1682,7 +1683,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("5.1"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("5.5"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
