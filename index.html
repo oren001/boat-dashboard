@@ -662,12 +662,12 @@
         <header>
             <div class="header-title">
                 <div style="display:flex; align-items:center; gap:0.5rem">
-                    <h1>Boat Trip 🛥️</h1>
+                    <h1>Friday Social 🃏</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        2.2</span>
+                        2.3</span>
                 </div>
-                <p>Fri 6 – Sat 7 Mar · Cottage Point</p>
+                <p id="event-tagline">Weekly Game & Logistics Dashboard</p>
             </div>
             <div class="countdown" id="countdown">
                 <div class="cd-num" id="cd-h">--</div>
@@ -1261,8 +1261,7 @@
             const list = document.getElementById('settlement-results');
             if (!data) return res.style.display = 'none';
 
-            // In Net Mode, net value is exactly Out. In Total Mode, it's Out - In.
-            const nets = Object.entries(data).map(([name, d]) => ({
+            let nets = Object.entries(data).map(([name, d]) => ({
                 name,
                 net: isNetMode ? (d.balance || 0) : (d.balance || 0) - (d.buyin || 0)
             })).filter(n => Math.abs(n.net) > 0.01);
@@ -1270,36 +1269,72 @@
             if (!nets.length) return res.style.display = 'none';
             res.style.display = 'block'; list.innerHTML = '';
 
-            const debtors = nets.filter(n => n.net < 0).sort((a, b) => a.net - b.net);
-            const creditors = nets.filter(n => n.net > 0).sort((a, b) => b.net - a.net);
-            let i = 0, j = 0;
+            const transactions = [];
+            while (nets.length > 0) {
+                let debtors = nets.filter(n => n.net < -0.01).sort((a, b) => a.net - b.net);
+                let creditors = nets.filter(n => n.net > 0.01).sort((a, b) => b.net - a.net);
+                if (!debtors.length || !creditors.length) break;
 
-            while (i < debtors.length && j < creditors.length) {
-                const amt = Math.min(Math.abs(debtors[i].net), creditors[j].net);
-                const creditorName = creditors[j].name;
-                const creditor = CREW.find(c => c.name === creditorName);
-                const beemHandle = creditor?.beem || '';
-                const text = `${debtors[i].name} pays $${amt.toFixed(2)} to ${creditorName}`;
+                // Priority 1: Exact Match (1-to-1)
+                let match = null;
+                for (let d of debtors) {
+                    match = creditors.find(c => Math.abs(c.net + d.net) < 0.01);
+                    if (match) {
+                        addTx(d.name, match.name, match.net);
+                        removeNet(d.name); removeNet(match.name);
+                        match = true; break;
+                    }
+                }
+                if (match === true) continue;
 
-                const tx = document.createElement('div');
-                tx.innerHTML = `
+                // Priority 2: 1-to-2 match (One creditor equals sum of two debtors)
+                for (let c of creditors) {
+                    for (let i = 0; i < debtors.length; i++) {
+                        for (let j = i + 1; j < debtors.length; j++) {
+                            if (Math.abs(c.net + debtors[i].net + debtors[j].net) < 0.01) {
+                                addTx(debtors[i].name, c.name, Math.abs(debtors[i].net));
+                                addTx(debtors[j].name, c.name, Math.abs(debtors[j].net));
+                                removeNet(c.name); removeNet(debtors[i].name); removeNet(debtors[j].name);
+                                match = true; break;
+                            }
+                        }
+                        if (match === true) break;
+                    }
+                    if (match === true) break;
+                }
+                if (match === true) continue;
+
+                // Priority 3: Greedy
+                const d = debtors[0]; const c = creditors[0];
+                const amt = Math.min(Math.abs(d.net), c.net);
+                addTx(d.name, c.name, amt);
+                updateNet(d.name, amt); updateNet(c.name, -amt);
+            }
+
+            function addTx(f, t, a) {
+                const cr = CREW.find(c => c.name === t);
+                const beem = cr?.beem || '';
+                const msg = `${f} pays $${a.toFixed(2)} to ${t}`;
+                const div = document.createElement('div');
+                div.innerHTML = `
                     <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem">
-                        <span><b>${debtors[i].name}</b> → <b>${creditorName}</b></span>
+                        <span><b>${f}</b> → <b>${t}</b></span>
                         <div style="display:flex; gap:0.4rem; align-items:center">
-                            <b style="color:var(--sunset)">$${amt.toFixed(2)}</b>
-                            <button class="quick-btn" onclick="copyToClipboard('${text}')">📋</button>
-                            ${beemHandle ? `
-                                <button class="quick-btn" style="background:#00d1b2; color:white; border:none" 
-                                    onclick="window.open('https://me.beem.com.au/${beemHandle}/${amt.toFixed(2)}', '_blank')">
-                                    Beem It
-                                </button>
-                            ` : ''}
+                            <b style="color:var(--sunset)">$${a.toFixed(2)}</b>
+                            <button class="quick-btn" onclick="copyToClipboard('${msg}')">📋</button>
+                            ${beem ? `<button class="quick-btn" style="background:#00d1b2; color:white; border:none" onclick="window.open('https://me.beem.com.au/${beem}/${a.toFixed(2)}', '_blank')">Beem It</button>` : ''}
                         </div>
                     </div>`;
-                list.appendChild(tx);
-                debtors[i].net += amt; creditors[j].net -= amt;
-                if (Math.abs(debtors[i].net) < 0.01) i++;
-                if (Math.abs(creditors[j].net) < 0.01) j++;
+                list.appendChild(div);
+            }
+            function updateNet(n, d) {
+                const i = nets.findIndex(x => x.name === n);
+                nets[i].net += d;
+                if (Math.abs(nets[i].net) < 0.01) nets.splice(i, 1);
+            }
+            function removeNet(n) {
+                const i = nets.findIndex(x => x.name === n);
+                if (i !== -1) nets.splice(i, 1);
             }
         }
 
@@ -1308,29 +1343,42 @@
             alert("Copied: " + text);
         }
 
-        // Timeline highlighting
+        // Dynamic Highlight: Every Friday 9:00 PM
         function highlight() {
             const now = new Date();
             const items = document.querySelectorAll('.tl-item');
-            const times = [
-                new Date('2026-03-06T10:30:00+11:00'),
-                new Date('2026-03-06T19:00:00+11:00'),
-                new Date('2026-03-06T21:00:00+11:00'),
-                new Date('2026-03-07T12:00:00+11:00')
-            ];
-            let found = false;
-            items.forEach((item, i) => {
-                item.classList.remove('timeline-next');
-                if (!found && now < times[i]) { item.classList.add('timeline-next'); found = true; }
-            });
+            if (now.getDay() === 5 && now.getHours() >= 20) {
+                items.forEach(item => {
+                    if (item.querySelector('h3').innerText === 'Poker') {
+                        item.classList.add('timeline-next');
+                    }
+                });
+            }
         }
+
+        // Initialized dynamic target: Next Friday 9:00 PM
+        function getNextFriday9PM() {
+            const now = new Date();
+            const next = new Date();
+            next.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
+            next.setHours(21, 0, 0, 0);
+            if (next < now) next.setDate(next.getDate() + 7);
+            return next;
+        }
+        let currentTarget = getNextFriday9PM();
 
         // Init
         setInterval(() => {
-            const diff = target - new Date();
+            const now = new Date();
+            const diff = currentTarget - now;
             if (diff > 0) {
                 document.getElementById('cd-h').innerText = Math.floor(diff / 36e5).toString().padStart(2, '0');
                 document.getElementById('cd-m').innerText = Math.floor((diff % 36e5) / 6e4).toString().padStart(2, '0');
+            } else if (now - currentTarget > 8 * 36e5) { // 8 hours after, reset to next week
+                currentTarget = getNextFriday9PM();
+            } else {
+                document.getElementById('cd-h').innerText = "00";
+                document.getElementById('cd-m').innerText = "00";
             }
         }, 1000);
 
@@ -1352,18 +1400,18 @@
         });
         document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
-            const isTripActive = now >= target;
+            const isFridayNight = now.getDay() === 5 && now.getHours() >= 18;
 
             // Manage Poker Dominance
             const pokerBtn = document.getElementById('btn-poker');
             const pokerTag = document.getElementById('poker-live-tag');
-            if (isTripActive) {
+            if (isFridayNight) {
                 pokerBtn.classList.add('live-poker');
                 pokerTag.style.display = 'block';
             }
 
             // Default Tab Selection
-            let defaultTab = isTripActive ? 'poker' : 'home';
+            let defaultTab = isFridayNight ? 'poker' : 'home';
             const last = localStorage.getItem('boat-tab') || defaultTab;
 
             const btn = document.querySelector(`.nav-btn[onclick*="${last}"]`);
