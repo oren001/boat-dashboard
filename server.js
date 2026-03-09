@@ -9,8 +9,11 @@ const PORT = process.env.PORT || 3000;
 const token = '7294807656:AAF9PwKOAL7MdbHgNQZY7mJNdVRFBRUCicw';
 const bot = new TelegramBot(token, { polling: true });
 
+let lastChatId = null;
+
 // Basic Bot Logic
 bot.on('message', (msg) => {
+    lastChatId = msg.chat.id;
     const chatId = msg.chat.id;
     const text = msg.text || '';
 
@@ -35,10 +38,15 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Server-side trigger for the announcement (for the agent to use)
+// Server-side trigger for the announcement
 app.post('/api/announce', (req, res) => {
-    // This will be used by the agent to send the one-time message
-    res.json({ status: 'ok' });
+    if (!lastChatId) return res.status(400).json({ status: 'error', message: 'No chat ID discovered yet. Please tag the bot in the group first.' });
+
+    const message = `*Friday Poker Social (REV 5.1) is LIVE!* 🃏💎\n\nWe've overhauled the settlement process to make it faster and clearer:\n✅ *Live Payment Tracking* – Check off transfers in real-time. Syncs for everyone!\n✅ *Smart Settlements* – Multi-path matching to minimize your bank transfers.\n✅ *Instant Beem* – One-click payments with "Poker" description auto-filled.\n\n*Next Game: Friday @ 8:30 PM*\nJoin the action here: https://boat-dashboard-b9w4.onrender.com/\n\nQuestions? Tag me (@grokypokylockybot) and I'll help you out! 🤐🚀`;
+
+    bot.sendMessage(lastChatId, message, { parse_mode: 'Markdown' })
+        .then(() => res.json({ status: 'ok' }))
+        .catch(err => res.status(500).json({ status: 'error', details: err.message }));
 });
 
 app.listen(PORT, () => {
