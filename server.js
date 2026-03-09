@@ -35,11 +35,6 @@ bot.on('message', (msg) => {
 // Serve static files from the current directory
 app.use(express.static(path.join(__dirname)));
 
-// Fallback to index.html
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // Debug status
 app.get('/api/debug', (req, res) => {
     res.json({
@@ -65,6 +60,11 @@ app.post('/api/announce', (req, res) => {
             console.error(`[Bot Error] ${err.message}`);
             res.status(500).json({ status: 'error', details: err.message });
         });
+});
+
+// Fallback to index.html - AT THE BOTTOM
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
