@@ -633,7 +633,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.7</span>
+                        3.8</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -807,7 +807,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "3.7";
+        const APP_VERSION = "3.8";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1255,25 +1255,33 @@
 
         async function loginWithGoogle() {
             try {
-                const result = await auth.signInWithPopup(googleProvider);
-                const user = result.user;
-                const name = user.displayName.split(' ')[0]; // Use first name
-
-                // Link to existing crew if possible
-                const match = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
-                const finalName = match ? match.name : name;
-
-                localStorage.setItem('boat-identity', JSON.stringify({ name: finalName, photo: user.photoURL, email: user.email }));
-                if (user.photoURL) {
-                    await db.ref(`boat-dashboard/crew/${finalName}/photo`).set(user.photoURL);
-                }
-
-                document.getElementById('identity-modal').classList.remove('show');
-                if (pendingResolve) pendingResolve({ name: finalName });
-                renderCrew();
+                // Switch to Redirect flow to bypass COOP/Popup issues
+                await auth.signInWithRedirect(googleProvider);
             } catch (err) {
                 console.error(err);
                 alert("Login failed: " + err.message);
+            }
+        }
+
+        async function handleAuthRedirect() {
+            try {
+                const result = await auth.getRedirectResult();
+                if (result && result.user) {
+                    const user = result.user;
+                    const name = user.displayName.split(' ')[0];
+                    const match = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
+                    const finalName = match ? match.name : name;
+
+                    localStorage.setItem('boat-identity', JSON.stringify({ name: finalName, photo: user.photoURL, email: user.email }));
+                    if (user.photoURL) {
+                        await db.ref(`boat-dashboard/crew/${finalName}/photo`).set(user.photoURL);
+                    }
+                    document.getElementById('identity-modal').classList.remove('show');
+                    if (pendingResolve) pendingResolve({ name: finalName });
+                    renderCrew();
+                }
+            } catch (err) {
+                console.error("Redirect error:", err);
             }
         }
 
@@ -1503,7 +1511,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("3.7"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("3.8"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
@@ -1541,6 +1549,9 @@
 
             const btn = document.querySelector(`.nav-btn[onclick*="${last}"]`);
             if (btn) switchTab(last, btn, true);
+            // Handle Google Auth Redirect result
+            handleAuthRedirect();
+
             db.ref('.info/connected').on('value', s => {
                 if (s.val()) myPresenceRef.set(true);
             });
