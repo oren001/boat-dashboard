@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        4.0</span>
+                        4.1</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "4.0";
+        const APP_VERSION = "4.1";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1118,16 +1118,25 @@
             sessionArray.forEach(([id, s]) => {
                 const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
+                const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+                const isManager = myId && currentPokerManager === myId;
+
                 const item = document.createElement('div');
                 item.className = 'log-entry';
                 item.style.padding = '0.8rem';
                 item.style.borderBottom = '1px solid var(--border)';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
                 item.innerHTML = `
                     <div style="display:flex; flex-direction:column">
                         <b style="font-size:0.8rem">Session - ${date}</b>
                         <span style="font-size:0.6rem; opacity:0.5">Manager: ${s.finalizedBy || 'Unknown'}</span>
                     </div>
-                    <b style="color:var(--primary)">$${totalPot.toFixed(0)} Pot</b>
+                    <div style="display:flex; align-items:center; gap:0.8rem">
+                        <b style="color:var(--primary); font-size:0.8rem">$${totalPot.toFixed(0)}</b>
+                        ${isManager ? `<button class="quick-btn" style="background:var(--primary); color:white; border:none; padding:4px 8px; font-size:0.6rem" onclick="restoreSession('${id}')">♻️ Restore</button>` : ''}
+                    </div>
                 `;
                 history.appendChild(item);
             });
@@ -1250,6 +1259,29 @@
             await db.ref('boat-dashboard/poker/log').remove();
             await db.ref('boat-dashboard/poker/manager').remove();
             alert("Session archived successfully! Table reset.");
+        }
+
+        async function restoreSession(sessionId) {
+            const me = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+            if (me !== currentPokerManager) return alert("Only the current Manager can restore sessions.");
+
+            if (!confirm("Restore this archived session to the active table?\nThis will overwrite the current live table data!")) return;
+
+            const snap = await db.ref(`boat-dashboard/poker/sessions/${sessionId}`).once('value');
+            const session = snap.val();
+            if (!session || !session.players) return alert("Session data not found.");
+
+            // Restore players and partial management state
+            await db.ref('boat-dashboard/poker/players').set(session.players);
+            if (session.log) await db.ref('boat-dashboard/poker/log').set(session.log);
+
+            await db.ref('boat-dashboard/poker/log').push({
+                ts: Date.now(),
+                msg: `🔄 ${me} restored session from ${new Date(session.timestamp).toLocaleDateString()}`
+            });
+
+            alert("Session restored! Check the Poker and Settlement tabs.");
+            switchTab('poker', document.getElementById('btn-poker'));
         }
 
 
@@ -1573,7 +1605,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("4.0"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("4.1"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
