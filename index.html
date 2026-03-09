@@ -578,30 +578,49 @@
     <!-- Dependencies -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
 
-    <!-- IDENTITY MODAL -->
-    <div class="modal" id="identity-modal">
-        <div class="modal-content">
-            <h2 style="margin-bottom:1.5rem; font-size:1.2rem; font-weight:900">Who are you?</h2>
+    <!-- IDENTITY MODAL (Restored and Improved) -->
+    <div id="identity-modal" class="modal" style="z-index: 5000;">
+        <div class="modal-content glass" style="background: white; color: var(--text); position: relative;">
+            <button onclick="document.getElementById('identity-modal').classList.remove('show')"
+                style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:0.3">✕</button>
+            <h2 style="font-weight:900; margin-bottom:1rem">Who are you?</h2>
+
+            <button class="join-btn" onclick="loginWithGoogle()"
+                style="width:100%; margin-bottom:1.5rem; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18">
+                Continue with Google
+            </button>
+
+            <div style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
+                <span style="background:white; padding:0 10px; position:relative; z-index:1">OR CHOOSE NAME</span>
+                <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:#eee; z-index:0"></div>
+            </div>
+
             <div id="identity-grid"
                 style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-bottom:1.5rem"></div>
-            <div style="border-top:1px solid var(--border); padding-top:1.5rem">
-                <p style="font-size:0.7rem; opacity:0.5; margin-bottom:0.8rem">Personalize your profile:</p>
-                <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem">
-                    <input type="text" id="beem-handle" class="poker-input"
-                        style="flex:1; text-align:left; font-size:0.9rem; padding:0.6rem" placeholder="Beem @handle">
-                    <button class="join-btn" onclick="saveBeemHandle()"
-                        style="padding:0.6rem 1rem; font-size:0.8rem">Save</button>
+
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border)">
+                <p style="font-size:0.6rem; opacity:0.5; margin-bottom:0.5rem">Personalize your profile:</p>
+                <div style="display:flex; gap:0.5rem">
+                    <input type="text" id="beem-handle" class="poker-input" style="flex:1" placeholder="Beem @handle">
+                    <button class="join-btn" style="padding:0.6rem 1rem; font-size:0.8rem"
+                        onclick="saveBeemHandle()">Save</button>
                 </div>
-                <input type="file" id="avatar-upload" style="display:none" accept="image/*"
-                    onchange="handlePhotoUpload(this)">
-                <button class="join-btn" onclick="document.getElementById('avatar-upload').click()"
-                    style="width:100%; background:var(--night)">📸 Upload Photo</button>
+                <div style="margin-top:1rem">
+                    <input type="file" id="photo-upload" style="display:none" accept="image/*"
+                        onchange="handlePhotoUpload(this)">
+                    <button class="join-btn"
+                        style="width:100%; padding:0.8rem; background:var(--night); font-size:0.8rem"
+                        onclick="document.getElementById('photo-upload').click()">📸 Upload Photo</button>
+                </div>
             </div>
         </div>
     </div>
@@ -614,7 +633,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        3.4</span>
+                        3.5</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -664,8 +683,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <button class="join-btn" onclick="switchTab('poker', document.getElementById('btn-poker'))"
                             style="padding: 1.2rem; font-size: 1rem; letter-spacing: 0.02em;">🃏 Join Table</button>
-                        <button class="join-btn"
-                            onclick="document.getElementById('identity-modal').classList.add('show')"
+                        <button class="join-btn" onclick="getIdentity(true)"
                             style="padding: 1.2rem; font-size: 1rem; background: var(--glass); color: var(--text); border: 1px solid var(--border); box-shadow: none;">👤
                             My Profile</button>
                     </div>
@@ -708,6 +726,12 @@
                 <div class="card">
                     <div class="card-title">📈 Global Leaderboard</div>
                     <div id="leaderboard-list"></div>
+                </div>
+                <div class="card" style="margin-top:1rem">
+                    <div class="card-title">📈 Pot Trend</div>
+                    <div style="height:200px; padding:10px 0">
+                        <canvas id="balanceChart"></canvas>
+                    </div>
                 </div>
                 <div class="card" style="margin-top:1rem">
                     <div class="card-title">📁 Session History</div>
@@ -755,27 +779,7 @@
             onclick="location.reload()">Refresh Now</button>
     </div>
 
-    <div id="identity-modal" class="modal">
-        <div class="modal-content glass">
-            <h2 style="font-weight:900; margin-bottom:1.5rem">Who are you?</h2>
-            <div id="identity-grid"></div>
-            <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border)">
-                <p style="font-size:0.6rem; opacity:0.5; margin-bottom:0.5rem">Personalize your profile:</p>
-                <div style="display:flex; gap:0.5rem">
-                    <input type="text" id="beem-handle" class="poker-input" style="flex:1" placeholder="Beem @handle">
-                    <button class="join-btn" style="padding:0.6rem 1rem; font-size:0.8rem"
-                        onclick="saveBeemHandle()">Save</button>
-                </div>
-                <div style="margin-top:1rem">
-                    <input type="file" id="photo-upload" style="display:none" accept="image/*"
-                        onchange="handlePhotoUpload(this)">
-                    <button class="join-btn"
-                        style="width:100%; padding:0.8rem; background:var(--night); font-size:0.8rem"
-                        onclick="document.getElementById('photo-upload').click()">📸 Upload Photo</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <script>
         // ── FIREBASE PRESENCE ──
@@ -790,6 +794,9 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
         const uid = Math.random().toString(36).slice(2);
         const myPresenceRef = db.ref('boat-dashboard/presence/' + uid);
         const allPresenceRef = db.ref('boat-dashboard/presence');
@@ -800,7 +807,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "3.4";
+        const APP_VERSION = "3.5";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1092,6 +1099,49 @@
                 `;
                 history.appendChild(item);
             });
+
+            // Render Chart
+            renderTrendChart(sessionArray);
+        }
+
+        let myChart = null;
+        function renderTrendChart(sessions) {
+            const ctx = document.getElementById('balanceChart');
+            if (!ctx) return;
+
+            const data = [...sessions].reverse().slice(-10); // Last 10 sessions
+            const labels = data.map(s => new Date(s[1].timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }));
+            const values = data.map(s => Object.values(s[1].players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0));
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Pot ($)',
+                        data: values,
+                        borderColor: '#f77f00',
+                        backgroundColor: 'rgba(247, 127, 0, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
         }
 
         // ── Poker Logic Hall (Restored) ──
@@ -1201,6 +1251,30 @@
                 return new Promise(res => { pendingResolve = res; });
             }
             return id;
+        }
+
+        async function loginWithGoogle() {
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const name = user.displayName.split(' ')[0]; // Use first name
+
+                // Link to existing crew if possible
+                const match = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
+                const finalName = match ? match.name : name;
+
+                localStorage.setItem('boat-identity', JSON.stringify({ name: finalName, photo: user.photoURL, email: user.email }));
+                if (user.photoURL) {
+                    await db.ref(`boat-dashboard/crew/${finalName}/photo`).set(user.photoURL);
+                }
+
+                document.getElementById('identity-modal').classList.remove('show');
+                if (pendingResolve) pendingResolve({ name: finalName });
+                renderCrew();
+            } catch (err) {
+                console.error(err);
+                alert("Login failed: " + err.message);
+            }
         }
 
         async function setIdentity(name) {
@@ -1429,6 +1503,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
+        db.ref('boat-dashboard/version').set("3.5"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
