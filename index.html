@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        4.2</span>
+                        4.3</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "4.2";
+        const APP_VERSION = "4.3";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1521,17 +1521,20 @@
                 let creditors = nets.filter(n => n.net > 0.01).sort((a, b) => b.net - a.net);
                 if (!debtors.length || !creditors.length) break;
 
-                let match = null;
+                let matchFound = false;
+
+                // 1. Try 1:1 match
                 for (let d of debtors) {
-                    match = creditors.find(c => Math.abs(c.net + d.net) < 0.01);
+                    let match = creditors.find(c => Math.abs(c.net + d.net) < 0.01);
                     if (match) {
                         addTx(d.name, match.name, match.net);
                         removeNet(d.name); removeNet(match.name);
-                        match = true; break;
+                        matchFound = true; break;
                     }
                 }
-                if (match === true) continue;
+                if (matchFound) continue;
 
+                // 2. Try 2 debts to 1 credit (2:1)
                 for (let c of creditors) {
                     for (let i = 0; i < debtors.length; i++) {
                         for (let j = i + 1; j < debtors.length; j++) {
@@ -1539,19 +1542,39 @@
                                 addTx(debtors[i].name, c.name, Math.abs(debtors[i].net));
                                 addTx(debtors[j].name, c.name, Math.abs(debtors[j].net));
                                 removeNet(c.name); removeNet(debtors[i].name); removeNet(debtors[j].name);
-                                match = true; break;
+                                matchFound = true; break;
                             }
                         }
-                        if (match === true) break;
+                        if (matchFound) break;
                     }
-                    if (match === true) break;
+                    if (matchFound) break;
                 }
-                if (match === true) continue;
+                if (matchFound) continue;
 
-                const d = debtors[0]; const c = creditors[0];
+                // 3. Try 1 debt to 2 credits (1:2)
+                for (let d of debtors) {
+                    for (let i = 0; i < creditors.length; i++) {
+                        for (let j = i + 1; j < creditors.length; j++) {
+                            if (Math.abs(d.net + creditors[i].net + creditors[j].net) < 0.01) {
+                                addTx(d.name, creditors[i].name, creditors[i].net);
+                                addTx(d.name, creditors[j].name, creditors[j].net);
+                                removeNet(d.name); removeNet(creditors[i].name); removeNet(creditors[j].name);
+                                matchFound = true; break;
+                            }
+                        }
+                        if (matchFound) break;
+                    }
+                    if (matchFound) break;
+                }
+                if (matchFound) continue;
+
+                // 4. Fallback: Greedy largest debt to largest credit
+                const d = debtors[0];
+                const c = creditors[0];
                 const amt = Math.min(Math.abs(d.net), c.net);
                 addTx(d.name, c.name, amt);
-                updateNet(d.name, amt); updateNet(c.name, -amt);
+                updateNet(d.name, amt);
+                updateNet(c.name, -amt);
             }
 
             function addTx(f, t, a) {
@@ -1616,7 +1639,7 @@
 
         db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("4.2"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("4.3"); // Ensure remote version is synced
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
