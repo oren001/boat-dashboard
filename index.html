@@ -140,6 +140,12 @@
             color: var(--primary);
         }
 
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         .nav-icon {
             font-size: 1.8rem;
             transition: transform 0.3s;
@@ -617,6 +623,13 @@
             <button onclick="document.getElementById('identity-modal').classList.remove('show')"
                 style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:0.3">✕</button>
             <h2 style="font-weight:900; margin-bottom:1rem">Who are you?</h2>
+            <div id="auth-loading"
+                style="font-size:0.7rem; color:var(--sunset); margin-bottom:1rem; display:none; align-items:center; gap:0.5rem">
+                <div class="spinner"
+                    style="width:12px; height:12px; border:2px solid var(--sunset); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite">
+                </div>
+                Verifying Knight Status...
+            </div>
 
             <button class="join-btn" id="google-login-btn" onclick="loginWithGoogle()"
                 style="width:100%; margin-bottom:1.5rem; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
@@ -1332,19 +1345,31 @@
                 const gBtn = document.getElementById('google-login-btn');
                 const claimHeader = document.getElementById('claim-header');
                 const modalTitle = document.querySelector('#identity-modal h2');
+                const loadingEl = document.getElementById('auth-loading');
 
                 grid.innerHTML = '';
 
                 // If logged in but identity not set/forced, we are in "Claim Mode"
                 if (myUid) {
+                    if (loadingEl) loadingEl.style.display = 'none';
                     if (gBtn) gBtn.style.display = 'none';
                     const email = auth.currentUser?.email || "Account Detected";
                     if (claimHeader) claimHeader.innerHTML = `Connected: <b>${email}</b><br><span style="font-size:0.6rem; opacity:0.8">CHOOSE YOUR KNIGHT TO LINK</span>`;
                     if (modalTitle) modalTitle.innerText = "Claim Your Knight";
                 } else {
-                    if (gBtn) gBtn.style.display = 'flex';
-                    if (claimHeader) claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
-                    if (modalTitle) modalTitle.innerText = "Who are you?";
+                    if (loadingEl) loadingEl.style.display = 'flex';
+                    if (gBtn) gBtn.style.display = 'none'; // Hide button while loading
+                    if (claimHeader) claimHeader.innerText = "Verifying authentication...";
+
+                    // Show button only after a short delay if still no UID (meaning definitely not logged in)
+                    setTimeout(() => {
+                        if (!uidOverride && !auth.currentUser && !globalUid) {
+                            if (loadingEl) loadingEl.style.display = 'none';
+                            if (gBtn) gBtn.style.display = 'flex';
+                            if (claimHeader) claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
+                            if (modalTitle) modalTitle.innerText = "Who are you?";
+                        }
+                    }, 2000);
                 }
 
                 // Fetch current claims
@@ -1808,6 +1833,9 @@
                 if (id) {
                     renderCrew();
                     updateHeaderProfile();
+                } else {
+                    // Force modal refresh if auth just confirmed
+                    if (user) getIdentity(true, user.uid);
                 }
             });
         }
