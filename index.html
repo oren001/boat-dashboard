@@ -658,7 +658,7 @@
                     <h1>Friday Social 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        5.6</span>
+                        6.0</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "5.6";
+        const APP_VERSION = "6.0";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -847,9 +847,12 @@
         const COLORS = ["#f77f00", "#0077b6", "#7b2d8b", "#2d6a4f", "#d62828", "#555", "#ff4d4d"];
 
         function getAvStyle(member) {
-            if (member.photo) return `background-image: url(${member.photo}); color: transparent;`;
+            const dynamicPhoto = CREW_DATA?.[member.name]?.photo;
+            if (dynamicPhoto || member.photo) return `background-image: url(${dynamicPhoto || member.photo}); background-size: cover; color: transparent;`;
             return `background: ${member.color || COLORS[0]};`;
         }
+
+        let CREW_DATA = {}; // Global store for real-time crew data
 
         // ── Navigation ──
         function switchTab(tabId, btn, isInitial = false) {
@@ -943,7 +946,6 @@
 
 
         // ── Poker ──
-        let currentPokerManager = null;
 
         function renderPoker(data) {
             const list = document.getElementById('poker-players-list');
@@ -953,7 +955,7 @@
             if (!list) return;
 
             const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-            currentPokerManager = data.manager || null;
+            // Use the global currentPokerManager synced from Firebase
             const isManager = myId && currentPokerManager === myId;
 
             // Render Status
@@ -1317,11 +1319,24 @@
                 document.getElementById('identity-modal').classList.add('show');
                 const grid = document.getElementById('identity-grid');
                 grid.innerHTML = '';
+
+                // Fetch current claims to lock UI
+                const claimsSnap = await db.ref('boat-dashboard/claims').once('value');
+                const claims = claimsSnap.val() || {};
+                const myUid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
+
                 CREW.forEach(c => {
+                    const isClaimed = claims[c.name];
+                    const isMine = isClaimed === myUid;
                     const b = document.createElement('div');
-                    b.className = 'identity-btn';
+                    b.className = `identity-btn ${isClaimed && !isMine ? 'locked' : ''} ${isMine ? 'mine' : ''}`;
                     b.onclick = () => setIdentity(c.name);
-                    b.innerHTML = `<div class="av" style="${getAvStyle(c)}">${c.init}</div><span style="font-size:0.75rem;font-weight:800">${c.name}</span>`;
+                    b.innerHTML = `
+                        <div class="av" style="${getAvStyle(c)}">${c.init}</div>
+                        <span style="font-size:0.75rem;font-weight:800">${c.name}</span>
+                        ${isClaimed && !isMine ? '<span style="font-size:0.6rem; opacity:0.5; margin-top:2px">🔒 Locked</span>' : ''}
+                        ${isMine ? '<span style="font-size:0.6rem; color:var(--success); margin-top:2px">🛡️ Verified</span>' : ''}
+                    `;
                     grid.appendChild(b);
                 });
                 return new Promise(res => { pendingResolve = res; });
@@ -1344,18 +1359,13 @@
                 const result = await auth.getRedirectResult();
                 if (result && result.user) {
                     const user = result.user;
-                    const name = user.displayName.split(' ')[0];
-                    const match = CREW.find(c => c.name.toLowerCase() === name.toLowerCase());
-                    const finalName = match ? match.name : name;
+                    console.log("[Auth] Successfully logged in:", user.email);
 
-                    localStorage.setItem('boat-identity', JSON.stringify({ name: finalName, photo: user.photoURL, email: user.email }));
-                    if (user.photoURL) {
-                        await db.ref(`boat-dashboard/crew/${finalName}/photo`).set(user.photoURL);
-                    }
-                    document.getElementById('identity-modal').classList.remove('show');
-                    if (pendingResolve) pendingResolve({ name: finalName });
-                    renderCrew();
-                    updateHeaderProfile();
+                    // Store the UID and check for claims
+                    localStorage.setItem('boat-uid', user.uid);
+
+                    // Show identity modal even if logged in, to allow claiming
+                    getIdentity(true);
                 }
             } catch (err) {
                 console.error("Redirect error:", err);
@@ -1363,10 +1373,38 @@
         }
 
         async function setIdentity(name) {
+            const uid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
+            if (!uid) {
+                alert("Please login with Google first to protect your identity.");
+                return loginWithGoogle();
+            }
+
+            // Check if this profile is already claimed
+            const claimSnap = await db.ref(`boat-dashboard/claims/${name}`).once('value');
+            const claimedBy = claimSnap.val();
+
+            if (claimedBy && claimedBy !== uid) {
+                alert(`⚠️ This profile belongs to someone else and is protected.`);
+                return;
+            }
+
+            // Claim it if not already claimed
+            if (!claimedBy) {
+                await db.ref(`boat-dashboard/claims/${name}`).set(uid);
+                console.log(`[Auth] Profile ${name} claimed by ${uid}`);
+            }
+
             localStorage.setItem('boat-identity', JSON.stringify({ name }));
             document.getElementById('identity-modal').classList.remove('show');
             if (pendingResolve) pendingResolve({ name });
-            renderCrew(); // Refresh with potential new data
+
+            // Sync photo from Google if we don't have one in DB
+            const crewPhotoSnap = await db.ref(`boat-dashboard/crew/${name}/photo`).once('value');
+            if (!crewPhotoSnap.val() && auth.currentUser?.photoURL) {
+                await db.ref(`boat-dashboard/crew/${name}/photo`).set(auth.currentUser.photoURL);
+            }
+
+            renderCrew();
             updateHeaderProfile();
 
             // Populate Beem handle if exists
@@ -1389,14 +1427,20 @@
             if (!id || !el) return el ? el.style.display = 'none' : null;
 
             const crew = CREW.find(c => c.name === id.name) || { name: id.name, init: id.name[0] };
+            const photo = CREW_DATA?.[id.name]?.photo;
+
             el.innerHTML = `
                 <div style="display:flex; align-items:center; gap:0.5rem" onclick="getIdentity(true)">
-                    <div class="av" style="${getAvStyle(crew)}; background-image: url('${id.photo || ''}'); background-size: cover;">
-                        ${id.photo ? '' : (crew.init || crew.name[0])}
+                    <div class="av" style="${getAvStyle(crew)}">
+                        ${photo ? '' : (crew.init || crew.name[0])}
                     </div>
-                    <div style="font-size:0.7rem; font-weight:800; opacity:0.9">${id.name}</div>
+                    <div style="display:flex; flex-direction:column">
+                        <div style="font-size:0.7rem; font-weight:800; opacity:0.9; display:flex; align-items:center; gap:3px">
+                            ${id.name} <span title="Verified Identity" style="font-size:0.6rem">🛡️</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="width:1px; height:12px; background:rgba(0,0,0,0.1); margin: 0 2px"></div>
+                <div style="width:1px; height:12px; background:rgba(0,0,0,0.1); margin: 0 4px"></div>
                 <button onclick="logout(event)" style="background:none; border:none; padding:4px; cursor:pointer; font-size:0.8rem; opacity:0.4; display:flex; align-items:center" title="Logout">🚪</button>
             `;
             el.style.display = 'flex';
@@ -1406,9 +1450,10 @@
             if (e) e.stopPropagation();
             if (!confirm("Logout and clear identity?")) return;
             localStorage.removeItem('boat-identity');
+            localStorage.removeItem('boat-uid');
             await auth.signOut();
             updateHeaderProfile();
-            location.reload(); // Refresh to clear all states
+            location.reload();
         }
 
         function handlePhotoUpload(input) {
@@ -1631,27 +1676,7 @@
             }
         }
 
-        async function toggleSettlement(f, t, a) {
-            const txKey = `${f}_${t}_${a.toFixed(2)}`.replace(/\./g, '_');
-            const ref = db.ref(`boat-dashboard/poker/settled/${txKey}`);
-            const snap = await ref.once('value');
-            if (snap.val()) {
-                await ref.remove();
-            } else {
-                await ref.set(true);
-            }
-        }
-
-        async function toggleSettlement(f, t, a) {
-            const txKey = `${f}_${t}_${a.toFixed(2)}`.replace(/\./g, '_');
-            const ref = db.ref(`boat-dashboard/poker/settled/${txKey}`);
-            const snap = await ref.once('value');
-            if (snap.val()) {
-                await ref.remove();
-            } else {
-                await ref.set(true);
-            }
-        }
+        // Settlement Logic (Already Refactored)
 
         // Settlement Logic (Already Refactored)
 
@@ -1681,9 +1706,35 @@
             }
         }, 1000);
 
-        db.ref('boat-dashboard/poker').on('value', s => renderPoker(s.val() || {}));
+        // Global data sync
+        let currentPokerPlayers, currentPokerManager, currentPokerLog, currentPokerSettled;
+        db.ref('boat-dashboard/crew').on('value', s => {
+            CREW_DATA = s.val() || {};
+            renderCrew();
+            updateHeaderProfile();
+            if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, manager: currentPokerManager, log: currentPokerLog, settled: currentPokerSettled });
+        });
+
+        db.ref('boat-dashboard/poker').on('value', s => {
+            const d = s.val() || {};
+            currentPokerPlayers = d.players;
+            currentPokerManager = d.manager;
+            currentPokerLog = d.log;
+            currentPokerSettled = d.settled;
+            renderPoker(d);
+        });
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("5.6"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("6.0"); // Ensure remote version is synced
+
+        async function init() {
+            await handleAuthRedirect();
+            const id = await getIdentity();
+            if (id) {
+                renderCrew();
+                updateHeaderProfile();
+            }
+        }
+        init();
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
