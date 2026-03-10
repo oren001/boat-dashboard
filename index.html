@@ -655,7 +655,7 @@
         <header>
             <div class="header-title">
                 <div style="display:flex; align-items:center; gap:0.5rem">
-                    <h1>Friday Social 💎</h1>
+                    <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
                         6.0</span>
@@ -837,7 +837,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "6.0";
+        const APP_VERSION = "6.1";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1315,27 +1315,44 @@
         // ── Original Core Logic Re-implemented for 4-Tab ──
         async function getIdentity(force) {
             let id = JSON.parse(localStorage.getItem('boat-identity'));
+            const myUid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
+
             if (!id || force) {
                 document.getElementById('identity-modal').classList.add('show');
                 const grid = document.getElementById('identity-grid');
+                const gBtn = document.getElementById('google-login-btn');
+                const claimHeader = document.getElementById('claim-header');
+
                 grid.innerHTML = '';
 
-                // Fetch current claims to lock UI
+                // If logged in but identity not set/forced, we are in "Claim Mode"
+                if (myUid) {
+                    gBtn.style.display = 'none'; // Hide Google button if already authed
+                    claimHeader.innerText = "CHOOSE YOUR KNIGHT";
+                } else {
+                    gBtn.style.display = 'flex';
+                    claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
+                }
+
+                // Fetch current claims
                 const claimsSnap = await db.ref('boat-dashboard/claims').once('value');
                 const claims = claimsSnap.val() || {};
-                const myUid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
 
                 CREW.forEach(c => {
                     const isClaimed = claims[c.name];
                     const isMine = isClaimed === myUid;
+
+                    // If I am logged in with Google, only show available or mine
+                    // If Guest, show all (impersonation check happens at setIdentity)
+                    if (myUid && isClaimed && !isMine) return;
+
                     const b = document.createElement('div');
                     b.className = `identity-btn ${isClaimed && !isMine ? 'locked' : ''} ${isMine ? 'mine' : ''}`;
                     b.onclick = () => setIdentity(c.name);
                     b.innerHTML = `
                         <div class="av" style="${getAvStyle(c)}">${c.init}</div>
                         <span style="font-size:0.75rem;font-weight:800">${c.name}</span>
-                        ${isClaimed && !isMine ? '<span style="font-size:0.6rem; opacity:0.5; margin-top:2px">🔒 Locked</span>' : ''}
-                        ${isMine ? '<span style="font-size:0.6rem; color:var(--success); margin-top:2px">🛡️ Verified</span>' : ''}
+                        ${isMine ? '<span style="font-size:0.5rem; color:var(--success); margin-top:2px">🛡️ VERIFIED</span>' : ''}
                     `;
                     grid.appendChild(b);
                 });
@@ -1357,15 +1374,24 @@
         async function handleAuthRedirect() {
             try {
                 const result = await auth.getRedirectResult();
-                if (result && result.user) {
-                    const user = result.user;
-                    console.log("[Auth] Successfully logged in:", user.email);
+                let user = result?.user || auth.currentUser;
 
-                    // Store the UID and check for claims
+                if (user) {
+                    console.log("[Auth] User identified:", user.email);
                     localStorage.setItem('boat-uid', user.uid);
 
-                    // Show identity modal even if logged in, to allow claiming
-                    getIdentity(true);
+                    // AUTO-LOGIN CHECK: Does this UID own a profile?
+                    const claimsSnap = await db.ref('boat-dashboard/claims').once('value');
+                    const claims = claimsSnap.val() || {};
+                    const myName = Object.keys(claims).find(name => claims[name] === user.uid);
+
+                    if (myName) {
+                        console.log("[Auth] Auto-logging in as:", myName);
+                        await setIdentity(myName);
+                    } else {
+                        // Logged in but no claim yet
+                        getIdentity(true);
+                    }
                 }
             } catch (err) {
                 console.error("Redirect error:", err);
@@ -1398,11 +1424,12 @@
             document.getElementById('identity-modal').classList.remove('show');
             if (pendingResolve) pendingResolve({ name });
 
-            // Sync photo from Google if we don't have one in DB
-            const crewPhotoSnap = await db.ref(`boat-dashboard/crew/${name}/photo`).once('value');
-            if (!crewPhotoSnap.val() && auth.currentUser?.photoURL) {
-                await db.ref(`boat-dashboard/crew/${name}/photo`).set(auth.currentUser.photoURL);
-            }
+            // Sync photo/email
+            const updates = {};
+            if (auth.currentUser?.photoURL) updates[`boat-dashboard/crew/${name}/photo`] = auth.currentUser.photoURL;
+            if (auth.currentUser?.email) updates[`boat-dashboard/crew/${name}/email`] = auth.currentUser.email;
+
+            if (Object.keys(updates).length) await db.ref().update(updates);
 
             renderCrew();
             updateHeaderProfile();
@@ -1724,7 +1751,7 @@
             renderPoker(d);
         });
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("6.0"); // Ensure remote version is synced
+        db.ref('boat-dashboard/version').set("6.1"); // Ensure remote version is synced
 
         async function init() {
             await handleAuthRedirect();
