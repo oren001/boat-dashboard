@@ -1,7 +1,7 @@
 {
-    "name": "boat-dashboard",
+    "name": "poker-knights",
     "version": "1.0.0",
-    "description": "Andrey's Boat Trip Dashboard",
+    "description": "Poker Knights: Official Weekly High-Stakes Hub",
     "main": "server.js",
     "scripts": {
         "start": "node server.js"
