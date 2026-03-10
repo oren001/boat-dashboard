@@ -1319,9 +1319,9 @@
         }
 
         // ── Original Core Logic Re-implemented for 4-Tab ──
-        async function getIdentity(force) {
+        async function getIdentity(force, uidOverride) {
             let id = JSON.parse(localStorage.getItem('boat-identity'));
-            const myUid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
+            const myUid = uidOverride || auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
 
             if (!id || force) {
                 document.getElementById('identity-modal').classList.add('show');
@@ -1335,7 +1335,8 @@
                 // If logged in but identity not set/forced, we are in "Claim Mode"
                 if (myUid) {
                     if (gBtn) gBtn.style.display = 'none';
-                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR KNIGHT (LINK TO ACCOUNT)";
+                    const email = auth.currentUser?.email || "Account Detected";
+                    if (claimHeader) claimHeader.innerHTML = `Connected: <b>${email}</b><br><span style="font-size:0.6rem; opacity:0.8">CHOOSE YOUR KNIGHT TO LINK</span>`;
                     if (modalTitle) modalTitle.innerText = "Claim Your Knight";
                 } else {
                     if (gBtn) gBtn.style.display = 'flex';
@@ -1791,7 +1792,7 @@
                     localStorage.setItem('boat-uid', user.uid);
                 }
 
-                const id = await getIdentity();
+                const id = await getIdentity(false, user?.uid);
                 if (id) {
                     renderCrew();
                     updateHeaderProfile();
