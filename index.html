@@ -1400,42 +1400,27 @@
         }
 
         async function loginWithGoogle() {
+            console.log("[Knights] Initiating Google Popup Login...");
             try {
-                // Switch to Redirect flow to bypass COOP/Popup issues
-                await auth.signInWithRedirect(googleProvider);
+                // Switch back to Popup flow because Redirect fails on Render custom domains 
+                // due to missing /__/firebase/init.json
+                const result = await auth.signInWithPopup(googleProvider);
+                console.log("[Knights] Popup successful for:", result.user.email);
             } catch (err) {
-                console.error(err);
-                alert("Login failed: " + err.message);
+                console.error("[Knights] Popup Login failed:", err);
+                if (err.code !== 'auth/popup-closed-by-user') {
+                    alert("Login failed: " + err.message);
+                }
             }
         }
 
         async function handleAuthRedirect() {
-            console.log("[Knights] handleAuthRedirect started...");
+            console.log("[Knights] handleAuthRedirect started (Legacy cleanup)...");
+            // keeping this minimal just in case there's a lingering redirect state
             try {
-                const result = await auth.getRedirectResult();
-                console.log("[Knights] getRedirectResult:", result?.user ? result.user.email : "No user in result");
-                let user = result?.user || auth.currentUser;
-
-                if (user) {
-                    console.log("[Auth] User identified:", user.email);
-                    localStorage.setItem('boat-uid', user.uid);
-                    localStorage.setItem('poker-knights-session-ver', "6.2"); // Mark as upgraded
-
-                    // AUTO-LOGIN CHECK: Does this UID own a profile?
-                    const claimsSnap = await db.ref('boat-dashboard/claims').once('value');
-                    const claims = claimsSnap.val() || {};
-                    const myName = Object.keys(claims).find(name => claims[name] === user.uid);
-
-                    if (myName) {
-                        console.log("[Auth] Auto-logging in as:", myName);
-                        await setIdentity(myName);
-                    } else {
-                        // Logged in but no claim yet
-                        getIdentity(true, user.uid);
-                    }
-                }
+                await auth.getRedirectResult();
             } catch (err) {
-                console.error("Redirect error:", err);
+                console.error("[Knights] Redirect cleanup error:", err);
             }
         }
 
