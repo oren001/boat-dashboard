@@ -1407,10 +1407,14 @@
             }
         }
 
+        let globalUid = localStorage.getItem('boat-uid');
+
         async function setIdentity(name) {
-            const uid = auth.currentUser?.uid || localStorage.getItem('boat-uid');
+            const uid = auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
+            console.log("[Auth] Attempting setIdentity for:", name, "UID:", uid);
+
             if (!uid) {
-                alert("Please login with Google first to protect your identity.");
+                alert("Identity Protection: Please login with Google first (or refresh the page if you just logged in).");
                 return loginWithGoogle();
             }
 
@@ -1763,13 +1767,16 @@
         db.ref('boat-dashboard/version').set("6.1"); // Ensure remote version is synced
 
         async function init() {
-            // Wait for first auth state to be known
+            // 1. Check for redirect result once
+            await handleAuthRedirect();
+
+            // 2. Listen for auth state
             auth.onAuthStateChanged(async (user) => {
                 console.log("[Auth] State changed:", user ? user.email : "Logged out");
-                if (user) localStorage.setItem('boat-uid', user.uid);
-
-                // Now handle redirect result if any
-                await handleAuthRedirect();
+                if (user) {
+                    globalUid = user.uid;
+                    localStorage.setItem('boat-uid', user.uid);
+                }
 
                 const id = await getIdentity();
                 if (id) {
