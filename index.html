@@ -1764,7 +1764,6 @@
             renderPoker(d);
         });
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
-        db.ref('boat-dashboard/version').set("6.2"); // Ensure remote version is synced
 
         async function init() {
             // FORCED FRESH START (REV 6.2)
