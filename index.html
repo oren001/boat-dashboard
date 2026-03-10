@@ -839,7 +839,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "6.1";
+        const APP_VERSION = "6.2";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1767,6 +1767,16 @@
         db.ref('boat-dashboard/version').set("6.1"); // Ensure remote version is synced
 
         async function init() {
+            // FORCED FRESH START (REV 6.2)
+            const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
+            if (lastSessionVersion !== "6.2") {
+                console.warn("[Knights] Mandatory Upgrade detected. Starting fresh...");
+                // Keep only the UID if we have it, clear identity
+                localStorage.removeItem('boat-identity');
+                localStorage.setItem('poker-knights-session-ver', "6.2");
+                await auth.signOut();
+            }
+
             // 1. Check for redirect result once
             await handleAuthRedirect();
 
