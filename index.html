@@ -1808,20 +1808,21 @@
                 if (user) {
                     globalUid = user.uid;
                     localStorage.setItem('boat-uid', user.uid);
-                    localStorage.setItem('poker-knights-session-ver', "6.2");
+                    localStorage.setItem('poker-knights-session-ver', "6.3");
                 } else {
                     console.log("[Knights] Auth state is null. Checking localStorage for fallback UID...");
                     globalUid = null;
                     // Note: Don't remove localStorage UID yet, it acts as a fallback for slow auth
                 }
 
-                const id = await getIdentity(false, user?.uid);
-                if (id) {
+                const identity = await getIdentity(false, user?.uid);
+                if (identity) {
                     renderCrew();
                     updateHeaderProfile();
-                } else {
-                    // Force modal refresh if auth just confirmed
-                    if (user) getIdentity(true, user.uid);
+                } else if (user) {
+                    // Only show if user is fully logged in but hasn't picked a name yet
+                    console.log("[Knights] User logged in but no identity. Prompting selection...");
+                    getIdentity(true, user.uid);
                 }
             });
         }
