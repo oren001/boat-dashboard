@@ -618,14 +618,16 @@
                 style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:0.3">✕</button>
             <h2 style="font-weight:900; margin-bottom:1rem">Who are you?</h2>
 
-            <button class="join-btn" onclick="loginWithGoogle()"
+            <button class="join-btn" id="google-login-btn" onclick="loginWithGoogle()"
                 style="width:100%; margin-bottom:1.5rem; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
                 <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18">
                 Continue with Google
             </button>
 
-            <div style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
-                <span style="background:white; padding:0 10px; position:relative; z-index:1">OR CHOOSE NAME</span>
+            <div id="claim-divider"
+                style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
+                <span id="claim-header" style="background:white; padding:0 10px; position:relative; z-index:1">OR CHOOSE
+                    NAME</span>
                 <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:#eee; z-index:0"></div>
             </div>
 
@@ -842,9 +844,13 @@
         let lastCarsSnap = null;
         let pendingResolve = null;
 
-        let CREW = [];
         const DEFAULT_CREW_NAMES = ["Andrey", "Oren", "Jonathan", "Eyal", "Nevo", "Tamir", "Nadav", "Eran", "Richard", "Hartmut", "Igor"];
         const COLORS = ["#f77f00", "#0077b6", "#7b2d8b", "#2d6a4f", "#d62828", "#555", "#ff4d4d"];
+        let CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
+            name,
+            init: name.substring(0, 2),
+            color: COLORS[i % COLORS.length]
+        }));
 
         function getAvStyle(member) {
             const dynamicPhoto = CREW_DATA?.[member.name]?.photo;
@@ -1327,11 +1333,11 @@
 
                 // If logged in but identity not set/forced, we are in "Claim Mode"
                 if (myUid) {
-                    gBtn.style.display = 'none'; // Hide Google button if already authed
-                    claimHeader.innerText = "CHOOSE YOUR KNIGHT";
+                    if (gBtn) gBtn.style.display = 'none'; // Hide Google button if already authed
+                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR KNIGHT";
                 } else {
-                    gBtn.style.display = 'flex';
-                    claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
+                    if (gBtn) gBtn.style.display = 'flex';
+                    if (claimHeader) claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
                 }
 
                 // Fetch current claims
