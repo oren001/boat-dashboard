@@ -1328,16 +1328,19 @@
                 const grid = document.getElementById('identity-grid');
                 const gBtn = document.getElementById('google-login-btn');
                 const claimHeader = document.getElementById('claim-header');
+                const modalTitle = document.querySelector('#identity-modal h2');
 
                 grid.innerHTML = '';
 
                 // If logged in but identity not set/forced, we are in "Claim Mode"
                 if (myUid) {
-                    if (gBtn) gBtn.style.display = 'none'; // Hide Google button if already authed
-                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR KNIGHT";
+                    if (gBtn) gBtn.style.display = 'none';
+                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR KNIGHT (LINK TO ACCOUNT)";
+                    if (modalTitle) modalTitle.innerText = "Claim Your Knight";
                 } else {
                     if (gBtn) gBtn.style.display = 'flex';
                     if (claimHeader) claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
+                    if (modalTitle) modalTitle.innerText = "Who are you?";
                 }
 
                 // Fetch current claims
