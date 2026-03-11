@@ -665,7 +665,7 @@
                     <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span id="display-version"
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        6.7</span>
+                        6.8</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -814,7 +814,7 @@
             <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
         </div>
         <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
-            onclick="location.reload()">Refresh Now</button>
+            onclick="nuclearReload()">Refresh Now</button>
     </div>
 
 
@@ -848,6 +848,21 @@
         db.ref('boat-dashboard/presence/' + presenceId).onDisconnect().remove();
         updatePresence();
 
+        async function nuclearReload() {
+            console.warn("[Knights] NUCLEAR RELOAD triggered.");
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (let reg of regs) await reg.unregister();
+            }
+            // Clear cache if possible
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                for (let key of keys) await caches.delete(key);
+            }
+            localStorage.setItem('poker-knights-session-ver', 'FORCE_REFRESH');
+            location.reload(true);
+        }
+
         db.ref('boat-dashboard/presence').on('value', snap => {
             onlineUsers = snap.val() || {};
             const names = Object.values(onlineUsers).map(u => u.name);
@@ -871,7 +886,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "6.7";
+        const APP_VERSION = "6.8";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1812,13 +1827,12 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 6.7)
+            // FORCED FRESH START CHECK (REV 6.8)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
                 localStorage.removeItem('boat-identity');
                 localStorage.setItem('poker-knights-session-ver', APP_VERSION);
-                // Note: We don't signOut here anymore to avoid the loop.
             }
 
             // 1. Check for redirect result once
@@ -1895,7 +1909,7 @@
         // ── PWA SERVICE WORKER ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=6.7')
+                navigator.serviceWorker.register('/sw.js?v=6.8')
                     .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
                     .catch(err => console.log('[PWA] Service Worker failed:', err));
             });
