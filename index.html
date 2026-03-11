@@ -630,32 +630,14 @@
                 <div class="spinner"
                     style="width:12px; height:12px; border:2px solid var(--sunset); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite">
                 </div>
-                Verifying Knight Status...
+                Connecting to Global Hub...
             </div>
 
             <button class="join-btn" id="google-login-btn" onclick="loginWithGoogle()"
-                style="width:100%; margin-bottom:1.5rem; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
+                style="width:100%; margin:1rem 0; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
                 <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18">
-                Continue with Google
+                Login with Google
             </button>
-
-            <div id="claim-divider"
-                style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
-                <span id="claim-header" style="background:white; padding:0 10px; position:relative; z-index:1">OR JOIN AS GUEST</span>
-                <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:#eee; z-index:0"></div>
-            </div>
-
-            <div id="guest-section" style="margin-bottom:1.5rem">
-                <div style="display:flex; gap:0.5rem">
-                    <input type="text" id="guest-name-input" class="poker-input" style="flex:1" placeholder="Your Name">
-                    <button class="join-btn" style="padding:0.6rem 1rem; font-size:0.8rem" onclick="setIdentity(document.getElementById('guest-name-input').value, true)">Join</button>
-                </div>
-            </div>
-
-            <div id="link-profile-section" style="display:none; margin-bottom:1.5rem; padding:1rem; background:rgba(0,119,182,0.05); border-radius:12px; border:1px dashed var(--primary)">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem">Link your Google Account to a Knight:</p>
-                <div id="identity-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.5rem"></div>
-            </div>
 
             <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border)">
                 <p style="font-size:0.6rem; opacity:0.5; margin-bottom:0.5rem">Personalize your profile:</p>
@@ -1022,38 +1004,47 @@
             // Render Actions
             actions.innerHTML = '';
             if (!myId) {
-                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to manage the table</div>`;
-            } else if (!currentPokerManager) {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager (Unlock Table)</button>`;
-            } else if (isManager) {
-                actions.innerHTML = `
-                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
-                    <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
-                `;
+                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Login with Google to join</div>`;
             } else {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
+                const isSitting = data.players?.[myId];
+                if (!isSitting) {
+                    actions.innerHTML = `<button class="join-btn" onclick="updatePoker('${myId}','buyin',0)" style="width:100%; background:var(--primary); font-size:1rem">🪑 JOIN THE TABLE</button>`;
+                } else if (!currentPokerManager) {
+                    actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager</button>`;
+                } else if (isManager) {
+                    actions.innerHTML = `
+                        <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
+                        <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
+                    `;
+                } else {
+                    actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager</button>`;
+                }
             }
 
-            // Render Players (Filtered to Online or Active)
+            // Render Players (Filtered to Sitting Players)
             list.innerHTML = '';
             let totalIn = 0, totalOut = 0;
             
-            const activeOrOnline = CREW.filter(c => {
-                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
-                const isOnline = Object.values(onlineUsers).some(u => u.name === c.name);
-                const isMe = c.name === myId;
-                const hasStake = (p.buyin || 0) > 0 || (p.balance || 0) !== 0;
-                return isOnline || hasStake || isMe;
-            });
+            const sittingPlayers = Object.keys(data.players || {}).sort();
 
-            activeOrOnline.forEach(c => {
-                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
+            if (sittingPlayers.length === 0) {
+                list.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:3rem; opacity:0.3; font-style:italic">The table is empty. Waiting for players...</div>`;
+            }
+
+            sittingPlayers.forEach(name => {
+                const p = data.players[name];
+                const c = CREW.find(x => x.name === name) || { 
+                    name, 
+                    init: name.substring(0,2).toUpperCase(), 
+                    color: COLORS[Math.abs(name.split('').reduce((a,b)=>a+b.charCodeAt(0),0)) % COLORS.length] 
+                };
                 totalIn += (p.buyin || 0);
                 totalOut += (p.balance || 0);
                 const net = (p.balance || 0) - (p.buyin || 0);
 
                 const row = document.createElement('div');
                 row.className = 'poker-player';
+                if (isManager) row.style.cursor = 'pointer';
                 row.style.display = 'grid';
                 row.style.gridTemplateColumns = 'auto 1fr auto';
                 row.style.alignItems = 'center';
@@ -1399,56 +1390,18 @@
             if (!id || force) {
                 console.log("[Knights] Displaying Identity Modal...");
                 document.getElementById('identity-modal').classList.add('show');
-                const grid = document.getElementById('identity-grid');
                 const gBtn = document.getElementById('google-login-btn');
-                const claimHeader = document.getElementById('claim-header');
-                const linkSection = document.getElementById('link-profile-section');
-                const guestSection = document.getElementById('guest-section');
                 const loadingEl = document.getElementById('auth-loading');
-
-                grid.innerHTML = '';
-                if (loadingEl) loadingEl.style.display = 'none';
                 
                 if (myUid) {
-                    // Google Account Detected - show link options
-                    gBtn.innerHTML = `Connected: ${auth.currentUser?.email || 'Authenticated'}`;
-                    gBtn.style.borderColor = 'var(--primary)';
-                    gBtn.style.color = 'var(--primary)';
-                    gBtn.style.display = 'flex';
-                    gBtn.disabled = true;
-                    
-                    claimHeader.innerText = "LINK TO YOUR KNIGHT";
-                    linkSection.style.display = 'block';
-                    guestSection.style.display = 'none';
-
-                    db.ref('boat-dashboard/claims').once('value', snap => {
-                        const claims = snap.val() || {};
-                        CREW.forEach(member => {
-                            const isClaimed = claims[member.name];
-                            const isMine = isClaimed === myUid;
-                            if (isClaimed && !isMine) return;
-
-                            const b = document.createElement('button');
-                            b.className = 'av';
-                            b.style.cssText = `${getAvStyle(member)}; width:50px; height:50px; cursor:pointer; position:relative; border:2px solid transparent`;
-                            b.innerHTML = member.init;
-                            if (isMine) b.style.borderColor = 'var(--primary)';
-
-                            b.onclick = () => setIdentity(member.name);
-                            grid.appendChild(b);
-                        });
-                    });
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    if (gBtn) gBtn.style.display = 'none';
+                    // Auto-set identity based on Google Display Name
+                    const name = auth.currentUser?.displayName || auth.currentUser?.email.split('@')[0] || "Knight";
+                    setIdentity(name);
                 } else {
-                    // Not Logged In - Show Guest and Google options
-                    gBtn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18"> Continue with Google`;
-                    gBtn.style.borderColor = '#ddd';
-                    gBtn.style.color = '#444';
-                    gBtn.style.display = 'flex';
-                    gBtn.disabled = false;
-                    
-                    claimHeader.innerText = "OR JOIN AS GUEST";
-                    linkSection.style.display = 'none';
-                    guestSection.style.display = 'block';
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    if (gBtn) gBtn.style.display = 'flex';
                 }
                 return new Promise(res => { pendingResolve = res; });
             }
