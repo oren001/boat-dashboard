@@ -1392,56 +1392,54 @@
                 const grid = document.getElementById('identity-grid');
                 const gBtn = document.getElementById('google-login-btn');
                 const claimHeader = document.getElementById('claim-header');
-                const modalTitle = document.querySelector('#identity-modal h2');
+                const linkSection = document.getElementById('link-profile-section');
+                const guestSection = document.getElementById('guest-section');
                 const loadingEl = document.getElementById('auth-loading');
 
                 grid.innerHTML = '';
-
-                // If logged in but identity not set/forced, we are in "Claim Mode"
+                if (loadingEl) loadingEl.style.display = 'none';
+                
                 if (myUid) {
-                    if (loadingEl) loadingEl.style.display = 'none';
-                    if (gBtn) gBtn.style.display = 'none';
-                    const email = auth.currentUser?.email || "Account Detected";
-                    if (claimHeader) claimHeader.innerHTML = `Connected: <b>${email}</b><br><span style="font-size:0.6rem; opacity:0.8">CHOOSE YOUR KNIGHT TO LINK</span>`;
-                    if (modalTitle) modalTitle.innerText = "Claim Your Knight";
+                    // Google Account Detected - show link options
+                    gBtn.innerHTML = `Connected: ${auth.currentUser?.email || 'Authenticated'}`;
+                    gBtn.style.borderColor = 'var(--primary)';
+                    gBtn.style.color = 'var(--primary)';
+                    gBtn.style.display = 'flex';
+                    gBtn.disabled = true;
+                    
+                    claimHeader.innerText = "LINK TO YOUR KNIGHT";
+                    linkSection.style.display = 'block';
+                    guestSection.style.display = 'none';
+
+                    db.ref('boat-dashboard/claims').once('value', snap => {
+                        const claims = snap.val() || {};
+                        CREW.forEach(member => {
+                            const isClaimed = claims[member.name];
+                            const isMine = isClaimed === myUid;
+                            if (isClaimed && !isMine) return;
+
+                            const b = document.createElement('button');
+                            b.className = 'av';
+                            b.style.cssText = `${getAvStyle(member)}; width:50px; height:50px; cursor:pointer; position:relative; border:2px solid transparent`;
+                            b.innerHTML = member.init;
+                            if (isMine) b.style.borderColor = 'var(--primary)';
+
+                            b.onclick = () => setIdentity(member.name);
+                            grid.appendChild(b);
+                        });
+                    });
                 } else {
-                    if (loadingEl) loadingEl.style.display = 'flex';
-                    if (gBtn) gBtn.style.display = 'none'; // Hide button while loading
-                    if (claimHeader) claimHeader.innerText = "Verifying authentication...";
-
-                    // Show button only after a short delay if still no UID (meaning definitely not logged in)
-                    setTimeout(() => {
-                        if (!uidOverride && !auth.currentUser && !globalUid) {
-                            if (loadingEl) loadingEl.style.display = 'none';
-                            if (gBtn) gBtn.style.display = 'flex';
-                            if (claimHeader) claimHeader.innerText = "OR CHOOSE NAME (GUEST)";
-                            if (modalTitle) modalTitle.innerText = "Who are you?";
-                        }
-                    }, 2000);
+                    // Not Logged In - Show Guest and Google options
+                    gBtn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18"> Continue with Google`;
+                    gBtn.style.borderColor = '#ddd';
+                    gBtn.style.color = '#444';
+                    gBtn.style.display = 'flex';
+                    gBtn.disabled = false;
+                    
+                    claimHeader.innerText = "OR JOIN AS GUEST";
+                    linkSection.style.display = 'none';
+                    guestSection.style.display = 'block';
                 }
-
-                // Fetch current claims
-                const claimsSnap = await db.ref('boat-dashboard/claims').once('value');
-                const claims = claimsSnap.val() || {};
-
-                CREW.forEach(c => {
-                    const isClaimed = claims[c.name];
-                    const isMine = isClaimed === myUid;
-
-                    // If I am logged in with Google, only show available or mine
-                    // If Guest, show all (impersonation check happens at setIdentity)
-                    if (myUid && isClaimed && !isMine) return;
-
-                    const b = document.createElement('div');
-                    b.className = `identity-btn ${isClaimed && !isMine ? 'locked' : ''} ${isMine ? 'mine' : ''}`;
-                    b.onclick = () => setIdentity(c.name);
-                    b.innerHTML = `
-                        <div class="av" style="${getAvStyle(c)}">${c.init}</div>
-                        <span style="font-size:0.75rem;font-weight:800">${c.name}</span>
-                        ${isMine ? '<span style="font-size:0.5rem; color:var(--success); margin-top:2px">🛡️ VERIFIED</span>' : ''}
-                    `;
-                    grid.appendChild(b);
-                });
                 return new Promise(res => { pendingResolve = res; });
             }
             return id;
