@@ -7,6 +7,8 @@
     <title>Friday Poker Social</title>
     <link rel="icon" href="data:,">
     <meta name="description" content="The Weekly High-Stakes Social Hub" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0077b6">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <style>
@@ -1876,6 +1878,14 @@
                 if (el) el.innerText = s.numChildren();
             });
         });
+        // ── PWA SERVICE WORKER ──
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+                    .catch(err => console.log('[PWA] Service Worker failed:', err));
+            });
+        }
     </script>
 </body>
 

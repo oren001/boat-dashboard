@@ -1,0 +1,17 @@
+{
+  "name": "Poker Knights",
+  "short_name": "Knights",
+  "description": "The Weekly High-Stakes Social Hub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#0077b6",
+  "icons": [
+    {
+      "src": "/poker_knights_pwa_icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
