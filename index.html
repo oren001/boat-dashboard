@@ -1034,10 +1034,19 @@
                 actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
             }
 
-            // Render Players
+            // Render Players (Filtered to Online or Active)
             list.innerHTML = '';
             let totalIn = 0, totalOut = 0;
-            CREW.forEach(c => {
+            
+            const activeOrOnline = CREW.filter(c => {
+                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
+                const isOnline = Object.values(onlineUsers).some(u => u.name === c.name);
+                const isMe = c.name === myId;
+                const hasStake = (p.buyin || 0) > 0 || (p.balance || 0) !== 0;
+                return isOnline || hasStake || isMe;
+            });
+
+            activeOrOnline.forEach(c => {
                 const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
                 totalIn += (p.buyin || 0);
                 totalOut += (p.balance || 0);
@@ -1356,6 +1365,7 @@
 
 
         // ── Info: Crew ──
+        // ── Info: Crew ──
         function renderCrew() {
             const list = document.getElementById('crew-list');
             if (!list) return;
@@ -1371,7 +1381,7 @@
                 }
 
                 card.innerHTML = `
-                    <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.init}</div>
+                    <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.photo ? '' : c.init}</div>
                     <div style="font-size:0.75rem;font-weight:700">${c.name}</div>
                     ${onlineDot}
                 `;
@@ -1815,10 +1825,20 @@
             }
         }, 1000);
 
-        // Global data sync
+        // ── Global data sync ──
         let currentPokerPlayers, currentPokerManager, currentPokerLog, currentPokerSettled;
         db.ref('boat-dashboard/crew').on('value', s => {
-            CREW_DATA = s.val() || {};
+            const data = s.val() || {};
+            CREW_DATA = data;
+            // Map the CREW global array with the latest data
+            CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
+                name,
+                init: name.substring(0, 2),
+                color: data[name]?.color || COLORS[i % COLORS.length],
+                photo: data[name]?.photo || null,
+                beem: data[name]?.beem || null
+            }));
+            
             renderCrew();
             updateHeaderProfile();
             if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, manager: currentPokerManager, log: currentPokerLog, settled: currentPokerSettled });
@@ -1918,13 +1938,6 @@
             handleAuthRedirect();
             updateHeaderProfile();
 
-            db.ref('.info/connected').on('value', s => {
-                if (s.val()) myPresenceRef.set(true);
-            });
-            allPresenceRef.on('value', s => {
-                const el = document.getElementById('online-count');
-                if (el) el.innerText = s.numChildren();
-            });
         });
         // ── PWA SERVICE WORKER ──
         if ('serviceWorker' in navigator) {
