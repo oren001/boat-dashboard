@@ -675,7 +675,7 @@
                     <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span id="display-version"
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        6.3</span>
+                        6.4</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -854,7 +854,7 @@
             if (el) el.textContent = snap.numChildren();
         });
 
-        const APP_VERSION = "6.3";
+        const APP_VERSION = "6.4";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1790,12 +1790,12 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 6.3)
+            // FORCED FRESH START CHECK (REV 6.4)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
-            if (lastSessionVersion !== "6.3") {
+            if (lastSessionVersion !== "6.4") {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
                 localStorage.removeItem('boat-identity');
-                localStorage.setItem('poker-knights-session-ver', "6.3");
+                localStorage.setItem('poker-knights-session-ver', "6.4");
                 // Note: We don't signOut here anymore to avoid the loop.
                 // handleAuthRedirect or onAuthStateChanged will handle the clean state.
             }
