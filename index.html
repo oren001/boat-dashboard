@@ -665,7 +665,7 @@
                     <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span id="display-version"
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        6.9</span>
+                        7.0</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -892,7 +892,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "6.9";
+        const APP_VERSION = "7.0";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1025,40 +1025,24 @@
             // Render Actions
             actions.innerHTML = '';
             if (!myId) {
-                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Login with Google to join</div>`;
+                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Login with Google to manage table</div>`;
+            } else if (!currentPokerManager) {
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager</button>`;
+            } else if (isManager) {
+                actions.innerHTML = `
+                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
+                    <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
+                `;
             } else {
-                const isSitting = data.players?.[myId];
-                if (!isSitting) {
-                    actions.innerHTML = `<button class="join-btn" onclick="updatePoker('${myId}','buyin',0)" style="width:100%; background:var(--primary); font-size:1rem">🪑 JOIN THE TABLE</button>`;
-                } else if (!currentPokerManager) {
-                    actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager</button>`;
-                } else if (isManager) {
-                    actions.innerHTML = `
-                        <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
-                        <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
-                    `;
-                } else {
-                    actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager</button>`;
-                }
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager</button>`;
             }
 
-            // Render Players (Filtered to Sitting Players)
+            // Render Players
             list.innerHTML = '';
             let totalIn = 0, totalOut = 0;
             
-            const sittingPlayers = Object.keys(data.players || {}).sort();
-
-            if (sittingPlayers.length === 0) {
-                list.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:3rem; opacity:0.3; font-style:italic">The table is empty. Waiting for players...</div>`;
-            }
-
-            sittingPlayers.forEach(name => {
-                const p = data.players[name];
-                const c = CREW.find(x => x.name === name) || { 
-                    name, 
-                    init: name.substring(0,2).toUpperCase(), 
-                    color: COLORS[Math.abs(name.split('').reduce((a,b)=>a+b.charCodeAt(0),0)) % COLORS.length] 
-                };
+            CREW.forEach(c => {
+                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
                 totalIn += (p.buyin || 0);
                 totalOut += (p.balance || 0);
                 const net = (p.balance || 0) - (p.buyin || 0);
@@ -1833,7 +1817,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 6.9)
+            // FORCED FRESH START CHECK (REV 7.0)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1915,7 +1899,7 @@
         // ── PWA SERVICE WORKER ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=6.9')
+                navigator.serviceWorker.register('/sw.js?v=7.0')
                     .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
                     .catch(err => console.log('[PWA] Service Worker failed:', err));
             });
