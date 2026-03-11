@@ -641,13 +641,21 @@
 
             <div id="claim-divider"
                 style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
-                <span id="claim-header" style="background:white; padding:0 10px; position:relative; z-index:1">OR CHOOSE
-                    NAME</span>
+                <span id="claim-header" style="background:white; padding:0 10px; position:relative; z-index:1">OR JOIN AS GUEST</span>
                 <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:#eee; z-index:0"></div>
             </div>
 
-            <div id="identity-grid"
-                style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-bottom:1.5rem"></div>
+            <div id="guest-section" style="margin-bottom:1.5rem">
+                <div style="display:flex; gap:0.5rem">
+                    <input type="text" id="guest-name-input" class="poker-input" style="flex:1" placeholder="Your Name">
+                    <button class="join-btn" style="padding:0.6rem 1rem; font-size:0.8rem" onclick="setIdentity(document.getElementById('guest-name-input').value, true)">Join</button>
+                </div>
+            </div>
+
+            <div id="link-profile-section" style="display:none; margin-bottom:1.5rem; padding:1rem; background:rgba(0,119,182,0.05); border-radius:12px; border:1px dashed var(--primary)">
+                <p style="font-size:0.7rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem">Link your Google Account to a Knight:</p>
+                <div id="identity-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.5rem"></div>
+            </div>
 
             <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border)">
                 <p style="font-size:0.6rem; opacity:0.5; margin-bottom:0.5rem">Personalize your profile:</p>
@@ -809,11 +817,12 @@
             </button>
         </nav>
 
-        <div
-            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem">
+        <div id="presence-bar"
+            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem; cursor:pointer"
+            onclick="toggleOnlineList()">
             <span
                 style="width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse 2s infinite"></span>
-            <span id="online-count">...</span> crew members online
+            <span id="online-text"><span id="online-count">...</span> crew members online</span>
         </div>
     </div> <!-- end app-shell -->
 
@@ -844,15 +853,41 @@
         const auth = firebase.auth();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-        const uid = Math.random().toString(36).slice(2);
-        const myPresenceRef = db.ref('boat-dashboard/presence/' + uid);
-        const allPresenceRef = db.ref('boat-dashboard/presence');
-        myPresenceRef.set(true);
-        myPresenceRef.onDisconnect().remove();
-        allPresenceRef.on('value', snap => {
-            const el = document.getElementById('online-count');
-            if (el) el.textContent = snap.numChildren();
+        const presenceId = Math.random().toString(36).slice(2);
+        let onlineUsers = {};
+
+        function updatePresence() {
+            const name = JSON.parse(localStorage.getItem('boat-identity'))?.name || "Guest";
+            db.ref('boat-dashboard/presence/' + presenceId).set({
+                name,
+                lastActive: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+        db.ref('boat-dashboard/presence/' + presenceId).onDisconnect().remove();
+        updatePresence();
+
+        db.ref('boat-dashboard/presence').on('value', snap => {
+            onlineUsers = snap.val() || {};
+            const names = Object.values(onlineUsers).map(u => u.name);
+            const count = Object.keys(onlineUsers).length;
+            
+            const countEl = document.getElementById('online-count');
+            if (countEl) countEl.textContent = count;
+            
+            const textEl = document.getElementById('online-text');
+            if (textEl && count > 0) {
+                const uniqueNames = [...new Set(names)];
+                textEl.title = "Online: " + uniqueNames.join(', ');
+            }
+            
+            renderCrew(); // Re-render to show online dots
+            if (typeof renderPoker === 'function') renderPoker(currentPokerLog ? {log: currentPokerLog, settled: currentPokerSettled} : null);
         });
+
+        function toggleOnlineList() {
+            const names = [...new Set(Object.values(onlineUsers).map(u => u.name))];
+            alert("Currently Online:\n• " + names.join('\n• '));
+        }
 
         const APP_VERSION = "6.4";
         const target = new Date('2026-03-06T10:30:00+11:00');
@@ -1326,9 +1361,20 @@
             if (!list) return;
             list.innerHTML = '';
             CREW.forEach(c => {
+                const isOnline = Object.values(onlineUsers).some(u => u.name === c.name);
                 const card = document.createElement('div');
-                card.style.cssText = 'background:rgba(255,255,255,0.03); border-radius:12px; padding:0.6rem; display:flex; align-items:center; gap:0.6rem; border:1px solid var(--border)';
-                card.innerHTML = `<div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.init}</div><div style="font-size:0.75rem;font-weight:700">${c.name}</div>`;
+                card.style.cssText = 'background:rgba(255,255,255,0.03); border-radius:12px; padding:0.6rem; display:flex; align-items:center; gap:0.6rem; border:1px solid var(--border); position:relative';
+                
+                let onlineDot = '';
+                if (isOnline) {
+                    onlineDot = `<span style="position:absolute; top:5px; right:5px; width:6px; height:6px; background:#2d6a4f; border-radius:50%; border:1.5px solid #1a1a1a"></span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.init}</div>
+                    <div style="font-size:0.75rem;font-weight:700">${c.name}</div>
+                    ${onlineDot}
+                `;
                 list.appendChild(card);
             });
         }
@@ -1428,15 +1474,17 @@
 
         let globalUid = localStorage.getItem('boat-uid');
 
-        async function setIdentity(name) {
+        async function setIdentity(name, isGuest) {
             const uid = auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
             console.log("[Knights] setIdentity triggered for:", name, "with UID:", uid);
 
-            if (!uid) {
+            if (!uid && !isGuest) {
                 console.error("[Knights] No UID found in setIdentity! Blocking selection.");
-                alert("Identity Protection: Please login with Google first (or refresh the page if you just logged in).");
+                alert("Identity Protection: Please login with Google first.");
                 return loginWithGoogle();
             }
+
+            if (!name) return alert("Please enter a name.");
 
             // Check if this profile is already claimed
             const claimSnap = await db.ref(`boat-dashboard/claims/${name}`).once('value');
@@ -1457,12 +1505,15 @@
             document.getElementById('identity-modal').classList.remove('show');
             if (pendingResolve) pendingResolve({ name });
 
-            // Sync photo/email
-            const updates = {};
-            if (auth.currentUser?.photoURL) updates[`boat-dashboard/crew/${name}/photo`] = auth.currentUser.photoURL;
-            if (auth.currentUser?.email) updates[`boat-dashboard/crew/${name}/email`] = auth.currentUser.email;
+            updatePresence(); // Update presence with new name
 
-            if (Object.keys(updates).length) await db.ref().update(updates);
+            // Sync photo/email if logged in
+            if (uid) {
+                const updates = {};
+                if (auth.currentUser?.photoURL) updates[`boat-dashboard/crew/${name}/photo`] = auth.currentUser.photoURL;
+                if (auth.currentUser?.email) updates[`boat-dashboard/crew/${name}/email`] = auth.currentUser.email;
+                if (Object.keys(updates).length) await db.ref().update(updates);
+            }
 
             renderCrew();
             updateHeaderProfile();
