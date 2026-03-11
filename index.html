@@ -665,7 +665,7 @@
                     <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span id="display-version"
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        6.8</span>
+                        6.9</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -850,17 +850,23 @@
 
         async function nuclearReload() {
             console.warn("[Knights] NUCLEAR RELOAD triggered.");
-            if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for (let reg of regs) await reg.unregister();
+            try {
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for (let reg of regs) await reg.unregister();
+                }
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (let key of keys) await caches.delete(key);
+                }
+                localStorage.clear();
+                sessionStorage.clear();
+                alert("Site data cleared. Reloading...");
+                location.href = location.origin + '?v=' + Date.now();
+            } catch (e) {
+                console.error("Cleanup failed", e);
+                location.reload(true);
             }
-            // Clear cache if possible
-            if ('caches' in window) {
-                const keys = await caches.keys();
-                for (let key of keys) await caches.delete(key);
-            }
-            localStorage.setItem('poker-knights-session-ver', 'FORCE_REFRESH');
-            location.reload(true);
         }
 
         db.ref('boat-dashboard/presence').on('value', snap => {
@@ -886,7 +892,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "6.8";
+        const APP_VERSION = "6.9";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1827,7 +1833,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 6.8)
+            // FORCED FRESH START CHECK (REV 6.9)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1909,7 +1915,7 @@
         // ── PWA SERVICE WORKER ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=6.8')
+                navigator.serviceWorker.register('/sw.js?v=6.9')
                     .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
                     .catch(err => console.log('[PWA] Service Worker failed:', err));
             });
