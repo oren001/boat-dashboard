@@ -1839,14 +1839,13 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 6.4)
+            // FORCED FRESH START CHECK (REV 6.5)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
-            if (lastSessionVersion !== "6.4") {
+            if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
                 localStorage.removeItem('boat-identity');
-                localStorage.setItem('poker-knights-session-ver', "6.4");
+                localStorage.setItem('poker-knights-session-ver', APP_VERSION);
                 // Note: We don't signOut here anymore to avoid the loop.
-                // handleAuthRedirect or onAuthStateChanged will handle the clean state.
             }
 
             // 1. Check for redirect result once
@@ -1859,7 +1858,7 @@
                 if (user) {
                     globalUid = user.uid;
                     localStorage.setItem('boat-uid', user.uid);
-                    localStorage.setItem('poker-knights-session-ver', "6.3");
+                    localStorage.setItem('poker-knights-session-ver', APP_VERSION);
                 } else {
                     console.log("[Knights] Auth state is null. Checking localStorage for fallback UID...");
                     globalUid = null;

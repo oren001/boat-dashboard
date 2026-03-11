@@ -1,27 +1,46 @@
-const CACHE_NAME = 'poker-knights-v1';
+const CACHE_NAME = 'poker-knights-v2';
 const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
-    '/poker_knights_pwa_icon.png',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap',
-    'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',
-    'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js'
+    '/poker_knights_pwa_icon.png'
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS);
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+            );
         })
     );
+    self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
+    // Network First for HTML, Cache First for others
+    if (event.request.mode === 'navigate' || event.request.url.includes('index.html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(resp => {
+                    const copy = resp.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                    return resp;
+                })
+                .catch(() => caches.match(event.request))
+        );
+    } else {
+        event.respondWith(
+            caches.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            })
+        );
+    }
 });
