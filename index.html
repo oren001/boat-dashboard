@@ -896,18 +896,37 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.93";
+        const APP_VERSION = "10.95";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
 
-        const DEFAULT_CREW_NAMES = ["Andrey", "Oren", "Jonathan", "Eyal", "Nevo", "Tamir", "Nadav", "Eran", "Richard", "Hartmut", "Igor"];
-        const COLORS = ["#f77f00", "#0077b6", "#7b2d8b", "#2d6a4f", "#d62828", "#555", "#ff4d4d"];
-        let CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
-            name,
-            init: name.substring(0, 2),
-            color: COLORS[i % COLORS.length]
+        const CREW_DEFAULTS = [
+            { name: "Andrey", beem: "ashirben", color: "#f77f00" },
+            { name: "Oren", beem: "oren001", color: "#0077b6" },
+            { name: "Jonathan", beem: "jonatanbental", color: "#7b2d8b" },
+            { name: "Eyal", beem: "eyalpat", color: "#2d6a4f" },
+            { name: "Nevo", beem: "nevosat", color: "#d62828" },
+            { name: "Tamir", beem: "TamirChen", color: "#555" },
+            { name: "Nadav", beem: "nadavlinden", color: "#ff4d4d" },
+            { name: "Eran", beem: "eranhor", color: "#f77f00" },
+            { name: "Richard", beem: "", color: "#0077b6" },
+            { name: "Hartmut", beem: "hartmut", color: "#7b2d8b" },
+            { name: "Igor", beem: "shleim", color: "#2d6a4f" }
+        ];
+
+        let CREW = CREW_DEFAULTS.map(c => ({
+            ...c,
+            init: c.name.substring(0, 2)
         }));
+
+        function getBeemHandle(member) {
+            if (!member || !member.name) return '';
+            // Favor dynamic Firebase profile first, then hardcoded default
+            let handle = CREW_DATA?.[member.name]?.beem || member.beem || '';
+            if (handle.startsWith('@')) handle = handle.substring(1);
+            return handle;
+        }
 
         function getAvStyle(member) {
             const dynamicPhoto = CREW_DATA?.[member.name]?.photo;
@@ -1651,7 +1670,7 @@
 
             function addTx(f, t, a) {
                 const cr = CREW.find(c => c.name === t);
-                const beem = cr?.beem || '';
+                const beem = getBeemHandle(cr);
                 const msg = `${f} pays $${a.toFixed(2)} to ${t}`;
 
                 // Key for settlement tracking
@@ -1810,7 +1829,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 10.93)
+            // FORCED FRESH START CHECK (REV 10.95)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1896,7 +1915,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=10.93')
+                navigator.serviceWorker.register('/sw-v10.js?v=10.95')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
