@@ -887,7 +887,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.97";
+        const APP_VERSION = "10.98";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1130,7 +1130,7 @@
                     </div>
                     <span style="text-align:right">$${totalIn.toFixed(2)} in<br>$${calcTotalOut.toFixed(2)} out</span>
                 </div>
-                    ${isManager ? `
+                    ${isAuthenticated ? `
                 <div class="chip-assist">
                     <span>💡 <b>Tip:</b> Enter absolute chip counts (e.g., 50). <b>NO negative numbers.</b> Total "Out" must match Total "In".</span>
                 </div>
@@ -1712,9 +1712,7 @@
             localStorage.removeItem('boat-identity');
             localStorage.setItem('poker-knights-session-ver', APP_VERSION);
 
-            // 1. Check for redirect result once
-            console.log("[Knights] init() - checking redirect...");
-            await handleAuthRedirect();
+            console.log("[Knights] init() - Auth listener starting...");
 
             // 2. Listen for auth state
             auth.onAuthStateChanged(async (user) => {
@@ -1790,7 +1788,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=10.97')
+                navigator.serviceWorker.register('/sw-v10.js?v=10.98')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
