@@ -840,7 +840,7 @@
             <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
         </div>
             <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
-                onclick="window.location.replace(window.location.origin + window.location.pathname + '?v=10.9')">Refresh Now</button>
+                onclick="window.location.replace(window.location.origin + window.location.pathname + '?v=10.91')">Refresh Now</button>
     </div>
 
 
@@ -896,7 +896,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.9";
+        const APP_VERSION = "10.91";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1018,27 +1018,20 @@
             if (!list) return;
 
             const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-            // Use the global currentPokerManager synced from Firebase
-            const isManager = myId && currentPokerManager === myId;
+            const myUid = localStorage.getItem('boat-uid');
+            const isAuthenticated = !!myUid && !!myId;
 
-            // Render Status
-            status.innerHTML = currentPokerManager
-                ? `<span class="manager-badge">Manager: ${currentPokerManager}</span>`
-                : `<span class="manager-badge" style="background:#888">No Manager</span>`;
+            // Render Status (Removed Manager, just shows Mode)
+            status.innerHTML = `<span class="manager-badge" style="background:var(--primary)">Open Edit Mode</span>`;
 
             // Render Actions
             actions.innerHTML = '';
-            if (!myId) {
-                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to manage the table</div>`;
-            } else if (!currentPokerManager) {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager (Unlock Table)</button>`;
-            } else if (isManager) {
-                actions.innerHTML = `
-                    <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
-                    <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
-                `;
+            if (!isAuthenticated) {
+                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to edit the table</div>`;
             } else {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
+                actions.innerHTML = `
+                    <button class="join-btn" onclick="archiveSession()" style="width:100%; background:var(--night)">📁 Finalize & New Game</button>
+                `;
             }
 
             // Render Players
@@ -1068,14 +1061,14 @@
                                 <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">In</span>
                                 <input type="number" min="0" step="0.01" class="poker-input" placeholder="0" 
                                     value="${p.buyin || ''}" 
-                                    ${!isManager ? 'readonly' : ''} 
+                                    ${!isAuthenticated ? 'readonly' : ''} 
                                     onchange="updatePoker('${c.name}','buyin',this.value)">
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center;">
                                 <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">Out</span>
                                 <input type="number" min="0" step="0.01" class="poker-input" placeholder="0" 
                                     value="${p.balance || ''}" 
-                                    ${!isManager ? 'readonly' : ''} 
+                                    ${!isAuthenticated ? 'readonly' : ''} 
                                     onchange="updatePoker('${c.name}','balance',this.value)">
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center; min-width: 40px;">
@@ -1185,8 +1178,9 @@
                 const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
                 const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-                // Show restore if I am manager OR if there is no manager and I am logged in
-                const canRestore = myId && (!currentPokerManager || currentPokerManager === myId);
+                // In Open Edit Mode, any authenticated user can restore
+                const myUid = localStorage.getItem('boat-uid');
+                const canRestore = myId && myUid;
 
                 const item = document.createElement('div');
                 item.className = 'log-entry';
@@ -1198,7 +1192,7 @@
                 item.innerHTML = `
                     <div style="display:flex; flex-direction:column">
                         <b style="font-size:0.8rem">Session - ${date}</b>
-                        <span style="font-size:0.6rem; opacity:0.5">Manager: ${s.finalizedBy || 'Unknown'}</span>
+                        <span style="font-size:0.6rem; opacity:0.5">Finalized by: ${s.finalizedBy || 'Unknown'}</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.8rem">
                         <b style="color:var(--primary); font-size:0.8rem">$${totalPot.toFixed(0)}</b>
@@ -1516,14 +1510,7 @@
             db.ref('boat-dashboard/poker/log').push({ msg, ts: Date.now() });
         }
 
-        async function takePokerRole() {
-            const id = await getIdentity(true);
-            if (id) db.ref('boat-dashboard/poker/manager').set(id.name);
-        }
-
-        function releasePokerRole() {
-            db.ref('boat-dashboard/poker/manager').remove();
-        }
+        // ── Obsolete Poker Manager Functions Removed ──
 
         async function archiveSession() {
             const id = await getIdentity();
@@ -1746,18 +1733,17 @@
         }, 1000);
 
         // Global data sync
-        let currentPokerPlayers, currentPokerManager, currentPokerLog, currentPokerSettled, currentSocialExpenses;
+        let currentPokerPlayers, currentPokerLog, currentPokerSettled, currentSocialExpenses;
         db.ref('boat-dashboard/crew').on('value', s => {
             CREW_DATA = s.val() || {};
             renderCrew();
             updateHeaderProfile();
-            if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, manager: currentPokerManager, log: currentPokerLog, settled: currentPokerSettled });
+            if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, log: currentPokerLog, settled: currentPokerSettled });
         });
 
         db.ref('boat-dashboard/poker').on('value', s => {
             const d = s.val() || {};
-            currentPokerPlayers = d.players;
-            currentPokerManager = d.manager;
+            if (d.players) currentPokerPlayers = d.players;
             currentPokerLog = d.log;
             currentPokerSettled = d.settled;
             renderPoker(d);
@@ -1824,7 +1810,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 10.9)
+            // FORCED FRESH START CHECK (REV 10.91)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1910,7 +1896,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=10.9')
+                navigator.serviceWorker.register('/sw-v10.js?v=10.91')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
