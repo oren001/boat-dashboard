@@ -501,15 +501,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        #identity-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 0.5rem;
-        }
 
         .identity-btn {
             display: flex;
@@ -630,14 +621,33 @@
                 <div class="spinner"
                     style="width:12px; height:12px; border:2px solid var(--sunset); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite">
                 </div>
-                Connecting to Global Hub...
+                Verifying Knight Status...
             </div>
 
             <button class="join-btn" id="google-login-btn" onclick="loginWithGoogle()"
-                style="width:100%; margin:1rem 0; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
+                style="width:100%; margin-bottom:1.5rem; background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:0.5rem">
                 <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18">
-                Login with Google
+                Continue with Google
             </button>
+
+            <div id="claim-divider"
+                style="text-align:center; font-size:0.6rem; opacity:0.4; margin-bottom:1rem; position:relative">
+                <span id="claim-header" style="background:white; padding:0 10px; position:relative; z-index:1">OR JOIN AS GUEST</span>
+                <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:#eee; z-index:0"></div>
+            </div>
+
+            <div id="link-profile-section" style="margin-bottom:1.5rem; padding:1rem; background:rgba(0,119,182,0.05); border-radius:12px; border:1px dashed var(--primary); display:none">
+                <p id="link-header" style="font-size:0.7rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem">Link to your Knight:</p>
+                <div id="identity-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.5rem"></div>
+            </div>
+
+            <div id="guest-section" style="margin-bottom:1.5rem">
+                <div style="display:flex; gap:0.5rem">
+                    <input type="text" id="guest-name-input" class="poker-input" style="flex:1" placeholder="Your Name">
+                    <button class="join-btn" style="padding:0.6rem 1rem; font-size:0.8rem" onclick="setIdentity(document.getElementById('guest-name-input').value, true)">Join</button>
+                </div>
+            </div>
+
 
             <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border)">
                 <p style="font-size:0.6rem; opacity:0.5; margin-bottom:0.5rem">Personalize your profile:</p>
@@ -665,7 +675,7 @@
                     <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
                     <span id="display-version"
                         style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
-                        7.0</span>
+                        6.4</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
@@ -748,6 +758,19 @@
 
             <!-- ── SETTLEMENT ── -->
             <div class="panel" id="panel-settlement">
+                <!-- Social Expenses Card [NEW] -->
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-title">💸 Add General Expense</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; margin-top: 0.5rem;">
+                        <input type="number" id="social-amount" class="poker-input" placeholder="$0.00" step="0.01">
+                        <input type="text" id="social-name" class="poker-input" placeholder="entertainment" value="entertainment">
+                        <button class="join-btn" onclick="addSocialExpense()" style="padding: 0.8rem 1rem; font-size: 0.8rem;">➕ Add</button>
+                    </div>
+                    <div id="social-expenses-list" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <!-- List of current expenses -->
+                    </div>
+                </div>
+
                 <div class="card" id="poker-settlement">
                     <div class="card-title">💰 Settlement</div>
                     <div id="settlement-results">
@@ -813,8 +836,8 @@
             <div style="font-weight:900; font-size:0.8rem">🚀 Update Available!</div>
             <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
         </div>
-        <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
-            onclick="nuclearReload()">Refresh Now</button>
+            <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
+                onclick="window.location.replace(window.location.origin + window.location.pathname + '?v=10.8')">Refresh Now</button>
     </div>
 
 
@@ -848,27 +871,6 @@
         db.ref('boat-dashboard/presence/' + presenceId).onDisconnect().remove();
         updatePresence();
 
-        async function nuclearReload() {
-            console.warn("[Knights] NUCLEAR RELOAD triggered.");
-            try {
-                if ('serviceWorker' in navigator) {
-                    const regs = await navigator.serviceWorker.getRegistrations();
-                    for (let reg of regs) await reg.unregister();
-                }
-                if ('caches' in window) {
-                    const keys = await caches.keys();
-                    for (let key of keys) await caches.delete(key);
-                }
-                localStorage.clear();
-                sessionStorage.clear();
-                alert("Site data cleared. Reloading...");
-                location.href = location.origin + '?v=' + Date.now();
-            } catch (e) {
-                console.error("Cleanup failed", e);
-                location.reload(true);
-            }
-        }
-
         db.ref('boat-dashboard/presence').on('value', snap => {
             onlineUsers = snap.val() || {};
             const names = Object.values(onlineUsers).map(u => u.name);
@@ -884,7 +886,6 @@
             }
             
             renderCrew(); // Re-render to show online dots
-            if (typeof renderPoker === 'function') renderPoker(currentPokerLog ? {log: currentPokerLog, settled: currentPokerSettled} : null);
         });
 
         function toggleOnlineList() {
@@ -892,7 +893,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "7.0";
+        const APP_VERSION = "10.8";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1025,22 +1026,21 @@
             // Render Actions
             actions.innerHTML = '';
             if (!myId) {
-                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Login with Google to manage table</div>`;
+                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to manage the table</div>`;
             } else if (!currentPokerManager) {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager</button>`;
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%">🔓 Become Manager (Unlock Table)</button>`;
             } else if (isManager) {
                 actions.innerHTML = `
                     <button class="join-btn" onclick="releasePokerRole()" style="flex:1; background:var(--secondary)">🔒 Release Table</button>
                     <button class="join-btn" onclick="archiveSession()" style="flex:1; background:var(--night)">📁 Finalize & New Game</button>
                 `;
             } else {
-                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager</button>`;
+                actions.innerHTML = `<button class="join-btn" onclick="takePokerRole()" style="width:100%; opacity:0.6">✋ Take Over Manager Role</button>`;
             }
 
             // Render Players
             list.innerHTML = '';
             let totalIn = 0, totalOut = 0;
-            
             CREW.forEach(c => {
                 const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
                 totalIn += (p.buyin || 0);
@@ -1049,7 +1049,6 @@
 
                 const row = document.createElement('div');
                 row.className = 'poker-player';
-                if (isManager) row.style.cursor = 'pointer';
                 row.style.display = 'grid';
                 row.style.gridTemplateColumns = 'auto 1fr auto';
                 row.style.alignItems = 'center';
@@ -1250,117 +1249,9 @@
             });
         }
 
-        // ── Poker Logic Hall (Restored) ──
-        async function updatePoker(name, field, val) {
-            const v = parseFloat(val) || 0;
-            const myName = JSON.parse(localStorage.getItem('boat-identity'))?.name || 'Unknown';
-            await db.ref(`boat-dashboard/poker/players/${name}/${field}`).set(v);
-            await db.ref('boat-dashboard/poker/log').push({
-                ts: Date.now(),
-                msg: `${myName} changed ${name}'s ${field} to $${v}`
-            });
-        }
-
-        async function quickAdd(name, amt) {
-            const ref = db.ref(`boat-dashboard/poker/players/${name}/buyin`);
-            const snap = await ref.once('value');
-            const current = snap.val() || 0;
-            const next = current + amt;
-            await ref.set(next);
-            await db.ref('boat-dashboard/poker/log').push({
-                ts: Date.now(),
-                msg: `${name} added $${amt} (Total: $${next})`
-            });
-        }
-
-        async function quickAddCustom(name) {
-            const val = prompt(`Enter custom buy-in amount for ${name}:`);
-            if (val === null) return;
-            const amt = parseFloat(val);
-            if (isNaN(amt)) return alert("Invalid number");
-            await quickAdd(name, amt);
-        }
-
-        async function takePokerRole() {
-            const id = await getIdentity(true);
-            if (id) db.ref('boat-dashboard/poker/manager').set(id.name);
-        }
-
-        async function releasePokerRole() {
-            if (confirm("Release manager role?")) {
-                db.ref('boat-dashboard/poker/manager').remove();
-            }
-        }
-
-        async function archiveSession() {
-            const snap = await db.ref('boat-dashboard/poker').once('value');
-            const data = snap.val() || {};
-            if (!data.players) return alert("No players to archive.");
-
-            const calcTotalOut = Object.values(data.players).reduce((s, p) => s + (p.balance || 0), 0);
-            const totalIn = Object.values(data.players).reduce((s, p) => s + (p.buyin || 0), 0);
-            const hasNegatives = Object.values(data.players).some(p => (p.balance || 0) < 0);
-            const isNetMode = hasNegatives || (Math.abs(calcTotalOut) < Math.abs(calcTotalOut - totalIn));
-            const gap = isNetMode ? calcTotalOut : calcTotalOut - totalIn;
-
-            if (Math.abs(gap) > 0.01) {
-                if (!confirm(`Warning: Table is not balanced (Gap: $${gap.toFixed(2)}). Archive anyway?`)) return;
-            } else {
-                if (!confirm("Finalize session and start fresh? All data will be saved to history.")) return;
-            }
-
-            const me = JSON.parse(localStorage.getItem('boat-identity'))?.name || 'Unknown';
-            const sessionData = {
-                timestamp: Date.now(),
-                finalizedBy: me,
-                players: data.players,
-                log: data.log || {},
-                totalIn: totalIn,
-                gap: gap
-            };
-
-            await db.ref('boat-dashboard/poker/sessions').push(sessionData);
-            await db.ref('boat-dashboard/poker/players').remove();
-            await db.ref('boat-dashboard/poker/log').remove();
-            await db.ref('boat-dashboard/poker/manager').remove();
-            alert("Session archived successfully! Table reset.");
-        }
-
-        async function restoreSession(sessionId) {
-            const me = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-            if (!me) return alert("Please select your profile first.");
-
-            // Allow restore if no manager OR if I am the manager
-            if (currentPokerManager && currentPokerManager !== me) {
-                return alert(`Only the current Manager (${currentPokerManager}) can restore sessions.`);
-            }
-
-            if (!confirm("Restore this archived session to the active table?\nThis will overwrite the current live table data!")) return;
-
-            // Automatically take role if no manager
-            if (!currentPokerManager) {
-                await db.ref('boat-dashboard/poker/manager').set(me);
-            }
-
-            const snap = await db.ref(`boat-dashboard/poker/sessions/${sessionId}`).once('value');
-            const session = snap.val();
-            if (!session || !session.players) return alert("Session data not found.");
-
-            // Restore players and partial management state
-            await db.ref('boat-dashboard/poker/players').set(session.players);
-            if (session.log) await db.ref('boat-dashboard/poker/log').set(session.log);
-
-            await db.ref('boat-dashboard/poker/log').push({
-                ts: Date.now(),
-                msg: `🔄 ${me} restored session from ${new Date(session.timestamp).toLocaleDateString()}`
-            });
-
-            alert("Session restored! Check the Poker and Settlement tabs.");
-            switchTab('poker', document.getElementById('btn-poker'));
-        }
+        // Poker Logic Consolidated at REV 10.3
 
 
-        // ── Info: Crew ──
         // ── Info: Crew ──
         function renderCrew() {
             const list = document.getElementById('crew-list');
@@ -1377,7 +1268,7 @@
                 }
 
                 card.innerHTML = `
-                    <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.photo ? '' : c.init}</div>
+                    <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.init}</div>
                     <div style="font-size:0.75rem;font-weight:700">${c.name}</div>
                     ${onlineDot}
                 `;
@@ -1386,29 +1277,65 @@
         }
 
         // ── Original Core Logic Re-implemented for 4-Tab ──
-        async function getIdentity(force, uidOverride) {
+        function getIdentity(force, uidOverride) {
             console.log("[Knights] getIdentity called. Force:", force, "uidOverride:", uidOverride);
             let id = JSON.parse(localStorage.getItem('boat-identity'));
             const myUid = uidOverride || auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
-            console.log("[Knights] getIdentity current state:", { id, myUid, globalUid, currentUser: auth.currentUser?.email });
-
+            
             if (!id || force) {
                 console.log("[Knights] Displaying Identity Modal...");
-                document.getElementById('identity-modal').classList.add('show');
-                const gBtn = document.getElementById('google-login-btn');
-                const loadingEl = document.getElementById('auth-loading');
+                const modal = document.getElementById('identity-modal');
+                if (modal) modal.classList.add('show');
                 
+                const gBtn = document.getElementById('google-login-btn');
+                const claimHeader = document.getElementById('claim-header');
+                const guestSection = document.getElementById('guest-section');
+                const linkSection = document.getElementById('link-profile-section');
+                const grid = document.getElementById('identity-grid');
+
+                if (grid) grid.innerHTML = '';
+
                 if (myUid) {
-                    if (loadingEl) loadingEl.style.display = 'none';
-                    if (gBtn) gBtn.style.display = 'none';
-                    // Auto-set identity based on Google Display Name
-                    const name = auth.currentUser?.displayName || auth.currentUser?.email.split('@')[0] || "Knight";
-                    setIdentity(name);
+                    if (gBtn) {
+                        gBtn.innerHTML = `Connected: ${auth.currentUser?.email || 'Authenticated'}`;
+                        gBtn.style.display = 'flex';
+                        gBtn.disabled = true;
+                    }
+                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR NAME";
+                    if (linkSection) linkSection.style.display = 'block';
+                    
+                    db.ref('boat-dashboard/claims').once('value', snap => {
+                        const claims = snap.val() || {};
+                        // Populate grid
+                        if (grid) {
+                            grid.innerHTML = '';
+                            CREW.forEach(member => {
+                                const isClaimed = claims[member.name];
+                                const isMine = isClaimed === myUid;
+                                if (isClaimed && !isMine) return;
+
+                                const b = document.createElement('button');
+                                b.className = 'av';
+                                b.style.cssText = `${getAvStyle(member)}; width:50px; height:50px; cursor:pointer; position:relative; border:2px solid transparent`;
+                                b.innerHTML = member.init;
+                                if (isMine) b.style.borderColor = 'var(--primary)';
+                                b.onclick = () => setIdentity(member.name);
+                                grid.appendChild(b);
+                            });
+                        }
+                    });
                 } else {
-                    if (loadingEl) loadingEl.style.display = 'none';
-                    if (gBtn) gBtn.style.display = 'flex';
+                    if (gBtn) {
+                        gBtn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18"> Continue with Google`;
+                        gBtn.style.display = 'flex';
+                        gBtn.disabled = false;
+                    }
+                    if (claimHeader) claimHeader.innerText = "OR JOIN AS GUEST";
+                    if (linkSection) linkSection.style.display = 'none';
                 }
-                return new Promise(res => { pendingResolve = res; });
+                
+                if (guestSection) guestSection.style.display = 'block';
+                return null; // Return null instead of Promise to avoid blocking
             }
             return id;
         }
@@ -1469,9 +1396,13 @@
 
             localStorage.setItem('boat-identity', JSON.stringify({ name }));
             document.getElementById('identity-modal').classList.remove('show');
-            if (pendingResolve) pendingResolve({ name });
 
             updatePresence(); // Update presence with new name
+            
+            // Force re-render of poker table to unlock manager buttons
+            if (typeof renderPoker === 'function') {
+                db.ref('boat-dashboard/poker').once('value').then(s => renderPoker(s.val() || {}));
+            }
 
             // Sync photo/email if logged in
             if (uid) {
@@ -1628,13 +1559,41 @@
                 return;
             }
 
+            // Normalization helper (but only for the math, not the display)
+            const mapName = (n) => (n.trim() === "Oren Weiss" ? "Oren" : n.trim());
+
+            // 1. Calculate Poker Nets
             let nets = Object.entries(data).map(([name, d]) => ({
-                name,
+                name: mapName(name),
                 net: isNetMode ? (d.balance || 0) : (d.balance || 0) - (d.buyin || 0)
-            })).filter(n => Math.abs(n.net) > 0.01);
+            }));
+
+            // 2. Add Social Expenses Split
+            const expenses = Object.values(currentSocialExpenses || {});
+            if (expenses.length > 0) {
+                const totalSocial = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+                const splitAmount = totalSocial / CREW.length;
+                
+                // Add split to everyone
+                CREW.forEach(c => {
+                    const paidByMe = expenses
+                        .filter(e => mapName(e.payer) === c.name)
+                        .reduce((sum, e) => sum + (e.amount || 0), 0);
+                    
+                    const myNet = paidByMe - splitAmount;
+                    const existing = nets.find(n => n.name === c.name);
+                    if (existing) {
+                        existing.net += myNet;
+                    } else {
+                        nets.push({ name: c.name, net: myNet });
+                    }
+                });
+            }
+
+            nets = nets.filter(n => Math.abs(n.net) > 0.01);
 
             if (!nets.length) {
-                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is not balanced or no scores entered.</div>';
+                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is balanced.</div>';
                 return;
             }
             list.innerHTML = '';
@@ -1783,20 +1742,10 @@
             }
         }, 1000);
 
-        // ── Global data sync ──
-        let currentPokerPlayers, currentPokerManager, currentPokerLog, currentPokerSettled;
+        // Global data sync
+        let currentPokerPlayers, currentPokerManager, currentPokerLog, currentPokerSettled, currentSocialExpenses;
         db.ref('boat-dashboard/crew').on('value', s => {
-            const data = s.val() || {};
-            CREW_DATA = data;
-            // Map the CREW global array with the latest data
-            CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
-                name,
-                init: name.substring(0, 2),
-                color: data[name]?.color || COLORS[i % COLORS.length],
-                photo: data[name]?.photo || null,
-                beem: data[name]?.beem || null
-            }));
-            
+            CREW_DATA = s.val() || {};
             renderCrew();
             updateHeaderProfile();
             if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, manager: currentPokerManager, log: currentPokerLog, settled: currentPokerSettled });
@@ -1810,6 +1759,61 @@
             currentPokerSettled = d.settled;
             renderPoker(d);
         });
+
+        db.ref('boat-dashboard/social/expenses').on('value', s => {
+            currentSocialExpenses = s.val() || {};
+            renderSocialExpenses();
+            if (currentPokerPlayers) calculateSettlement(currentPokerPlayers, false, currentPokerSettled || {});
+        });
+
+        function renderSocialExpenses() {
+            const list = document.getElementById('social-expenses-list');
+            if (!list) return;
+            const expenses = Object.entries(currentSocialExpenses || {});
+            if (!expenses.length) {
+                list.innerHTML = '<div style="font-size:0.7rem; opacity:0.4; text-align:center">No social expenses yet.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            expenses.forEach(([id, e]) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(0,0,0,0.02); padding:0.5rem; border-radius:8px';
+                div.innerHTML = `
+                    <div>
+                        <b>${e.payer}</b> paid <b>$${e.amount.toFixed(2)}</b> for <i>${e.name || 'unnamed'}</i>
+                    </div>
+                    <button class="quick-btn" style="color:var(--danger)" onclick="removeSocialExpense('${id}')">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function addSocialExpense() {
+            const amount = parseFloat(document.getElementById('social-amount').value);
+            const name = document.getElementById('social-name').value.trim() || 'entertainment';
+            const identity = JSON.parse(localStorage.getItem('boat-identity'));
+            const payer = identity?.name;
+
+            if (!payer) return alert("Select your profile first!");
+            if (isNaN(amount) || amount <= 0) return alert("Enter a valid amount!");
+
+            await db.ref('boat-dashboard/social/expenses').push({
+                amount,
+                name,
+                payer,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            document.getElementById('social-amount').value = '';
+            document.getElementById('social-name').value = 'entertainment';
+        }
+
+        function removeSocialExpense(id) {
+            if (confirm("Remove this expense?")) {
+                db.ref(`boat-dashboard/social/expenses/${id}`).remove();
+            }
+        }
+
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
 
         async function init() {
@@ -1817,7 +1821,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 7.0)
+            // FORCED FRESH START CHECK (REV 10.8)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1854,23 +1858,13 @@
             });
         }
         init();
+        // Listen for version
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
             if (remoteVersion && remoteVersion !== APP_VERSION) {
                 document.getElementById('update-rev-text').innerText = `Version ${remoteVersion} is out.`;
                 document.getElementById('update-toast').classList.add('show');
             }
-        });
-        db.ref('boat-dashboard/crew').on('value', s => {
-            const data = s.val() || {};
-            CREW = DEFAULT_CREW_NAMES.map((name, i) => ({
-                name,
-                init: name.slice(0, 2),
-                color: data[name]?.color || COLORS[i % COLORS.length],
-                photo: data[name]?.photo || null,
-                beem: data[name]?.beem || null
-            }));
-            const pokerSnap = db.ref('boat-dashboard/poker').once('value').then(snap => renderPoker(snap.val() || {}));
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1895,11 +1889,18 @@
             handleAuthRedirect();
             updateHeaderProfile();
 
+            db.ref('.info/connected').on('value', s => {
+                if (s.val()) myPresenceRef.set(true);
+            });
+            allPresenceRef.on('value', s => {
+                const el = document.getElementById('online-count');
+                if (el) el.innerText = s.numChildren();
+            });
         });
         // ── PWA SERVICE WORKER ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=7.0')
+                navigator.serviceWorker.register('/sw.js')
                     .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
                     .catch(err => console.log('[PWA] Service Worker failed:', err));
             });
