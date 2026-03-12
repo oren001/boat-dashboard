@@ -879,15 +879,6 @@
             const names = Object.values(onlineUsers).map(u => u.name);
             const count = Object.keys(onlineUsers).length;
             
-            const countEl = document.getElementById('online-count');
-            if (countEl) countEl.textContent = count;
-            
-            const textEl = document.getElementById('online-text');
-            if (textEl && count > 0) {
-                const uniqueNames = [...new Set(names)];
-                textEl.title = "Online: " + uniqueNames.join(', ');
-            }
-            
             renderCrew(); // Re-render to show online dots
         });
 
@@ -896,7 +887,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.96";
+        const APP_VERSION = "10.97";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1037,17 +1028,22 @@
             const validation = document.getElementById('pot-validation');
             if (!list) return;
 
-            const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
             const myUid = localStorage.getItem('boat-uid');
-            const isAuthenticated = !!myUid && !!myId;
+            const isAuthenticated = !!myUid;
 
-            // Render Status (Removed Manager, just shows Mode)
+            // Render Status
             status.innerHTML = `<span class="manager-badge" style="background:var(--primary)">Open Edit Mode</span>`;
 
             // Render Actions
             actions.innerHTML = '';
             if (!isAuthenticated) {
-                actions.innerHTML = `<div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding:1rem; border:1px dashed var(--border); border-radius:12px">👤 Select your profile to edit the table</div>`;
+                actions.innerHTML = `
+                    <button class="join-btn" onclick="loginWithGoogle()" style="width:100%; display:flex; justify-content:center; align-items:center; gap:0.5rem">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18"> 
+                        Login to Edit Table
+                    </button>
+                    <div style="text-align:center; width:100%; opacity:0.5; font-size:0.8rem; padding-top:0.5rem;">Changes are logged automatically</div>
+                `;
             } else {
                 actions.innerHTML = `
                     <button class="join-btn" onclick="archiveSession()" style="width:100%; background:var(--night)">📁 Finalize & New Game</button>
@@ -1294,74 +1290,9 @@
         }
 
         // ── Original Core Logic Re-implemented for 4-Tab ──
-        function getIdentity(force, uidOverride) {
-            console.log("[Knights] getIdentity called. Force:", force, "uidOverride:", uidOverride);
-            let id = JSON.parse(localStorage.getItem('boat-identity'));
-            const myUid = uidOverride || auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
-            
-            if (!id || force) {
-                console.log("[Knights] Displaying Identity Modal...");
-                const modal = document.getElementById('identity-modal');
-                if (modal) modal.classList.add('show');
-                
-                const gBtn = document.getElementById('google-login-btn');
-                const claimHeader = document.getElementById('claim-header');
-                const guestSection = document.getElementById('guest-section');
-                const linkSection = document.getElementById('link-profile-section');
-                const grid = document.getElementById('identity-grid');
-
-                if (grid) grid.innerHTML = '';
-
-                if (myUid) {
-                    if (gBtn) {
-                        gBtn.innerHTML = `Connected: ${auth.currentUser?.email || 'Authenticated'}`;
-                        gBtn.style.display = 'flex';
-                        gBtn.disabled = true;
-                    }
-                    if (claimHeader) claimHeader.innerText = "CHOOSE YOUR NAME";
-                    if (linkSection) linkSection.style.display = 'block';
-                    
-                    db.ref('boat-dashboard/claims').once('value', snap => {
-                        const claims = snap.val() || {};
-                        // Populate grid
-                        if (grid) {
-                            grid.innerHTML = '';
-                            CREW.forEach(member => {
-                                const isClaimed = claims[member.name];
-                                const isMine = isClaimed === myUid;
-                                if (isClaimed && !isMine) return;
-
-                                const b = document.createElement('button');
-                                b.className = 'av';
-                                b.style.cssText = `${getAvStyle(member)}; width:50px; height:50px; cursor:pointer; position:relative; border:2px solid transparent`;
-                                b.innerHTML = member.init;
-                                if (isMine) b.style.borderColor = 'var(--primary)';
-                                b.onclick = () => setIdentity(member.name);
-                                grid.appendChild(b);
-                            });
-                        }
-                    });
-                } else {
-                    if (gBtn) {
-                        gBtn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="18" height="18"> Continue with Google`;
-                        gBtn.style.display = 'flex';
-                        gBtn.disabled = false;
-                    }
-                    if (claimHeader) claimHeader.innerText = "OR JOIN AS GUEST";
-                    if (linkSection) linkSection.style.display = 'none';
-                }
-                
-                if (guestSection) guestSection.style.display = 'block';
-                return null; // Return null instead of Promise to avoid blocking
-            }
-            return id;
-        }
-
         async function loginWithGoogle() {
             console.log("[Knights] Initiating Google Popup Login...");
             try {
-                // Switch back to Popup flow because Redirect fails on Render custom domains 
-                // due to missing /__/firebase/init.json
                 const result = await auth.signInWithPopup(googleProvider);
                 console.log("[Knights] Popup successful for:", result.user.email);
             } catch (err) {
@@ -1372,96 +1303,31 @@
             }
         }
 
-        async function handleAuthRedirect() {
-            console.log("[Knights] handleAuthRedirect started (Legacy cleanup)...");
-            // keeping this minimal just in case there's a lingering redirect state
-            try {
-                await auth.getRedirectResult();
-            } catch (err) {
-                console.error("[Knights] Redirect cleanup error:", err);
-            }
-        }
-
         let globalUid = localStorage.getItem('boat-uid');
-
-        async function setIdentity(name, isGuest) {
-            const uid = auth.currentUser?.uid || globalUid || localStorage.getItem('boat-uid');
-            console.log("[Knights] setIdentity triggered for:", name, "with UID:", uid);
-
-            if (!uid && !isGuest) {
-                console.error("[Knights] No UID found in setIdentity! Blocking selection.");
-                alert("Identity Protection: Please login with Google first.");
-                return loginWithGoogle();
-            }
-
-            if (!name) return alert("Please enter a name.");
-
-            // Check if this profile is already claimed
-            const claimSnap = await db.ref(`boat-dashboard/claims/${name}`).once('value');
-            const claimedBy = claimSnap.val();
-
-            if (claimedBy && claimedBy !== uid) {
-                alert(`⚠️ This profile belongs to someone else and is protected.`);
-                return;
-            }
-
-            // Claim it if not already claimed
-            if (!claimedBy) {
-                await db.ref(`boat-dashboard/claims/${name}`).set(uid);
-                console.log(`[Auth] Profile ${name} claimed by ${uid}`);
-            }
-
-            localStorage.setItem('boat-identity', JSON.stringify({ name }));
-            document.getElementById('identity-modal').classList.remove('show');
-
-            updatePresence(); // Update presence with new name
-            
-            // Force re-render of poker table to unlock manager buttons
-            if (typeof renderPoker === 'function') {
-                db.ref('boat-dashboard/poker').once('value').then(s => renderPoker(s.val() || {}));
-            }
-
-            // Sync photo/email if logged in
-            if (uid) {
-                const updates = {};
-                if (auth.currentUser?.photoURL) updates[`boat-dashboard/crew/${name}/photo`] = auth.currentUser.photoURL;
-                if (auth.currentUser?.email) updates[`boat-dashboard/crew/${name}/email`] = auth.currentUser.email;
-                if (Object.keys(updates).length) await db.ref().update(updates);
-            }
-
-            renderCrew();
-            updateHeaderProfile();
-
-            // Populate Beem handle if exists
-            const snap = await db.ref(`boat-dashboard/crew/${name}/beem`).once('value');
-            if (snap.val()) document.getElementById('beem-handle').value = snap.val();
-        }
-
-        async function saveBeemHandle() {
-            const name = JSON.parse(localStorage.getItem('boat-identity'))?.name;
-            if (!name) return alert("Select yourself first!");
-            const handle = document.getElementById('beem-handle').value.trim().replace('@', '');
-            if (!handle) return;
-            await db.ref(`boat-dashboard/crew/${name}/beem`).set(handle);
-            alert("Beem handle saved!");
-        }
 
         function updateHeaderProfile() {
             const el = document.getElementById('header-user');
-            const id = JSON.parse(localStorage.getItem('boat-identity'));
-            if (!id || !el) return el ? el.style.display = 'none' : null;
+            if (!el) return;
+            
+            const uid = localStorage.getItem('boat-uid');
+            const currentUser = auth.currentUser;
 
-            const crew = CREW.find(c => c.name === id.name) || { name: id.name, init: id.name[0] };
-            const photo = CREW_DATA?.[id.name]?.photo;
+            if (!uid || !currentUser) {
+                el.style.display = 'none';
+                return;
+            }
+
+            const photo = currentUser.photoURL || '';
+            const displayName = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
 
             el.innerHTML = `
-                <div style="display:flex; align-items:center; gap:0.5rem" onclick="getIdentity(true)">
-                    <div class="av" style="${getAvStyle(crew)}">
-                        ${photo ? '' : (crew.init || crew.name[0])}
+                <div style="display:flex; align-items:center; gap:0.5rem">
+                    <div class="av" style="${photo ? `background-image: url(${photo}); background-size: cover; color:transparent;` : 'background:var(--primary)'}">
+                        ${photo ? '' : displayName[0].toUpperCase()}
                     </div>
                     <div style="display:flex; flex-direction:column">
                         <div style="font-size:0.7rem; font-weight:800; opacity:0.9; display:flex; align-items:center; gap:3px">
-                            ${id.name} <span title="Verified Identity" style="font-size:0.6rem">🛡️</span>
+                            ${displayName} <span title="Verified Identity" style="font-size:0.6rem">🛡️</span>
                         </div>
                     </div>
                 </div>
@@ -1469,6 +1335,18 @@
                 <button onclick="logout(event)" style="background:none; border:none; padding:4px; cursor:pointer; font-size:0.8rem; opacity:0.4; display:flex; align-items:center" title="Logout">🚪</button>
             `;
             el.style.display = 'flex';
+        }
+
+        async function logout(e) {
+            if (e) e.stopPropagation();
+            if (!confirm("Logout?")) return;
+            localStorage.removeItem('boat-uid');
+            await auth.signOut();
+            updateHeaderProfile();
+            // Force re-render to lock fields
+            if (typeof renderPoker === 'function') {
+                db.ref('boat-dashboard/poker').once('value').then(s => renderPoker(s.val() || {}));
+            }
         }
 
         async function logout(e) {
@@ -1830,13 +1708,9 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 10.96)
-            const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
-            if (lastSessionVersion !== APP_VERSION) {
-                console.warn("[Knights] Outdated session detected. Resetting identity state...");
-                localStorage.removeItem('boat-identity');
-                localStorage.setItem('poker-knights-session-ver', APP_VERSION);
-            }
+            // Clean up legacy session items
+            localStorage.removeItem('boat-identity');
+            localStorage.setItem('poker-knights-session-ver', APP_VERSION);
 
             // 1. Check for redirect result once
             console.log("[Knights] init() - checking redirect...");
@@ -1916,7 +1790,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=10.96')
+                navigator.serviceWorker.register('/sw-v10.js?v=10.97')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
