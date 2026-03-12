@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <title>Friday Poker Social</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Poker Knights</title>
     <link rel="icon" href="data:,">
     <meta name="description" content="The Weekly High-Stakes Social Hub" />
     <link rel="manifest" href="/manifest.json">
@@ -837,7 +840,7 @@
             <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
         </div>
             <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
-                onclick="window.location.replace(window.location.origin + window.location.pathname + '?v=10.8')">Refresh Now</button>
+                onclick="window.location.replace(window.location.origin + window.location.pathname + '?v=10.9')">Refresh Now</button>
     </div>
 
 
@@ -893,7 +896,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.8";
+        const APP_VERSION = "10.9";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1821,7 +1824,7 @@
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
 
-            // FORCED FRESH START CHECK (REV 10.8)
+            // FORCED FRESH START CHECK (REV 10.9)
             const lastSessionVersion = localStorage.getItem('poker-knights-session-ver');
             if (lastSessionVersion !== APP_VERSION) {
                 console.warn("[Knights] Outdated session detected. Resetting identity state...");
@@ -1897,12 +1900,19 @@
                 if (el) el.innerText = s.numChildren();
             });
         });
-        // ── PWA SERVICE WORKER ──
+        // ── PWA SERVICE WORKER (Extreme Cache Break) ──
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
-                    .catch(err => console.log('[PWA] Service Worker failed:', err));
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    if (registration.active && registration.active.scriptURL.includes('sw.js') && !registration.active.scriptURL.includes('sw-v10.js')) {
+                        console.log('Unregistering old SW:', registration);
+                        registration.unregister();
+                    }
+                }
+            }).then(() => {
+                navigator.serviceWorker.register('/sw-v10.js?v=10.9')
+                    .then(reg => console.log('Service Worker v10 registered!', reg))
+                    .catch(err => console.error('Service Worker Registration Failed!', err));
             });
         }
     </script>
