@@ -884,7 +884,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "11.00";
+        const APP_VERSION = "11.01";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1188,12 +1188,13 @@
             // Render History
             history.innerHTML = '';
             sessionArray.forEach(([id, s]) => {
-                const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                const ts = parseInt(s.timestamp) || Date.now();
+                const date = new Date(ts).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
-                const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+                
                 // In Open Edit Mode, any authenticated user can restore
                 const myUid = localStorage.getItem('boat-uid');
-                const canRestore = myId && myUid;
+                const canRestore = !!myUid;
 
                 const item = document.createElement('div');
                 item.className = 'log-entry';
@@ -1782,7 +1783,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=11.00')
+                navigator.serviceWorker.register('/sw-v10.js?v=11.01')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
