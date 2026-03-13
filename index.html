@@ -683,7 +683,7 @@
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
             </div>
             <div style="display:flex; align-items:center; gap:0.8rem">
-                <div id="header-user" class="user-badge" style="display:none" onclick="getIdentity(true)">
+                <div id="header-user" class="user-badge" style="display:none">
                     <!-- Profile content injected here -->
                 </div>
                 <div class="countdown" id="countdown">
@@ -732,10 +732,7 @@
                     style="margin-top: -1.2rem; border-top: none; border-radius: 0 0 24px 24px; padding: 2rem 1.5rem 1.5rem; background: var(--glass-heavy); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <button class="join-btn" onclick="switchTab('poker', document.getElementById('btn-poker'))"
-                            style="padding: 1.2rem; font-size: 1rem; letter-spacing: 0.02em;">🃏 Join Table</button>
-                        <button class="join-btn" onclick="getIdentity(true)"
-                            style="padding: 1.2rem; font-size: 1rem; background: var(--glass); color: var(--text); border: 1px solid var(--border); box-shadow: none;">👤
-                            My Profile</button>
+                            style="padding: 1.2rem; font-size: 1rem; width:100%">🃏 Join Table</button>
                     </div>
                     <p
                         style="text-align: center; font-size: 0.7rem; opacity: 0.4; font-weight: 700; margin-top: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
@@ -887,7 +884,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "10.98";
+        const APP_VERSION = "11.00";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1411,8 +1408,7 @@
         // ── Obsolete Poker Manager Functions Removed ──
 
         async function archiveSession() {
-            const id = await getIdentity();
-            if (!id) return;
+            const displayName = auth.currentUser?.displayName || "Oren";
 
             const snap = await db.ref('boat-dashboard/poker').once('value');
             const data = snap.val();
@@ -1425,7 +1421,7 @@
 
             const sessionData = {
                 timestamp: Date.now(),
-                finalizedBy: id.name,
+                finalizedBy: displayName,
                 players: data.players,
                 log: data.log || {}
             };
@@ -1721,20 +1717,18 @@
                     globalUid = user.uid;
                     localStorage.setItem('boat-uid', user.uid);
                     localStorage.setItem('poker-knights-session-ver', APP_VERSION);
+                    
+                    // Re-render views automatically on login
+                    renderCrew();
+                    updateHeaderProfile();
+                    
+                    if (typeof renderPoker === 'function') {
+                        db.ref('boat-dashboard/poker').once('value').then(s => renderPoker(s.val() || {}));
+                    }
                 } else {
                     console.log("[Knights] Auth state is null. Checking localStorage for fallback UID...");
                     globalUid = null;
                     // Note: Don't remove localStorage UID yet, it acts as a fallback for slow auth
-                }
-
-                const identity = await getIdentity(false, user?.uid);
-                if (identity) {
-                    renderCrew();
-                    updateHeaderProfile();
-                } else if (user) {
-                    // Only show if user is fully logged in but hasn't picked a name yet
-                    console.log("[Knights] User logged in but no identity. Prompting selection...");
-                    getIdentity(true, user.uid);
                 }
             });
         }
@@ -1767,7 +1761,7 @@
             const btn = document.querySelector(`.nav-btn[onclick*="${last}"]`);
             if (btn) switchTab(last, btn, true);
             // Handle Google Auth Redirect result
-            handleAuthRedirect();
+            // Handle Google Auth Redirect result (Removed legacy)
             updateHeaderProfile();
 
             db.ref('.info/connected').on('value', s => {
@@ -1788,7 +1782,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=10.98')
+                navigator.serviceWorker.register('/sw-v10.js?v=11.00')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
