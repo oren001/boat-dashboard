@@ -994,7 +994,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "12.00";
+        const APP_VERSION = "12.01";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1555,6 +1555,16 @@
             db.ref('boat-dashboard/poker/log').push({ msg, ts: Date.now() });
         }
 
+        // ── Audit Log ──
+        function auditLog(action, details) {
+            db.ref('boat-dashboard/auditLog').push({
+                action,
+                details: details || {},
+                by: auth.currentUser?.displayName || 'Unknown',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
         // ── Obsolete Poker Manager Functions Removed ──
 
         async function archiveSession() {
@@ -1573,7 +1583,11 @@
                 timestamp: Date.now(),
                 finalizedBy: displayName,
                 players: data.players,
-                log: data.log || {}
+                log: data.log || {},
+                // Preserve full financial state for audit trail
+                cashPayments: currentCashPayments || {},
+                socialExpenses: currentSocialExpenses || {},
+                settled: data.settled || {}
             };
 
             await db.ref('boat-dashboard/poker/sessions').push(sessionData);
@@ -1583,7 +1597,28 @@
             await db.ref('boat-dashboard/cashPayments').remove();
             await db.ref('boat-dashboard/social/expenses').remove();
 
+            auditLog('session_archived', { finalizedBy: displayName, playerCount: Object.keys(data.players).length });
             alert("Session archived successfully! Table is now fresh.");
+        }
+
+        async function restoreSession(id) {
+            if (!confirm("Restore this session? Current table data will be overwritten.")) return;
+            const snap = await db.ref(`boat-dashboard/poker/sessions/${id}`).once('value');
+            const session = snap.val();
+            if (!session || !session.players) return alert("Session has no player data!");
+
+            await db.ref('boat-dashboard/poker/players').set(session.players);
+            if (session.log) await db.ref('boat-dashboard/poker/log').set(session.log);
+            if (session.settled) await db.ref('boat-dashboard/poker/settled').set(session.settled);
+            if (session.cashPayments && Object.keys(session.cashPayments).length) {
+                await db.ref('boat-dashboard/cashPayments').set(session.cashPayments);
+            }
+            if (session.socialExpenses && Object.keys(session.socialExpenses).length) {
+                await db.ref('boat-dashboard/social/expenses').set(session.socialExpenses);
+            }
+
+            auditLog('session_restored', { sessionId: id, originalDate: session.timestamp });
+            showToast('Session restored!');
         }
 
         // Legacy Boat Functions Removed
@@ -1866,14 +1901,17 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
 
+            auditLog('expense_added', { amount, name, payer });
             document.getElementById('social-amount').value = '';
             document.getElementById('social-name').value = '';
         }
 
-        function removeSocialExpense(id) {
-            if (confirm("Remove this expense?")) {
-                db.ref(`boat-dashboard/social/expenses/${id}`).remove();
-            }
+        async function removeSocialExpense(id) {
+            if (!confirm("Remove this expense?")) return;
+            const snap = await db.ref(`boat-dashboard/social/expenses/${id}`).once('value');
+            const data = snap.val();
+            auditLog('expense_deleted', data || { id });
+            await db.ref(`boat-dashboard/social/expenses/${id}`).remove();
         }
 
         // ── Toggle Settlement Checkbox ──
@@ -1881,7 +1919,9 @@
             const txKey = `${from}_${to}_${amount.toFixed(2)}`.replace(/\./g, '_');
             const ref = db.ref(`boat-dashboard/poker/settled/${txKey}`);
             ref.once('value').then(s => {
-                ref.set(s.val() ? null : true);
+                const newState = s.val() ? null : true;
+                ref.set(newState);
+                auditLog('settlement_toggled', { from, to, amount, settled: !!newState });
             });
         }
 
@@ -1928,13 +1968,16 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
 
+            auditLog('cash_payment_recorded', { from, to, amount });
             document.getElementById('cash-amount').value = '';
         }
 
-        function removeCashPayment(id) {
-            if (confirm("Remove this cash payment?")) {
-                db.ref(`boat-dashboard/cashPayments/${id}`).remove();
-            }
+        async function removeCashPayment(id) {
+            if (!confirm("Remove this cash payment?")) return;
+            const snap = await db.ref(`boat-dashboard/cashPayments/${id}`).once('value');
+            const data = snap.val();
+            auditLog('cash_payment_deleted', data || { id });
+            await db.ref(`boat-dashboard/cashPayments/${id}`).remove();
         }
 
         // Quick cash from settlement row — pre-fills and records in one tap
@@ -1951,6 +1994,7 @@
                 recordedBy: displayName,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
+            auditLog('cash_payment_recorded', { from, to, amount: amt, method: 'quick' });
             showToast(`💵 ${from} paid $${amt.toFixed(2)} cash to ${to}`);
         }
 
@@ -2140,14 +2184,17 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
 
+            auditLog('cave_tx_added', { type, totalCost: cost, paidBy, date: date || new Date().toISOString().split('T')[0] });
             document.getElementById('cave-cost').value = '';
             showToast(`🎰 ${paidBy} paid $${cost.toFixed(2)} for ${type}`);
         }
 
-        function removeCaveTransaction(id) {
-            if (confirm('Remove this transaction?')) {
-                db.ref(`boat-dashboard/cave/transactions/${id}`).remove();
-            }
+        async function removeCaveTransaction(id) {
+            if (!confirm('Remove this transaction?')) return;
+            const snap = await db.ref(`boat-dashboard/cave/transactions/${id}`).once('value');
+            const data = snap.val();
+            auditLog('cave_tx_deleted', data || { id });
+            await db.ref(`boat-dashboard/cave/transactions/${id}`).remove();
         }
 
         async function settleCave() {
@@ -2168,6 +2215,7 @@
             });
 
             await db.ref('boat-dashboard/cave/transactions').remove();
+            auditLog('cave_settled', { txCount, totalSpent, balances });
             showToast('🎰 Cave settled! Moved to history.');
         }
 
@@ -2311,6 +2359,9 @@
                     localStorage.setItem('boat-uid', user.uid);
                     localStorage.setItem('poker-knights-session-ver', APP_VERSION);
                     
+                    // Update remote version to stop update loop
+                    db.ref('boat-dashboard/version').set(APP_VERSION);
+
                     // Re-render views automatically on login
                     renderCrew();
                     updateHeaderProfile();
