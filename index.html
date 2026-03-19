@@ -16,18 +16,19 @@
         rel="stylesheet" />
     <style>
         :root {
-            --bg: #f8f9fa;
-            --glass: rgba(255, 255, 255, 0.7);
-            --glass-heavy: rgba(255, 255, 255, 0.9);
-            --border: rgba(0, 0, 0, 0.08);
-            --text: #1d1d1f;
-            --primary: #0077b6;
-            --secondary: #023e8a;
-            --accent: #00b4d8;
-            --sunset: #e85d04;
-            --night: #7209b7;
-            --success: #2d6a4f;
-            --danger: #d00000;
+            --bg: #0f1419;
+            --glass: rgba(26, 35, 50, 0.85);
+            --glass-heavy: rgba(20, 28, 40, 0.95);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e8ecf1;
+            --primary: #f0b429;
+            --secondary: #d4960a;
+            --accent: #00d26a;
+            --sunset: #f0b429;
+            --night: #7c3aed;
+            --success: #00d26a;
+            --danger: #ef4444;
+            --card-bg: #1a2332;
         }
 
         * {
@@ -40,7 +41,7 @@
 
         body {
             height: 100dvh;
-            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+            background: var(--bg);
             color: var(--text);
             overflow: hidden;
             letter-spacing: -0.01em;
@@ -86,7 +87,7 @@
         .header-title h1 {
             font-size: 1.4rem;
             font-weight: 900;
-            background: linear-gradient(to bottom, #1d1d1f, #434343);
+            background: linear-gradient(135deg, #f0b429, #f7d070);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -102,11 +103,11 @@
         .countdown {
             display: flex;
             gap: 0.4rem;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(240, 180, 41, 0.1);
             padding: 0.4rem 0.8rem;
             border-radius: 999px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(240, 180, 41, 0.25);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .cd-num {
@@ -132,8 +133,8 @@
             gap: 0.5rem;
             background: none;
             border: none;
-            color: var(--text);
-            opacity: 0.3;
+            color: #8899aa;
+            opacity: 0.5;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             padding: 0.5rem 0;
@@ -218,13 +219,13 @@
         }
 
         .pot-ok {
-            background: rgba(45, 106, 79, 0.1);
+            background: rgba(0, 210, 106, 0.1);
             color: var(--success);
             border: 2px solid var(--success);
         }
 
         .pot-err {
-            background: rgba(208, 0, 0, 0.1);
+            background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
             border: 2px solid var(--danger);
         }
@@ -235,16 +236,17 @@
             font-weight: 800;
             border-radius: 8px;
             border: 1px solid var(--border);
-            background: #fff;
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text);
             cursor: pointer;
             transition: all 0.1s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
 
         .quick-btn:hover {
             border-color: var(--primary);
             color: var(--primary);
+            background: rgba(240, 180, 41, 0.1);
         }
 
         .quick-btn:active {
@@ -255,7 +257,7 @@
             font-size: 0.6rem;
             max-height: 100px;
             overflow-y: auto;
-            background: rgba(0, 0, 0, 0.02);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 12px;
             padding: 0.8rem;
             margin-top: 1rem;
@@ -320,13 +322,11 @@
 
         /* ── CARDS ── */
         .card {
-            background: var(--glass);
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1.2rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .card-header {
@@ -381,8 +381,8 @@
         }
 
         .join-btn {
-            background: var(--primary);
-            color: #fff;
+            background: linear-gradient(135deg, #f0b429, #d4960a);
+            color: #0f1419;
             border: none;
             padding: 0.8rem 1.5rem;
             border-radius: 14px;
@@ -390,7 +390,7 @@
             font-weight: 900;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 119, 182, 0.2);
+            box-shadow: 0 4px 16px rgba(240, 180, 41, 0.3);
         }
 
         .join-btn.leave {
@@ -412,7 +412,7 @@
         }
 
         .poker-input {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 0.5rem;
@@ -421,7 +421,7 @@
             text-align: center;
             font-size: 1rem;
             font-weight: 800;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
             transition: all 0.2s;
         }
 
@@ -481,13 +481,36 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        #cash-toast {
+            position: fixed;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(200%);
+            background: var(--success);
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: calc(100% - 2rem);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #cash-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
         #update-toast {
             position: fixed;
             top: 1rem;
             left: 50%;
             transform: translateX(-50%) translateY(-200%);
-            background: var(--night);
-            color: white;
+            background: var(--primary);
+            color: #0f1419;
             padding: 0.8rem 1.2rem;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -532,13 +555,13 @@
         }
 
         .modal-content {
-            background: #fff;
+            background: var(--card-bg);
             width: 100%;
             max-width: 400px;
             border-radius: 28px;
             padding: 2rem;
             border: 1px solid var(--border);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             color: var(--text);
         }
 
@@ -615,7 +638,7 @@
 
     <!-- IDENTITY MODAL (Restored and Improved) -->
     <div id="identity-modal" class="modal" style="z-index: 5000;">
-        <div class="modal-content glass" style="background: white; color: var(--text); position: relative;">
+        <div class="modal-content glass" style="position: relative;">
             <button onclick="document.getElementById('identity-modal').classList.remove('show')"
                 style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:0.3">✕</button>
             <h2 style="font-weight:900; margin-bottom:1rem">Who are you?</h2>
@@ -675,9 +698,9 @@
         <header>
             <div class="header-title">
                 <div style="display:flex; align-items:center; gap:0.5rem">
-                    <h1 style="color:var(--sunset)">Poker Knights 💎</h1>
+                    <h1>Poker Knights 💎</h1>
                     <span id="display-version"
-                        style="font-size:0.55rem; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6">REV
+                        style="font-size:0.55rem; background:rgba(240, 180, 41, 0.1); padding:2px 6px; border-radius:4px; font-weight:800; opacity:0.6; color:var(--primary)">REV
                         6.4</span>
                 </div>
                 <p id="event-tagline">Official Weekly High-Stakes Hub</p>
@@ -700,42 +723,44 @@
             <!-- ── HOME ── -->
             <div class="panel active" id="panel-home">
                 <div class="card"
-                    style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 2.5rem 1.5rem; text-align: center; position: relative; overflow: hidden;">
+                    style="background: linear-gradient(135deg, #1a2332 0%, #0f1a28 50%, #1a1a2e 100%); color: #e8ecf1; border: 1px solid rgba(240, 180, 41, 0.15); padding: 2.5rem 1.5rem; text-align: center; position: relative; overflow: hidden;">
                     <div
-                        style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.1; transform: rotate(15deg);">
+                        style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.08; transform: rotate(15deg);">
                         🃏</div>
+                    <div style="position: absolute; top: 10px; left: 10px; font-size: 3rem; opacity: 0.05;">♠</div>
+                    <div style="position: absolute; bottom: 10px; right: 40px; font-size: 3rem; opacity: 0.05;">♦</div>
                     <div
-                        style="font-size: 0.75rem; font-weight: 800; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.8rem;">
-                        Friday Social</div>
-                    <h2 style="font-size: 2.4rem; font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem;">Weekly
-                        Poker <br><span style="opacity: 0.7;">Championship</span></h2>
+                        style="font-size: 0.75rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.8rem; color: var(--primary);">
+                        Friday Night at Eyal's</div>
+                    <h2 style="font-size: 2.4rem; font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, #f0b429, #f7d070); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Weekly
+                        Poker <br><span style="opacity: 0.7;">Knights</span></h2>
 
                     <div
-                        style="display: grid; grid-template-columns: 1fr 1px 1fr; gap: 1rem; align-items: center; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 16px; backdrop-filter: blur(10px);">
+                        style="display: grid; grid-template-columns: 1fr 1px 1fr; gap: 1rem; align-items: center; background: rgba(240, 180, 41, 0.06); padding: 1rem; border-radius: 16px; border: 1px solid rgba(240, 180, 41, 0.1);">
                         <div>
                             <div
-                                style="font-size: 0.6rem; opacity: 0.7; font-weight: 800; margin-bottom: 0.2rem; text-transform: uppercase;">
+                                style="font-size: 0.6rem; opacity: 0.5; font-weight: 800; margin-bottom: 0.2rem; text-transform: uppercase;">
                                 Next Session</div>
-                            <div style="font-size: 1rem; font-weight: 800;">Fri 8:30 PM</div>
+                            <div style="font-size: 1rem; font-weight: 800; color: var(--text);">Fri 8:30 PM</div>
                         </div>
-                        <div style="height: 20px; background: rgba(255,255,255,0.2); width: 1px;"></div>
+                        <div style="height: 20px; background: rgba(240, 180, 41, 0.2); width: 1px;"></div>
                         <div>
                             <div
-                                style="font-size: 0.6rem; opacity: 0.7; font-weight: 800; margin-bottom: 0.2rem; text-transform: uppercase;">
+                                style="font-size: 0.6rem; opacity: 0.5; font-weight: 800; margin-bottom: 0.2rem; text-transform: uppercase;">
                                 Average Pot</div>
-                            <div style="font-size: 1rem; font-weight: 800;">$300+</div>
+                            <div style="font-size: 1rem; font-weight: 800; color: var(--primary);">$300+</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card"
-                    style="margin-top: -1.2rem; border-top: none; border-radius: 0 0 24px 24px; padding: 2rem 1.5rem 1.5rem; background: var(--glass-heavy); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    style="margin-top: -1.2rem; border-top: none; border-radius: 0 0 24px 24px; padding: 2rem 1.5rem 1.5rem; background: var(--glass-heavy); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
                         <button class="join-btn" onclick="switchTab('poker', document.getElementById('btn-poker'))"
                             style="padding: 1.2rem; font-size: 1rem; width:100%">🃏 Join Table</button>
                     </div>
                     <p
-                        style="text-align: center; font-size: 0.7rem; opacity: 0.4; font-weight: 700; margin-top: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="text-align: center; font-size: 0.7rem; opacity: 0.3; font-weight: 700; margin-top: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
                         High Stakes • Great Vibes • Every Friday</p>
                 </div>
             </div>
@@ -758,25 +783,42 @@
 
             <!-- ── SETTLEMENT ── -->
             <div class="panel" id="panel-settlement">
-                <!-- Social Expenses Card [NEW] -->
-                <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-title">💸 Add General Expense</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; margin-top: 0.5rem;">
-                        <input type="number" id="social-amount" class="poker-input" placeholder="$0.00" step="0.01">
-                        <input type="text" id="social-name" class="poker-input" placeholder="entertainment" value="entertainment">
-                        <button class="join-btn" onclick="addSocialExpense()" style="padding: 0.8rem 1rem; font-size: 0.8rem;">➕ Add</button>
-                    </div>
-                    <div id="social-expenses-list" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                        <!-- List of current expenses -->
-                    </div>
-                </div>
-
+                <!-- Settlement Results FIRST -->
                 <div class="card" id="poker-settlement">
                     <div class="card-title">💰 Settlement</div>
                     <div id="settlement-results">
                         <div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">
                             Table is not balanced or no scores entered.
                         </div>
+                    </div>
+                </div>
+
+                <!-- Cash Payment Card -->
+                <div class="card" style="margin-top: 1rem;">
+                    <div class="card-title">💵 Record Cash Payment</div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem;">
+                        <select id="cash-from" class="poker-input" style="padding:0.6rem; font-size:0.8rem; width:100%; text-align:left;"></select>
+                        <span style="font-size:1.2rem; font-weight:900; color:var(--success); flex-shrink:0;">→</span>
+                        <select id="cash-to" class="poker-input" style="padding:0.6rem; font-size:0.8rem; width:100%; text-align:left;"></select>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr auto; gap:0.5rem; margin-top:0.5rem;">
+                        <input type="number" id="cash-amount" class="poker-input" placeholder="Amount $" step="0.01" min="0" style="width:100%; text-align:left;">
+                        <button class="join-btn" onclick="recordCashPayment()" style="padding:0.8rem 1.2rem; font-size:0.8rem;">💵 Record</button>
+                    </div>
+                    <div id="cash-payments-list" style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;">
+                        <div style="font-size:0.7rem; opacity:0.4; text-align:center">No cash payments recorded.</div>
+                    </div>
+                </div>
+
+                <!-- Social Expenses Card -->
+                <div class="card" style="margin-top: 1rem;">
+                    <div class="card-title">💸 Group Expense</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:0.5rem; margin-top:0.5rem;">
+                        <input type="number" id="social-amount" class="poker-input" placeholder="$0.00" step="0.01" style="width:100%; text-align:left;">
+                        <input type="text" id="social-name" class="poker-input" placeholder="e.g. food, drinks..." style="width:100%; text-align:left;">
+                        <button class="join-btn" onclick="addSocialExpense()" style="padding:0.8rem 1rem; font-size:0.8rem;">➕</button>
+                    </div>
+                    <div id="social-expenses-list" style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;">
                     </div>
                 </div>
             </div>
@@ -823,7 +865,7 @@
         </nav>
 
         <div id="presence-bar"
-            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.3; display:flex; justify-content:center; align-items:center; gap:0.4rem; cursor:pointer"
+            style="padding:0 1rem 1rem; text-align:center; font-size:0.6rem; opacity:0.4; display:flex; justify-content:center; align-items:center; gap:0.4rem; cursor:pointer; color:#8899aa"
             onclick="toggleOnlineList()">
             <span
                 style="width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse 2s infinite"></span>
@@ -831,6 +873,7 @@
         </div>
     </div> <!-- end app-shell -->
 
+    <div id="cash-toast"></div>
     <div id="update-toast">
         <div style="flex:1">
             <div style="font-weight:900; font-size:0.8rem">🚀 Update Available!</div>
@@ -884,7 +927,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "11.00";
+        const APP_VERSION = "11.01";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1047,15 +1090,24 @@
                 `;
             }
 
-            // Render Players
+            // Render Players — separate active from inactive
             list.innerHTML = '';
             let totalIn = 0, totalOut = 0;
+            const activePlayers = [];
+            const inactivePlayers = [];
+
             CREW.forEach(c => {
                 const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
                 totalIn += (p.buyin || 0);
                 totalOut += (p.balance || 0);
-                const net = (p.balance || 0) - (p.buyin || 0);
+                const isActive = (p.buyin || 0) > 0 || (p.balance || 0) > 0;
+                if (isActive) activePlayers.push(c);
+                else inactivePlayers.push(c);
+            });
 
+            function renderPlayerRow(c) {
+                const p = data.players?.[c.name] || { buyin: 0, balance: 0 };
+                const net = (p.balance || 0) - (p.buyin || 0);
                 const row = document.createElement('div');
                 row.className = 'poker-player';
                 row.style.display = 'grid';
@@ -1067,21 +1119,21 @@
                 row.innerHTML = `
                     <div class="av" style="${getAvStyle(c)}; width: 32px; height: 32px; font-size: 0.8rem;">${c.photo ? '' : c.init}</div>
                     <div style="font-weight: 800; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.name}</div>
-                    
+
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;">
                         <div style="display: flex; gap: 0.4rem; align-items: center;">
                             <div style="display: flex; flex-direction: column; align-items: center;">
                                 <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">In</span>
-                                <input type="number" min="0" step="0.01" class="poker-input" placeholder="0" 
-                                    value="${p.buyin || ''}" 
-                                    ${!isAuthenticated ? 'readonly' : ''} 
+                                <input type="number" min="0" step="0.01" class="poker-input" placeholder="0"
+                                    value="${p.buyin || ''}"
+                                    ${!isAuthenticated ? 'readonly' : ''}
                                     onchange="updatePoker('${c.name}','buyin',this.value)">
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center;">
                                 <span style="font-size: 0.5rem; font-weight: 800; opacity: 0.4; text-transform: uppercase;">Out</span>
-                                <input type="number" min="0" step="0.01" class="poker-input" placeholder="0" 
-                                    value="${p.balance || ''}" 
-                                    ${!isAuthenticated ? 'readonly' : ''} 
+                                <input type="number" min="0" step="0.01" class="poker-input" placeholder="0"
+                                    value="${p.balance || ''}"
+                                    ${!isAuthenticated ? 'readonly' : ''}
                                     onchange="updatePoker('${c.name}','balance',this.value)">
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center; min-width: 40px;">
@@ -1100,8 +1152,36 @@
                         ` : ''}
                     </div>
                 `;
-                list.appendChild(row);
-            });
+                return row;
+            }
+
+            // Active players first
+            activePlayers.forEach(c => list.appendChild(renderPlayerRow(c)));
+
+            // Collapsible inactive players section
+            if (inactivePlayers.length > 0) {
+                const toggle = document.createElement('div');
+                toggle.style.cssText = 'text-align:center; padding:0.6rem; cursor:pointer; font-size:0.75rem; font-weight:700; opacity:0.5; border-top:1px dashed var(--border); margin-top:0.5rem;';
+                toggle.id = 'inactive-toggle';
+                toggle.innerHTML = `▼ ${inactivePlayers.length} not playing`;
+                toggle.onclick = () => {
+                    const box = document.getElementById('inactive-players-box');
+                    if (box.style.display === 'none') {
+                        box.style.display = 'block';
+                        toggle.innerHTML = `▲ Hide inactive`;
+                    } else {
+                        box.style.display = 'none';
+                        toggle.innerHTML = `▼ ${inactivePlayers.length} not playing`;
+                    }
+                };
+                list.appendChild(toggle);
+
+                const box = document.createElement('div');
+                box.id = 'inactive-players-box';
+                box.style.display = 'none';
+                inactivePlayers.forEach(c => box.appendChild(renderPlayerRow(c)));
+                list.appendChild(box);
+            }
 
             // Render History
             const hist = document.getElementById('poker-history');
@@ -1158,9 +1238,11 @@
                 });
             });
 
-            // Render Leaderboard
+            // Render Leaderboard — hide $0 players
             leaderboard.innerHTML = '';
-            const sortedPlayers = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+            const sortedPlayers = Object.entries(stats)
+                .filter(([, net]) => Math.abs(net) > 0.01)
+                .sort((a, b) => b[1] - a[1]);
 
             if (sortedPlayers.length === 0) {
                 leaderboard.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">No archived games yet.</div>';
@@ -1170,8 +1252,8 @@
                 const c = CREW.find(x => x.name === name) || { color: '#888', init: name.slice(0, 2) };
                 const row = document.createElement('div');
                 row.className = 'poker-player';
-                row.style.background = i === 0 ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.03)';
-                row.style.borderColor = i === 0 ? 'rgba(255, 215, 0, 0.3)' : 'var(--border)';
+                row.style.background = i === 0 ? 'rgba(240, 180, 41, 0.1)' : 'rgba(255,255,255,0.02)';
+                row.style.borderColor = i === 0 ? 'rgba(240, 180, 41, 0.3)' : 'var(--border)';
                 row.innerHTML = `
                     <div style="display:flex; align-items:center; gap:0.8rem">
                         <div style="font-weight:900; opacity:0.4; width:15px">${i + 1}</div>
@@ -1188,12 +1270,13 @@
             // Render History
             history.innerHTML = '';
             sessionArray.forEach(([id, s]) => {
-                const date = new Date(s.timestamp).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                const ts = parseInt(s.timestamp) || Date.now();
+                const date = new Date(ts).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
-                const myId = JSON.parse(localStorage.getItem('boat-identity'))?.name;
+                
                 // In Open Edit Mode, any authenticated user can restore
                 const myUid = localStorage.getItem('boat-uid');
-                const canRestore = myId && myUid;
+                const canRestore = !!myUid;
 
                 const item = document.createElement('div');
                 item.className = 'log-entry';
@@ -1237,12 +1320,12 @@
                     datasets: [{
                         label: 'Total Pot ($)',
                         data: values,
-                        borderColor: '#f77f00',
-                        backgroundColor: 'rgba(247, 127, 0, 0.1)',
+                        borderColor: '#f0b429',
+                        backgroundColor: 'rgba(240, 180, 41, 0.15)',
                         borderWidth: 3,
                         tension: 0.4,
                         fill: true,
-                        pointBackgroundColor: '#fff',
+                        pointBackgroundColor: '#1a2332',
                         pointBorderWidth: 2,
                         pointRadius: 4
                     }]
@@ -1252,8 +1335,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
-                        x: { grid: { display: false }, border: { display: false } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: '#8899aa' } },
+                        x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8899aa' } }
                     }
                 }
             });
@@ -1429,6 +1512,9 @@
             await db.ref('boat-dashboard/poker/sessions').push(sessionData);
             await db.ref('boat-dashboard/poker/players').remove();
             await db.ref('boat-dashboard/poker/log').remove();
+            await db.ref('boat-dashboard/poker/settled').remove();
+            await db.ref('boat-dashboard/cashPayments').remove();
+            await db.ref('boat-dashboard/social/expenses').remove();
 
             alert("Session archived successfully! Table is now fresh.");
         }
@@ -1473,6 +1559,27 @@
                     }
                 });
             }
+
+            // 3. Apply Cash Payments — reduce debts by recorded cash transfers
+            const cashEntries = Object.values(currentCashPayments || {});
+            cashEntries.forEach(cp => {
+                const fromName = mapName(cp.from);
+                const toName = mapName(cp.to);
+                const amt = cp.amount || 0;
+                // Cash from→to means: "from" owes less (net goes up), "to" is owed less (net goes down)
+                const fromEntry = nets.find(n => n.name === fromName);
+                const toEntry = nets.find(n => n.name === toName);
+                if (fromEntry) {
+                    fromEntry.net += amt;
+                } else {
+                    nets.push({ name: fromName, net: amt });
+                }
+                if (toEntry) {
+                    toEntry.net -= amt;
+                } else {
+                    nets.push({ name: toName, net: -amt });
+                }
+            });
 
             nets = nets.filter(n => Math.abs(n.net) > 0.01);
 
@@ -1547,6 +1654,8 @@
                 const cr = CREW.find(c => c.name === t);
                 const beem = getBeemHandle(cr);
                 const msg = `${f} pays $${a.toFixed(2)} to ${t}`;
+                const safeF = f.replace(/'/g, "\\'");
+                const safeT = t.replace(/'/g, "\\'");
 
                 // Key for settlement tracking
                 const txKey = `${f}_${t}_${a.toFixed(2)}`.replace(/\./g, '_');
@@ -1554,20 +1663,21 @@
 
                 const div = document.createElement('div');
                 div.innerHTML = `
-                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; opacity: ${isPaid ? 0.4 : 1}">
+                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; opacity: ${isPaid ? 0.4 : 1}; padding:0.6rem 0.8rem;">
                         <div style="display:flex; align-items:center; gap:0.5rem">
-                            <input type="checkbox" ${isPaid ? 'checked' : ''} onclick="toggleSettlement('${f}','${t}',${a.toFixed(2)})" style="cursor:pointer">
-                            <span style="${isPaid ? 'text-decoration:line-through' : ''}"><b>${f}</b> → <b>${t}</b></span>
+                            <input type="checkbox" ${isPaid ? 'checked' : ''} onclick="toggleSettlement('${safeF}','${safeT}',${a.toFixed(2)})" style="cursor:pointer; width:18px; height:18px;">
+                            <span style="${isPaid ? 'text-decoration:line-through' : ''}"><b>${f}</b> <span style="color:var(--primary)">→</span> <b>${t}</b></span>
                         </div>
-                        <div style="display:flex; gap:0.4rem; align-items:center">
-                            <b style="color:var(--sunset)">$${a.toFixed(2)}</b>
+                        <div style="display:flex; gap:0.3rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                            <b style="color:var(--sunset); font-size:0.85rem;">$${a.toFixed(2)}</b>
                             ${!isPaid ? `
-                                <button class="quick-btn" onclick="copyToClipboard('${msg}')" title="Copy transfer text">📋</button>
+                                <button class="quick-btn" style="background:var(--success); color:white; border:none; padding:5px 10px; font-size:0.65rem;" onclick="quickCashPayment('${safeF}','${safeT}',${a.toFixed(2)})" title="Record cash payment">💵 Cash</button>
                                 ${beem
-                            ? `<button class="quick-btn" style="background:#00d1b2; color:white; border:none; padding:4px 10px" onclick="window.open('https://www.beem.com.au/app/pay?handle=${beem.replace('@', '')}&amount=${a.toFixed(2)}&description=Poker', '_blank')">Beem It</button>`
-                            : `<button class="quick-btn" style="opacity:0.4; font-size:0.55rem" onclick="setBeemHandleForMember('${t}')">➕ Add ${t}'s Beem</button>`
+                            ? `<button class="quick-btn" style="background:#00d1b2; color:white; border:none; padding:5px 10px; font-size:0.65rem;" onclick="window.open('https://www.beem.com.au/app/pay?handle=${encodeURIComponent(beem.replace('@', ''))}&amount=${a.toFixed(2)}&description=Poker', '_blank')">Beem</button>`
+                            : ''
                         }
-                            ` : '<span style="font-weight:800; color:var(--success); font-size:0.6rem">✅ Paid</span>'}
+                                <button class="quick-btn" style="padding:5px 8px; font-size:0.65rem;" onclick="copyToClipboard('${msg.replace(/'/g, "\\'")}')" title="Copy">📋</button>
+                            ` : '<span style="font-weight:800; color:var(--success); font-size:0.65rem">✅ Paid</span>'}
                         </div>
                     </div>`;
                 list.appendChild(div);
@@ -1632,6 +1742,7 @@
             CREW_DATA = s.val() || {};
             renderCrew();
             updateHeaderProfile();
+            populateCashDropdowns();
             if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, log: currentPokerLog, settled: currentPokerSettled });
         });
 
@@ -1660,7 +1771,7 @@
             list.innerHTML = '';
             expenses.forEach(([id, e]) => {
                 const div = document.createElement('div');
-                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(0,0,0,0.02); padding:0.5rem; border-radius:8px';
+                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:8px';
                 div.innerHTML = `
                     <div>
                         <b>${e.payer}</b> paid <b>$${e.amount.toFixed(2)}</b> for <i>${e.name || 'unnamed'}</i>
@@ -1673,7 +1784,7 @@
 
         async function addSocialExpense() {
             const amount = parseFloat(document.getElementById('social-amount').value);
-            const name = document.getElementById('social-name').value.trim() || 'entertainment';
+            const name = document.getElementById('social-name').value.trim() || 'General expense';
             const identity = JSON.parse(localStorage.getItem('boat-identity'));
             const payer = identity?.name;
 
@@ -1688,13 +1799,123 @@
             });
 
             document.getElementById('social-amount').value = '';
-            document.getElementById('social-name').value = 'entertainment';
+            document.getElementById('social-name').value = '';
         }
 
         function removeSocialExpense(id) {
             if (confirm("Remove this expense?")) {
                 db.ref(`boat-dashboard/social/expenses/${id}`).remove();
             }
+        }
+
+        // ── Toggle Settlement Checkbox ──
+        function toggleSettlement(from, to, amount) {
+            const txKey = `${from}_${to}_${amount.toFixed(2)}`.replace(/\./g, '_');
+            const ref = db.ref(`boat-dashboard/poker/settled/${txKey}`);
+            ref.once('value').then(s => {
+                ref.set(s.val() ? null : true);
+            });
+        }
+
+        // ── Cash Payments ──
+        let currentCashPayments = {};
+
+        db.ref('boat-dashboard/cashPayments').on('value', s => {
+            currentCashPayments = s.val() || {};
+            renderCashPayments();
+            if (currentPokerPlayers) calculateSettlement(currentPokerPlayers, false, currentPokerSettled || {});
+        });
+
+        function populateCashDropdowns() {
+            const fromSel = document.getElementById('cash-from');
+            const toSel = document.getElementById('cash-to');
+            if (!fromSel || !toSel) return;
+            const prevFrom = fromSel.value;
+            const prevTo = toSel.value;
+            fromSel.innerHTML = '<option value="">Who paid...</option>';
+            toSel.innerHTML = '<option value="">Paid to...</option>';
+            CREW.forEach(c => {
+                fromSel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                toSel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+            if (prevFrom) fromSel.value = prevFrom;
+            if (prevTo) toSel.value = prevTo;
+        }
+
+        async function recordCashPayment() {
+            const from = document.getElementById('cash-from').value;
+            const to = document.getElementById('cash-to').value;
+            const amount = parseFloat(document.getElementById('cash-amount').value);
+            const displayName = auth.currentUser?.displayName || 'Unknown';
+
+            if (!from || !to) return alert("Select both players!");
+            if (from === to) return alert("Can't pay yourself!");
+            if (isNaN(amount) || amount <= 0) return alert("Enter a valid amount!");
+
+            await db.ref('boat-dashboard/cashPayments').push({
+                from,
+                to,
+                amount,
+                recordedBy: displayName,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            document.getElementById('cash-amount').value = '';
+        }
+
+        function removeCashPayment(id) {
+            if (confirm("Remove this cash payment?")) {
+                db.ref(`boat-dashboard/cashPayments/${id}`).remove();
+            }
+        }
+
+        // Quick cash from settlement row — pre-fills and records in one tap
+        function quickCashPayment(from, to, amount) {
+            const displayName = auth.currentUser?.displayName || 'Unknown';
+            const partialAmount = prompt(`${from} paying cash to ${to}.\nFull amount: $${amount.toFixed(2)}\n\nEnter amount (or leave for full):`, amount.toFixed(2));
+            if (partialAmount === null) return;
+            const amt = parseFloat(partialAmount);
+            if (isNaN(amt) || amt <= 0) return alert("Invalid amount!");
+            if (amt > amount * 1.01) return alert("Amount exceeds the debt!");
+
+            db.ref('boat-dashboard/cashPayments').push({
+                from, to, amount: amt,
+                recordedBy: displayName,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            showToast(`💵 ${from} paid $${amt.toFixed(2)} cash to ${to}`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('cash-toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function renderCashPayments() {
+            const list = document.getElementById('cash-payments-list');
+            if (!list) return;
+            const entries = Object.entries(currentCashPayments || {});
+            if (!entries.length) {
+                list.innerHTML = '<div style="font-size:0.7rem; opacity:0.4; text-align:center">No cash payments recorded.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+            entries.forEach(([id, p]) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(0,210,106,0.08); padding:0.5rem; border-radius:8px; border-left:3px solid var(--success)';
+                div.innerHTML = `
+                    <div>
+                        💵 <b>${p.from}</b> paid <b style="color:var(--success)">$${p.amount.toFixed(2)}</b> cash to <b>${p.to}</b>
+                        <span style="opacity:0.4; font-size:0.6rem; display:block; margin-top:2px">by ${p.recordedBy || '?'}</span>
+                    </div>
+                    <button class="quick-btn" style="color:var(--danger)" onclick="removeCashPayment('${id}')">✕</button>
+                `;
+                list.appendChild(div);
+            });
         }
 
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
@@ -1782,7 +2003,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=11.00')
+                navigator.serviceWorker.register('/sw-v10.js?v=11.01')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
