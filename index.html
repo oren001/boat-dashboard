@@ -284,10 +284,10 @@
         }
 
         .nav-label {
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
         }
 
         /* ── PANELS ── */
@@ -823,6 +823,69 @@
                 </div>
             </div>
 
+            <!-- ── CAVE (Entertainment Tracker) ── -->
+            <div class="panel" id="panel-cave">
+                <!-- Balances Summary -->
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                        <div class="card-title" style="margin-bottom:0">🎰 Cave Balances</div>
+                        <button class="quick-btn" id="cave-settle-btn" onclick="settleCave()" style="display:none; background:var(--success); color:white; border:none; padding:6px 12px;">✅ Settle All</button>
+                    </div>
+                    <div id="cave-balances">
+                        <div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">No transactions yet.</div>
+                    </div>
+                </div>
+
+                <!-- Add Transaction -->
+                <div class="card" style="margin-top:1rem">
+                    <div class="card-title">➕ New Transaction</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                        <select id="cave-type" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;">
+                            <option value="Entertainment">🎭 Entertainment</option>
+                            <option value="Tobacco">🚬 Tobacco</option>
+                        </select>
+                        <input type="date" id="cave-date" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;">
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:0.5rem; margin-top:0.5rem;">
+                        <input type="number" id="cave-cost" class="poker-input" placeholder="Total $" step="0.01" min="0" style="width:100%; text-align:left;">
+                        <select id="cave-paidby" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;"></select>
+                        <button class="join-btn" onclick="addCaveTransaction()" style="padding:0.8rem 1rem; font-size:0.8rem;">➕</button>
+                    </div>
+                </div>
+
+                <!-- Active Transactions -->
+                <div class="card" style="margin-top:1rem">
+                    <div class="card-title">📋 Active Transactions</div>
+                    <div id="cave-transactions">
+                        <div style="text-align:center; padding:1rem; opacity:0.4; font-size:0.8rem">No active transactions.</div>
+                    </div>
+                </div>
+
+                <!-- Weights Editor (collapsible) -->
+                <div class="card" style="margin-top:1rem">
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleCaveWeights()">
+                        <div class="card-title" style="margin-bottom:0">⚖️ Player Weights</div>
+                        <span id="cave-weights-arrow" style="opacity:0.4; font-size:0.8rem">▼</span>
+                    </div>
+                    <div id="cave-weights-section" style="display:none; margin-top:1rem">
+                        <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
+                            <button class="quick-btn" id="wt-Entertainment" onclick="showWeightType('Entertainment')" style="border-color:var(--primary); color:var(--primary)">🎭 Entertainment</button>
+                            <button class="quick-btn" id="wt-Tobacco" onclick="showWeightType('Tobacco')">🚬 Tobacco</button>
+                        </div>
+                        <div id="cave-weights-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Settlement History (collapsible) -->
+                <div class="card" style="margin-top:1rem">
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleCaveHistory()">
+                        <div class="card-title" style="margin-bottom:0">📁 Settlement History</div>
+                        <span id="cave-history-arrow" style="opacity:0.4; font-size:0.8rem">▼</span>
+                    </div>
+                    <div id="cave-history" style="display:none; margin-top:1rem"></div>
+                </div>
+            </div>
+
             <!-- ── INSIGHTS ── -->
             <div class="panel" id="panel-insights">
                 <div class="card">
@@ -854,13 +917,17 @@
                 </div>
                 <span class="nav-label">Poker</span>
             </button>
+            <button class="nav-btn" id="btn-cave" onclick="switchTab('cave', this)">
+                <span class="nav-icon">🎰</span>
+                <span class="nav-label">Cave</span>
+            </button>
             <button class="nav-btn" id="btn-settlement" onclick="switchTab('settlement', this)">
                 <span class="nav-icon">💰</span>
-                <span class="nav-label">Settlement</span>
+                <span class="nav-label">Settle</span>
             </button>
             <button class="nav-btn" id="btn-insights" onclick="switchTab('insights', this)">
                 <span class="nav-icon">📈</span>
-                <span class="nav-label">Insights</span>
+                <span class="nav-label">Stats</span>
             </button>
         </nav>
 
@@ -927,7 +994,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "11.01";
+        const APP_VERSION = "12.00";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1743,6 +1810,7 @@
             renderCrew();
             updateHeaderProfile();
             populateCashDropdowns();
+            populateCaveDropdown();
             if (currentPokerPlayers) renderPoker({ players: currentPokerPlayers, log: currentPokerLog, settled: currentPokerSettled });
         });
 
@@ -1913,6 +1981,310 @@
                         <span style="opacity:0.4; font-size:0.6rem; display:block; margin-top:2px">by ${p.recordedBy || '?'}</span>
                     </div>
                     <button class="quick-btn" style="color:var(--danger)" onclick="removeCashPayment('${id}')">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // ── Cave (Entertainment Tracker) ──
+        const CAVE_DEFAULT_WEIGHTS = {
+            Entertainment: { Eyal:1, Eran:1, Jonathan:1, Nevo:1, Oren:0.75, Nadav:0.75, Igor:0.75, Hartmut:1, Tamir:0.25, Richard:0.5 },
+            Tobacco: { Eyal:1, Eran:1, Jonathan:1, Nevo:1, Oren:0.75, Nadav:5, Igor:0.75, Hartmut:1, Tamir:0.25, Richard:0 }
+        };
+
+        let currentCaveTransactions = {};
+        let currentCaveWeights = {};
+        let currentCaveHistory = {};
+        let currentWeightType = 'Entertainment';
+
+        // Firebase listeners for Cave
+        db.ref('boat-dashboard/cave/transactions').on('value', s => {
+            currentCaveTransactions = s.val() || {};
+            renderCave();
+        });
+
+        db.ref('boat-dashboard/cave/weights').on('value', s => {
+            currentCaveWeights = s.val() || {};
+            renderCave();
+        });
+
+        db.ref('boat-dashboard/cave/history').on('value', s => {
+            currentCaveHistory = s.val() || {};
+            renderCaveHistoryContent();
+        });
+
+        function getCaveWeight(type, name) {
+            return currentCaveWeights?.[type]?.[name] ?? CAVE_DEFAULT_WEIGHTS[type]?.[name] ?? 1;
+        }
+
+        function calculateCaveBalances() {
+            const balances = {};
+            CREW.forEach(c => balances[c.name] = 0);
+
+            Object.values(currentCaveTransactions).forEach(tx => {
+                const type = tx.type || 'Entertainment';
+                const totalCost = tx.totalCost || 0;
+                const paidBy = tx.paidBy;
+
+                let sumW = 0;
+                CREW.forEach(c => { sumW += getCaveWeight(type, c.name); });
+                if (sumW === 0) return;
+
+                CREW.forEach(c => {
+                    const w = getCaveWeight(type, c.name);
+                    const share = totalCost * w / sumW;
+                    balances[c.name] = (balances[c.name] || 0) - share;
+                });
+
+                if (paidBy && balances.hasOwnProperty(paidBy)) {
+                    balances[paidBy] += totalCost;
+                }
+            });
+
+            return balances;
+        }
+
+        function renderCave() {
+            const balancesDiv = document.getElementById('cave-balances');
+            const settleBtn = document.getElementById('cave-settle-btn');
+            if (!balancesDiv) return;
+
+            const txCount = Object.keys(currentCaveTransactions).length;
+
+            if (txCount === 0) {
+                balancesDiv.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">No transactions yet.</div>';
+                if (settleBtn) settleBtn.style.display = 'none';
+                renderCaveTransactions();
+                return;
+            }
+
+            if (settleBtn) settleBtn.style.display = 'inline-block';
+
+            const balances = calculateCaveBalances();
+            const sorted = Object.entries(balances)
+                .filter(([,v]) => Math.abs(v) > 0.01)
+                .sort((a,b) => b[1] - a[1]);
+
+            if (sorted.length === 0) {
+                balancesDiv.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.4; font-size:0.8rem">All balanced.</div>';
+                renderCaveTransactions();
+                return;
+            }
+
+            balancesDiv.innerHTML = '';
+            sorted.forEach(([name, balance]) => {
+                const c = CREW.find(x => x.name === name) || { color:'#888', init: name.slice(0,2) };
+                const row = document.createElement('div');
+                row.className = 'poker-player';
+                row.style.padding = '0.6rem 0.8rem';
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.6rem">
+                        <div class="av" style="${getAvStyle(c)}; width:28px; height:28px; font-size:0.7rem">${c.init}</div>
+                        <span style="font-weight:700; font-size:0.85rem">${name}</span>
+                    </div>
+                    <span style="font-weight:900; font-size:0.9rem; color:${balance >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                        ${balance >= 0 ? '+' : ''}$${balance.toFixed(2)}
+                    </span>
+                `;
+                balancesDiv.appendChild(row);
+            });
+
+            renderCaveTransactions();
+        }
+
+        function renderCaveTransactions() {
+            const list = document.getElementById('cave-transactions');
+            if (!list) return;
+
+            const entries = Object.entries(currentCaveTransactions).sort((a,b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+            if (!entries.length) {
+                list.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.4; font-size:0.8rem">No active transactions.</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            entries.forEach(([id, tx]) => {
+                const dateStr = tx.date || new Date(tx.timestamp).toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+                const typeIcon = tx.type === 'Tobacco' ? '🚬' : '🎭';
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(255,255,255,0.03); padding:0.6rem; border-radius:8px; border-left:3px solid var(--primary)';
+                div.innerHTML = `
+                    <div>
+                        <span style="font-weight:800; color:var(--primary)">${typeIcon} ${tx.type}</span>
+                        <span style="opacity:0.4; margin:0 0.3rem">•</span>
+                        <span style="opacity:0.5">${dateStr}</span>
+                        <div style="margin-top:2px"><b>${tx.paidBy}</b> paid <b style="color:var(--sunset)">$${(tx.totalCost || 0).toFixed(2)}</b></div>
+                    </div>
+                    <button class="quick-btn" style="color:var(--danger)" onclick="removeCaveTransaction('${id}')">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function addCaveTransaction() {
+            const type = document.getElementById('cave-type').value;
+            const cost = parseFloat(document.getElementById('cave-cost').value);
+            const paidBy = document.getElementById('cave-paidby').value;
+            const date = document.getElementById('cave-date').value;
+
+            if (!type) return alert('Select a type!');
+            if (isNaN(cost) || cost <= 0) return alert('Enter a valid amount!');
+            if (!paidBy) return alert('Select who paid!');
+
+            db.ref('boat-dashboard/cave/transactions').push({
+                type,
+                totalCost: cost,
+                paidBy,
+                date: date || new Date().toISOString().split('T')[0],
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            document.getElementById('cave-cost').value = '';
+            showToast(`🎰 ${paidBy} paid $${cost.toFixed(2)} for ${type}`);
+        }
+
+        function removeCaveTransaction(id) {
+            if (confirm('Remove this transaction?')) {
+                db.ref(`boat-dashboard/cave/transactions/${id}`).remove();
+            }
+        }
+
+        async function settleCave() {
+            const txCount = Object.keys(currentCaveTransactions).length;
+            if (txCount === 0) return alert('No transactions to settle!');
+            if (!confirm(`Settle ${txCount} transactions and move to history?\nThis will reset all cave balances.`)) return;
+
+            const balances = calculateCaveBalances();
+            const totalSpent = Object.values(currentCaveTransactions).reduce((s,t) => s + (t.totalCost || 0), 0);
+
+            await db.ref('boat-dashboard/cave/history').push({
+                settledAt: firebase.database.ServerValue.TIMESTAMP,
+                settledBy: auth.currentUser?.displayName || 'Unknown',
+                transactions: currentCaveTransactions,
+                balances,
+                totalSpent,
+                txCount
+            });
+
+            await db.ref('boat-dashboard/cave/transactions').remove();
+            showToast('🎰 Cave settled! Moved to history.');
+        }
+
+        function populateCaveDropdown() {
+            const sel = document.getElementById('cave-paidby');
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">Who paid...</option>';
+            CREW.forEach(c => {
+                sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+            if (prev) sel.value = prev;
+
+            const dateInput = document.getElementById('cave-date');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        // Weights UI
+        function toggleCaveWeights() {
+            const section = document.getElementById('cave-weights-section');
+            const arrow = document.getElementById('cave-weights-arrow');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.textContent = '▲';
+                renderCaveWeights();
+            } else {
+                section.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+
+        function showWeightType(type) {
+            currentWeightType = type;
+            document.querySelectorAll('#cave-weights-section .quick-btn').forEach(b => {
+                b.style.borderColor = 'var(--border)';
+                b.style.color = 'var(--text)';
+            });
+            const btn = document.getElementById('wt-' + type);
+            if (btn) { btn.style.borderColor = 'var(--primary)'; btn.style.color = 'var(--primary)'; }
+            renderCaveWeights();
+        }
+
+        function renderCaveWeights() {
+            const grid = document.getElementById('cave-weights-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            CREW.forEach(c => {
+                const w = getCaveWeight(currentWeightType, c.name);
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; border-bottom:1px solid var(--border)';
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem">
+                        <div class="av" style="${getAvStyle(c)}; width:24px; height:24px; font-size:0.6rem">${c.init}</div>
+                        <span style="font-size:0.8rem; font-weight:700">${c.name}</span>
+                    </div>
+                    <input type="number" class="poker-input" value="${w}" min="0" step="0.25"
+                        style="width:70px"
+                        onchange="saveCaveWeight('${currentWeightType}','${c.name}',this.value)">
+                `;
+                grid.appendChild(row);
+            });
+        }
+
+        function saveCaveWeight(type, name, value) {
+            const w = parseFloat(value) || 0;
+            db.ref(`boat-dashboard/cave/weights/${type}/${name}`).set(w);
+        }
+
+        // History UI
+        function toggleCaveHistory() {
+            const section = document.getElementById('cave-history');
+            const arrow = document.getElementById('cave-history-arrow');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.textContent = '▲';
+                renderCaveHistoryContent();
+            } else {
+                section.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+
+        function renderCaveHistoryContent() {
+            const list = document.getElementById('cave-history');
+            if (!list || list.style.display === 'none') return;
+
+            const entries = Object.entries(currentCaveHistory).sort((a,b) => (b[1].settledAt || 0) - (a[1].settledAt || 0));
+
+            if (!entries.length) {
+                list.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.4; font-size:0.8rem">No settlement history yet.</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            entries.forEach(([id, h]) => {
+                const date = new Date(h.settledAt).toLocaleDateString('en-AU', { month:'short', day:'numeric', year:'numeric' });
+                const div = document.createElement('div');
+                div.style.cssText = 'background:rgba(255,255,255,0.03); padding:0.8rem; border-radius:8px; margin-bottom:0.5rem; border:1px solid var(--border)';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                        <b style="font-size:0.8rem">Settled ${date}</b>
+                        <span style="font-size:0.7rem; opacity:0.5">${h.txCount || '?'} txns • $${(h.totalSpent || 0).toFixed(0)} total</span>
+                    </div>
+                    <div style="font-size:0.6rem; opacity:0.4; margin-bottom:0.4rem">by ${h.settledBy || 'Unknown'}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.3rem">
+                        ${Object.entries(h.balances || {})
+                            .filter(([,v]) => Math.abs(v) > 0.01)
+                            .sort((a,b) => b[1] - a[1])
+                            .map(([name, bal]) => `
+                                <span style="font-size:0.65rem; padding:2px 6px; border-radius:4px; background:${bal >= 0 ? 'rgba(0,210,106,0.1)' : 'rgba(239,68,68,0.1)'}; color:${bal >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                    ${name}: ${bal >= 0 ? '+' : ''}$${bal.toFixed(0)}
+                                </span>
+                            `).join('')}
+                    </div>
                 `;
                 list.appendChild(div);
             });
