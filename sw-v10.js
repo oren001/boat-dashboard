@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poker-knights-v14.00';
+const CACHE_NAME = 'poker-knights-v14.02';
 const ASSETS = [
     '/',
     '/index.html',
