@@ -769,6 +769,26 @@
                     </div>
                 </div>
 
+                <!-- How To Use (collapsible) -->
+                <div class="card" style="margin-top:0.6rem">
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer"
+                        onclick="document.getElementById('how-to-body').style.display = document.getElementById('how-to-body').style.display === 'none' ? 'block' : 'none'; this.querySelector('span:last-child').textContent = document.getElementById('how-to-body').style.display === 'none' ? '▼' : '▲'">
+                        <span style="font-size:0.75rem; font-weight:800">❓ How to use</span>
+                        <span style="opacity:0.3; font-size:0.6rem">▼</span>
+                    </div>
+                    <div id="how-to-body" style="display:none; margin-top:0.6rem; font-size:0.7rem; line-height:1.7; opacity:0.7">
+                        <div style="margin-bottom:0.5rem"><b style="color:var(--primary)">📒 Report</b> — where you do things</div>
+                        <div>🃏 <b>Buy in:</b> your name → "bought chips" → 20 → Report</div>
+                        <div>🃏 <b>Rebuy:</b> same — it adds to your total</div>
+                        <div>🃏 <b>Cash out:</b> your name → "cashed out" → chip count → Report</div>
+                        <div>💵 <b>Pay cash:</b> your name → "paid cash to" → pick who → amount → Report</div>
+                        <div>🎭 <b>Entertainment:</b> your name → "paid for entertainment" → amount → Report</div>
+                        <div style="margin-top:0.5rem"><b style="color:var(--primary)">🃏 Poker</b> — live table view (read-only)</div>
+                        <div style="margin-top:0.3rem"><b style="color:var(--primary)">💰 Settle</b> — who owes who + Cash/Beem buttons</div>
+                        <div style="margin-top:0.3rem"><b style="color:var(--primary)">📈 Stats</b> — leaderboard + past sessions</div>
+                    </div>
+                </div>
+
                 <!-- Manager Actions -->
                 <div id="manager-actions" style="margin-top:0.5rem; display:flex; gap:0.5rem"></div>
             </div>
