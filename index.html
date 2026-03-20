@@ -839,10 +839,14 @@
                 <!-- Add Transaction -->
                 <div class="card" style="margin-top:1rem">
                     <div class="card-title">➕ New Transaction</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
                         <select id="cave-type" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;">
                             <option value="Entertainment">🎭 Entertainment</option>
                             <option value="Tobacco">🚬 Tobacco</option>
+                        </select>
+                        <select id="cave-direction" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;">
+                            <option value="debit">💳 Paid (bought)</option>
+                            <option value="credit">🎁 Brought (credit)</option>
                         </select>
                         <input type="date" id="cave-date" class="poker-input" style="width:100%; text-align:left; padding:0.6rem; font-size:0.8rem;">
                     </div>
@@ -946,8 +950,12 @@
             <div style="font-weight:900; font-size:0.8rem">🚀 Update Available!</div>
             <div id="update-rev-text" style="font-size:0.6rem; opacity:0.8">New features are ready.</div>
         </div>
+        <div style="display:flex; gap:0.3rem; align-items:center">
             <button class="join-btn" style="padding:0.4rem 0.8rem; font-size:0.7rem; background:white; color:var(--night)"
                 onclick="window.location.href = window.location.origin + window.location.pathname + '?t=' + new Date().getTime()">Refresh Now</button>
+            <button style="background:none; border:none; color:var(--text); opacity:0.6; font-size:0.9rem; cursor:pointer; padding:0.3rem"
+                onclick="document.getElementById('update-toast').classList.remove('show')">✕</button>
+        </div>
     </div>
 
 
@@ -994,7 +1002,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "12.01";
+        const APP_VERSION = "12.02";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1334,32 +1342,77 @@
                 leaderboard.appendChild(row);
             });
 
-            // Render History
+            // Render History with expandable detail view
             history.innerHTML = '';
             sessionArray.forEach(([id, s]) => {
                 const ts = parseInt(s.timestamp) || Date.now();
-                const date = new Date(ts).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                const date = new Date(ts).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: 'numeric' });
                 const totalPot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
-                
-                // In Open Edit Mode, any authenticated user can restore
+                const playerCount = Object.keys(s.players || {}).length;
+
                 const myUid = localStorage.getItem('boat-uid');
                 const canRestore = !!myUid;
 
+                // Build player results for detail view
+                const playerResults = Object.entries(s.players || {})
+                    .map(([name, p]) => {
+                        const hasNeg = Object.values(s.players).some(x => (x.balance || 0) < 0);
+                        const net = hasNeg ? (p.balance || 0) : (p.balance || 0) - (p.buyin || 0);
+                        return { name, buyin: p.buyin || 0, balance: p.balance || 0, net };
+                    })
+                    .sort((a, b) => b.net - a.net);
+
+                // Cash payments detail
+                const cashEntries = Object.values(s.cashPayments || {});
+                const cashHtml = cashEntries.length > 0 ? `
+                    <div style="margin-top:0.6rem; padding-top:0.5rem; border-top:1px solid var(--border)">
+                        <div style="font-size:0.65rem; font-weight:800; opacity:0.5; margin-bottom:0.3rem">💵 CASH PAYMENTS</div>
+                        ${cashEntries.map(cp => `
+                            <div style="font-size:0.7rem; padding:2px 0; opacity:0.7">${cp.from} → ${cp.to}: <b>$${(cp.amount||0).toFixed(2)}</b></div>
+                        `).join('')}
+                    </div>` : '';
+
+                // Social expenses detail
+                const expEntries = Object.values(s.socialExpenses || {});
+                const expHtml = expEntries.length > 0 ? `
+                    <div style="margin-top:0.6rem; padding-top:0.5rem; border-top:1px solid var(--border)">
+                        <div style="font-size:0.65rem; font-weight:800; opacity:0.5; margin-bottom:0.3rem">🍕 EXPENSES</div>
+                        ${expEntries.map(e => `
+                            <div style="font-size:0.7rem; padding:2px 0; opacity:0.7">${e.payer || '?'} paid <b>$${(e.amount||0).toFixed(2)}</b> for ${e.name || '?'}</div>
+                        `).join('')}
+                    </div>` : '';
+
                 const item = document.createElement('div');
-                item.className = 'log-entry';
-                item.style.padding = '0.8rem';
                 item.style.borderBottom = '1px solid var(--border)';
-                item.style.display = 'flex';
-                item.style.justifyContent = 'space-between';
-                item.style.alignItems = 'center';
                 item.innerHTML = `
-                    <div style="display:flex; flex-direction:column">
-                        <b style="font-size:0.8rem">Session - ${date}</b>
-                        <span style="font-size:0.6rem; opacity:0.5">Finalized by: ${s.finalizedBy || 'Unknown'}</span>
+                    <div style="padding:0.8rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer"
+                         onclick="document.getElementById('sdet-${id}').style.display = document.getElementById('sdet-${id}').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display:flex; flex-direction:column">
+                            <b style="font-size:0.8rem">🃏 ${date}</b>
+                            <span style="font-size:0.6rem; opacity:0.5">${playerCount} players • ${s.finalizedBy || 'Unknown'}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem">
+                            <b style="color:var(--primary); font-size:0.85rem">$${totalPot.toFixed(0)}</b>
+                            <span style="opacity:0.3; font-size:0.7rem">▼</span>
+                        </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:0.8rem">
-                        <b style="color:var(--primary); font-size:0.8rem">$${totalPot.toFixed(0)}</b>
-                        ${canRestore ? `<button class="quick-btn" style="background:var(--primary); color:white; border:none; padding:4px 8px; font-size:0.6rem" onclick="restoreSession('${id}')">♻️ Restore</button>` : ''}
+                    <div id="sdet-${id}" style="display:none; padding:0 0.8rem 0.8rem; border-left:3px solid var(--primary); margin-left:0.5rem">
+                        ${playerResults.map(p => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0.5rem; font-size:0.75rem; background:rgba(255,255,255,0.02); border-radius:6px; margin-bottom:2px">
+                                <div>
+                                    <b>${p.name}</b>
+                                    <span style="opacity:0.4; margin-left:0.3rem">in: $${p.buyin} → out: $${p.balance}</span>
+                                </div>
+                                <b style="color:${p.net >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                    ${p.net >= 0 ? '+' : ''}$${p.net.toFixed(2)}
+                                </b>
+                            </div>
+                        `).join('')}
+                        ${cashHtml}
+                        ${expHtml}
+                        <div style="margin-top:0.5rem; display:flex; gap:0.3rem">
+                            ${canRestore ? `<button class="quick-btn" style="background:var(--primary); color:white; border:none; padding:4px 8px; font-size:0.6rem" onclick="event.stopPropagation(); restoreSession('${id}')">♻️ Restore</button>` : ''}
+                        </div>
                     </div>
                 `;
                 history.appendChild(item);
@@ -2069,7 +2122,11 @@
                 const type = tx.type || 'Entertainment';
                 const totalCost = tx.totalCost || 0;
                 const paidBy = tx.paidBy;
+                const isCredit = tx.direction === 'credit';
 
+                // Both credit and debit work the same way economically:
+                // The paidBy person provided value (either bought or brought)
+                // Everyone else owes their weighted share
                 let sumW = 0;
                 CREW.forEach(c => { sumW += getCaveWeight(type, c.name); });
                 if (sumW === 0) return;
@@ -2136,6 +2193,18 @@
             renderCaveTransactions();
         }
 
+        function getCavePerPersonShares(tx) {
+            const type = tx.type || 'Entertainment';
+            const totalCost = tx.totalCost || 0;
+            let sumW = 0;
+            CREW.forEach(c => { sumW += getCaveWeight(type, c.name); });
+            if (sumW === 0) return [];
+            return CREW.map(c => {
+                const w = getCaveWeight(type, c.name);
+                return { name: c.name, weight: w, share: totalCost * w / sumW };
+            }).filter(p => p.share > 0.001).sort((a,b) => b.share - a.share);
+        }
+
         function renderCaveTransactions() {
             const list = document.getElementById('cave-transactions');
             if (!list) return;
@@ -2151,16 +2220,39 @@
             entries.forEach(([id, tx]) => {
                 const dateStr = tx.date || new Date(tx.timestamp).toLocaleDateString('en-AU', { day:'numeric', month:'short' });
                 const typeIcon = tx.type === 'Tobacco' ? '🚬' : '🎭';
+                const isCredit = tx.direction === 'credit';
+                const verb = isCredit ? 'brought' : 'paid';
+                const borderColor = isCredit ? 'var(--success)' : 'var(--primary)';
+                const dirLabel = isCredit ? '<span style="color:var(--success); font-size:0.6rem; font-weight:800">CREDIT</span>' : '';
+
+                // Per-person breakdown
+                const shares = getCavePerPersonShares(tx);
+                const breakdownId = `cave-bd-${id}`;
+
                 const div = document.createElement('div');
-                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.5rem; background:rgba(255,255,255,0.03); padding:0.6rem; border-radius:8px; border-left:3px solid var(--primary)';
+                div.style.cssText = `font-size:0.75rem; margin-bottom:0.5rem; background:rgba(255,255,255,0.03); border-radius:8px; border-left:3px solid ${borderColor}`;
                 div.innerHTML = `
-                    <div>
-                        <span style="font-weight:800; color:var(--primary)">${typeIcon} ${tx.type}</span>
-                        <span style="opacity:0.4; margin:0 0.3rem">•</span>
-                        <span style="opacity:0.5">${dateStr}</span>
-                        <div style="margin-top:2px"><b>${tx.paidBy}</b> paid <b style="color:var(--sunset)">$${(tx.totalCost || 0).toFixed(2)}</b></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem; cursor:pointer"
+                         onclick="document.getElementById('${breakdownId}').style.display = document.getElementById('${breakdownId}').style.display === 'none' ? 'block' : 'none'">
+                        <div>
+                            <span style="font-weight:800; color:var(--primary)">${typeIcon} ${tx.type}</span>
+                            ${dirLabel}
+                            <span style="opacity:0.4; margin:0 0.3rem">•</span>
+                            <span style="opacity:0.5">${dateStr}</span>
+                            <div style="margin-top:2px"><b>${tx.paidBy}</b> ${verb} <b style="color:var(--sunset)">$${(tx.totalCost || 0).toFixed(2)}</b>
+                                <span style="opacity:0.3; font-size:0.6rem; margin-left:0.3rem">tap for split ▼</span>
+                            </div>
+                        </div>
+                        <button class="quick-btn" style="color:var(--danger)" onclick="event.stopPropagation(); removeCaveTransaction('${id}')">✕</button>
                     </div>
-                    <button class="quick-btn" style="color:var(--danger)" onclick="removeCaveTransaction('${id}')">✕</button>
+                    <div id="${breakdownId}" style="display:none; padding:0 0.6rem 0.5rem; border-top:1px solid var(--border)">
+                        ${shares.map(p => `
+                            <div style="display:flex; justify-content:space-between; padding:2px 0.3rem; font-size:0.65rem; opacity:0.7">
+                                <span>${p.name} <span style="opacity:0.4">(×${p.weight})</span></span>
+                                <span style="font-weight:700">$${p.share.toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
                 `;
                 list.appendChild(div);
             });
@@ -2171,22 +2263,25 @@
             const cost = parseFloat(document.getElementById('cave-cost').value);
             const paidBy = document.getElementById('cave-paidby').value;
             const date = document.getElementById('cave-date').value;
+            const direction = document.getElementById('cave-direction').value;
 
             if (!type) return alert('Select a type!');
             if (isNaN(cost) || cost <= 0) return alert('Enter a valid amount!');
-            if (!paidBy) return alert('Select who paid!');
+            if (!paidBy) return alert('Select who paid/brought!');
 
             db.ref('boat-dashboard/cave/transactions').push({
                 type,
                 totalCost: cost,
                 paidBy,
+                direction: direction || 'debit',
                 date: date || new Date().toISOString().split('T')[0],
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
 
-            auditLog('cave_tx_added', { type, totalCost: cost, paidBy, date: date || new Date().toISOString().split('T')[0] });
+            const verb = direction === 'credit' ? 'brought' : 'paid';
+            auditLog('cave_tx_added', { type, totalCost: cost, paidBy, direction, date: date || new Date().toISOString().split('T')[0] });
             document.getElementById('cave-cost').value = '';
-            showToast(`🎰 ${paidBy} paid $${cost.toFixed(2)} for ${type}`);
+            showToast(`🎰 ${paidBy} ${verb} $${cost.toFixed(2)} for ${type}`);
         }
 
         async function removeCaveTransaction(id) {
@@ -2341,6 +2436,22 @@
         db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
 
         async function init() {
+            // Nuclear cache escape: if user is stuck on old version, nuke everything once
+            const storedVer = localStorage.getItem('poker-knights-session-ver');
+            if (storedVer && storedVer !== APP_VERSION && !sessionStorage.getItem('cache-nuked')) {
+                sessionStorage.setItem('cache-nuked', '1');
+                console.log(`[Knights] Version mismatch (stored=${storedVer}, app=${APP_VERSION}). Nuking caches...`);
+                try {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.map(r => r.unregister()));
+                } catch(e) { console.warn('[Knights] Cache nuke failed:', e); }
+                localStorage.setItem('poker-knights-session-ver', APP_VERSION);
+                window.location.reload();
+                return;
+            }
+
             // Update display version
             const verEl = document.getElementById('display-version');
             if (verEl) verEl.innerText = `REV ${APP_VERSION}`;
@@ -2359,8 +2470,7 @@
                     localStorage.setItem('boat-uid', user.uid);
                     localStorage.setItem('poker-knights-session-ver', APP_VERSION);
                     
-                    // Update remote version to stop update loop
-                    db.ref('boat-dashboard/version').set(APP_VERSION);
+                    // Version is now managed server-side only (not by clients)
 
                     // Re-render views automatically on login
                     renderCrew();
@@ -2377,12 +2487,14 @@
             });
         }
         init();
-        // Listen for version
+        // Listen for version (only show toast if remote is NEWER)
         db.ref('boat-dashboard/version').on('value', s => {
             const remoteVersion = s.val();
-            if (remoteVersion && remoteVersion !== APP_VERSION) {
+            if (remoteVersion && parseFloat(remoteVersion) > parseFloat(APP_VERSION)) {
                 document.getElementById('update-rev-text').innerText = `Version ${remoteVersion} is out.`;
                 document.getElementById('update-toast').classList.add('show');
+            } else {
+                document.getElementById('update-toast').classList.remove('show');
             }
         });
 
@@ -2426,7 +2538,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=11.01')
+                navigator.serviceWorker.register('/sw-v10.js?v=12.02')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
