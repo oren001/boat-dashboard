@@ -1873,34 +1873,42 @@
 
             function addTx(f, t, a) {
                 const cr = CREW.find(c => c.name === t);
+                const cf = CREW.find(c => c.name === f);
                 const beem = getBeemHandle(cr);
                 const msg = `${f} pays $${a.toFixed(2)} to ${t}`;
                 const safeF = f.replace(/'/g, "\\'");
                 const safeT = t.replace(/'/g, "\\'");
 
-                // Key for settlement tracking
                 const txKey = `${f}_${t}_${a.toFixed(2)}`.replace(/\./g, '_');
                 const isPaid = settledData[txKey];
 
                 const div = document.createElement('div');
+                div.style.cssText = `background:${isPaid ? 'rgba(0,210,106,0.06)' : 'rgba(255,255,255,0.03)'}; border-radius:16px; border:1px solid ${isPaid ? 'rgba(0,210,106,0.2)' : 'var(--border)'}; padding:1rem; margin-bottom:0.6rem; opacity:${isPaid ? 0.5 : 1}; transition:all 0.3s ease`;
                 div.innerHTML = `
-                    <div class="poker-player" style="font-size:0.75rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; opacity: ${isPaid ? 0.4 : 1}; padding:0.6rem 0.8rem;">
-                        <div style="display:flex; align-items:center; gap:0.5rem">
-                            <input type="checkbox" ${isPaid ? 'checked' : ''} onclick="toggleSettlement('${safeF}','${safeT}',${a.toFixed(2)})" style="cursor:pointer; width:18px; height:18px;">
-                            <span style="${isPaid ? 'text-decoration:line-through' : ''}"><b>${f}</b> <span style="color:var(--primary)">→</span> <b>${t}</b></span>
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between">
+                        <div>
+                            <div style="font-size:0.6rem; font-weight:700; opacity:0.4; text-transform:uppercase; letter-spacing:0.05em">${isPaid ? '✅ Paid' : 'Let\'s pay'}</div>
+                            <div style="font-size:1.4rem; font-weight:900; color:var(--primary); margin:0.15rem 0; ${isPaid ? 'text-decoration:line-through; opacity:0.6' : ''}">$${a.toFixed(2)}</div>
+                            <div style="font-size:0.85rem; font-weight:600; ${isPaid ? 'text-decoration:line-through' : ''}">
+                                <span style="opacity:0.5">from</span> <b>${f}</b>
+                                <span style="opacity:0.5">to</span> <b style="color:var(--accent)">${t}</b>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:0.3rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-                            <b style="color:var(--sunset); font-size:0.85rem;">$${a.toFixed(2)}</b>
-                            ${!isPaid ? `
-                                <button class="quick-btn" style="background:var(--success); color:white; border:none; padding:5px 10px; font-size:0.65rem;" onclick="quickCashPayment('${safeF}','${safeT}',${a.toFixed(2)})" title="Record cash payment">💵 Cash</button>
-                                ${beem
-                            ? `<button class="quick-btn" style="background:#00d1b2; color:white; border:none; padding:5px 10px; font-size:0.65rem;" onclick="window.open('https://www.beem.com.au/app/pay?handle=${encodeURIComponent(beem.replace('@', ''))}&amount=${a.toFixed(2)}&description=Poker', '_blank')">Beem</button>`
-                            : ''
-                        }
-                                <button class="quick-btn" style="padding:5px 8px; font-size:0.65rem;" onclick="copyToClipboard('${msg.replace(/'/g, "\\'")}')" title="Copy">📋</button>
-                            ` : '<span style="font-weight:800; color:var(--success); font-size:0.65rem">✅ Paid</span>'}
+                        <input type="checkbox" ${isPaid ? 'checked' : ''} onclick="toggleSettlement('${safeF}','${safeT}',${a.toFixed(2)})"
+                            style="cursor:pointer; width:22px; height:22px; margin-top:0.3rem; accent-color:var(--success)">
+                    </div>
+                    ${!isPaid ? `
+                        <div style="display:flex; gap:0.4rem; margin-top:0.7rem">
+                            <button class="join-btn" style="flex:1; padding:0.6rem; font-size:0.75rem; background:var(--success)"
+                                onclick="quickCashPayment('${safeF}','${safeT}',${a.toFixed(2)})">💵 Cash</button>
+                            ${beem ? `
+                                <button class="join-btn" style="flex:1; padding:0.6rem; font-size:0.75rem; background:#00d1b2"
+                                    onclick="window.open('https://www.beem.com.au/app/pay?handle=${encodeURIComponent(beem.replace('@', ''))}&amount=${a.toFixed(2)}&description=Poker', '_blank')">Beem It →</button>
+                            ` : ''}
+                            <button class="quick-btn" style="padding:0.6rem 0.8rem; font-size:0.75rem" onclick="copyToClipboard('${msg.replace(/'/g, "\\'")}')">📋</button>
                         </div>
-                    </div>`;
+                    ` : ''}
+                `;
                 list.appendChild(div);
             }
             function updateNet(n, d) {
