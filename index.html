@@ -943,7 +943,7 @@
             alert("Currently Online:\n• " + names.join('\n• '));
         }
 
-        const APP_VERSION = "14.02";
+        const APP_VERSION = "14.03";
         const target = new Date('2026-03-06T10:30:00+11:00');
         let lastCarsSnap = null;
         let pendingResolve = null;
@@ -1632,13 +1632,15 @@
             auditLog('expense_added', { payer, amount, name: 'Food/Drinks' });
         }
 
+        let archivedSessions = {};
+
         function renderReportFeed() {
             const feed = document.getElementById('report-feed');
             if (!feed) return;
 
             const entries = [];
 
-            // Poker log entries
+            // Current poker log entries
             Object.values(currentPokerData?.log || {}).forEach(l => {
                 entries.push({ ts: l.ts, html: `🃏 ${l.msg}`, type: 'poker' });
             });
@@ -1649,7 +1651,6 @@
                     ts: p.timestamp || 0,
                     html: `💵 <b>${p.from}</b> paid <b style="color:var(--success)">$${(p.amount||0).toFixed(2)}</b> cash to <b>${p.to}</b>`,
                     type: 'cash',
-                    id,
                     undoFn: `removeCashPayment('${id}')`
                 });
             });
@@ -1661,7 +1662,6 @@
                     ts: tx.timestamp || 0,
                     html: `${icon} <b>${tx.paidBy}</b> paid <b style="color:var(--primary)">$${(tx.totalCost||0).toFixed(2)}</b> for ${tx.type}`,
                     type: 'cave',
-                    id,
                     undoFn: `removeCaveTransaction('${id}')`
                 });
             });
@@ -1672,8 +1672,37 @@
                     ts: e.timestamp || 0,
                     html: `🍕 <b>${e.payer||'?'}</b> paid <b style="color:var(--sunset)">$${(e.amount||0).toFixed(2)}</b> for ${e.name||'food'}`,
                     type: 'social',
-                    id,
                     undoFn: `removeSocialExpense('${id}')`
+                });
+            });
+
+            // Archived sessions — show player results as summary entries
+            Object.values(archivedSessions || {}).forEach(s => {
+                const ts = parseInt(s.timestamp) || 0;
+                const pot = Object.values(s.players || {}).reduce((sum, p) => sum + (p.buyin || 0), 0);
+                const playerCount = Object.keys(s.players || {}).length;
+
+                // Session summary entry
+                entries.push({
+                    ts,
+                    html: `🏆 <b>Game finished</b> — ${playerCount} players, <b style="color:var(--primary)">$${pot}</b> pot <span style="opacity:0.4">(${s.finalizedBy || '?'})</span>`,
+                    type: 'session-header'
+                });
+
+                // Individual player results
+                Object.entries(s.players || {}).forEach(([name, p]) => {
+                    const buyin = p.buyin || 0;
+                    const bal = p.balance || 0;
+                    if (buyin === 0 && bal === 0) return;
+                    const hasNeg = Object.values(s.players).some(x => (x.balance || 0) < 0);
+                    const net = hasNeg ? bal : bal - buyin;
+                    const color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+                    const sign = net >= 0 ? '+' : '';
+                    entries.push({
+                        ts: ts - 1, // slightly after session header
+                        html: `<span style="opacity:0.5; padding-left:1rem">┗</span> <b>${name}</b> in:$${buyin} out:$${bal} → <b style="color:${color}">${sign}$${net}</b>`,
+                        type: 'session-detail'
+                    });
                 });
             });
 
@@ -1684,15 +1713,31 @@
                 return;
             }
 
+            // Group by date
             feed.innerHTML = '';
-            entries.slice(0, 20).forEach(e => {
+            let lastDate = '';
+            entries.forEach(e => {
+                const d = e.ts ? new Date(e.ts) : null;
+                const dateKey = d ? d.toLocaleDateString('en-AU', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+
+                if (dateKey && dateKey !== lastDate) {
+                    lastDate = dateKey;
+                    const header = document.createElement('div');
+                    header.style.cssText = 'font-size:0.6rem; font-weight:900; text-transform:uppercase; letter-spacing:0.08em; color:var(--primary); opacity:0.6; padding:0.6rem 0 0.3rem; margin-top:0.3rem; border-top:1px solid var(--border)';
+                    header.textContent = dateKey;
+                    feed.appendChild(header);
+                }
+
                 const ago = e.ts ? Math.floor((Date.now() - e.ts) / 60000) : 0;
-                const agoText = ago < 1 ? 'now' : ago < 60 ? `${ago}m` : `${Math.floor(ago/60)}h`;
+                const agoText = ago < 60 ? (ago < 1 ? 'now' : `${ago}m`) : ago < 1440 ? `${Math.floor(ago/60)}h` : '';
+
                 const div = document.createElement('div');
-                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border); font-size:0.75rem';
+                const isHeader = e.type === 'session-header';
+                const isDetail = e.type === 'session-detail';
+                div.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:${isDetail ? '0.2rem' : '0.4rem'} 0; ${isDetail ? '' : 'border-bottom:1px solid var(--border);'} font-size:${isDetail ? '0.65rem' : '0.73rem'}; ${isHeader ? 'background:rgba(240,180,41,0.05); padding:0.5rem 0.4rem; border-radius:8px; margin:0.2rem 0;' : ''}`;
                 div.innerHTML = `
-                    <div style="flex:1">${e.html} <span style="opacity:0.3; font-size:0.6rem; margin-left:0.3rem">${agoText}</span></div>
-                    ${e.undoFn ? `<button class="quick-btn" style="color:var(--danger); font-size:0.6rem; padding:2px 6px" onclick="${e.undoFn}">undo</button>` : ''}
+                    <div style="flex:1">${e.html} ${agoText ? `<span style="opacity:0.25; font-size:0.55rem; margin-left:0.2rem">${agoText}</span>` : ''}</div>
+                    ${e.undoFn ? `<button class="quick-btn" style="color:var(--danger); font-size:0.55rem; padding:2px 5px" onclick="${e.undoFn}">undo</button>` : ''}
                 `;
                 feed.appendChild(div);
             });
@@ -2560,7 +2605,11 @@
             });
         }
 
-        db.ref('boat-dashboard/poker/sessions').on('value', s => renderInsights(s.val() || {}));
+        db.ref('boat-dashboard/poker/sessions').on('value', s => {
+            archivedSessions = s.val() || {};
+            renderInsights(archivedSessions);
+            renderReportFeed();
+        });
 
         async function init() {
             // Nuclear cache escape: if user is stuck on old version, nuke everything once
@@ -2667,7 +2716,7 @@
                     }
                 }
             }).then(() => {
-                navigator.serviceWorker.register('/sw-v10.js?v=14.02')
+                navigator.serviceWorker.register('/sw-v10.js?v=14.03')
                     .then(reg => console.log('Service Worker v10 registered!', reg))
                     .catch(err => console.error('Service Worker Registration Failed!', err));
             });
