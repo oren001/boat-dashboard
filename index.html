@@ -771,7 +771,17 @@
 
                 <!-- Settlement Results -->
                 <div class="card" style="margin-top:0.6rem" id="poker-settlement">
-                    <div class="card-title">💰 Who Owes Who</div>
+                    <div style="display:flex; align-items:center; gap:0.4rem">
+                        <div class="card-title" style="margin-bottom:0">💰 Who Owes Who</div>
+                        <span onclick="document.getElementById('settle-tooltip').style.display = document.getElementById('settle-tooltip').style.display === 'none' ? 'block' : 'none'"
+                            style="cursor:pointer; width:18px; height:18px; border-radius:50%; background:rgba(240,180,41,0.15); display:inline-flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--primary); font-weight:800; flex-shrink:0">?</span>
+                    </div>
+                    <div id="settle-tooltip" style="display:none; font-size:0.65rem; line-height:1.5; opacity:0.6; padding:0.6rem 0.8rem; margin:0.5rem 0; background:rgba(240,180,41,0.06); border-radius:10px; border:1px solid rgba(240,180,41,0.1)">
+                        <b style="color:var(--primary)">How is this calculated?</b><br>
+                        Each player's <b>net</b> = chips cashed out − chips bought in (including carry-over from past sessions).<br>
+                        Negative net = you owe. Positive net = you're owed.<br>
+                        The algorithm matches debtors to creditors to <b>minimize the number of transfers</b> — so you might pay someone you didn't play against directly.
+                    </div>
                     <div id="settlement-results">
                         <div style="text-align:center; padding:1rem; opacity:0.3; font-size:0.8rem">Play a game first!</div>
                     </div>
