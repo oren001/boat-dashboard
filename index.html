@@ -769,8 +769,13 @@
                     </div>
                 </div>
 
-                <!-- Settlement Results -->
-                <div class="card" style="margin-top:0.6rem" id="poker-settlement">
+                <!-- Manager Actions -->
+                <div id="manager-actions" style="margin-top:0.5rem; display:flex; gap:0.5rem"></div>
+            </div>
+
+            <!-- ── SETTLE ── -->
+            <div class="panel" id="panel-settle">
+                <div class="card" id="poker-settlement">
                     <div style="display:flex; align-items:center; gap:0.4rem">
                         <div class="card-title" style="margin-bottom:0">💰 Who Owes Who</div>
                         <span onclick="document.getElementById('settle-tooltip').style.display = document.getElementById('settle-tooltip').style.display === 'none' ? 'block' : 'none'"
@@ -786,9 +791,6 @@
                         <div style="text-align:center; padding:1rem; opacity:0.3; font-size:0.8rem">Play a game first!</div>
                     </div>
                 </div>
-
-                <!-- Manager Actions -->
-                <div id="manager-actions" style="margin-top:0.5rem; display:flex; gap:0.5rem"></div>
             </div>
 
             <!-- ── LOGISTICS & INFO REMOVED ── -->
@@ -860,6 +862,13 @@
                     <span id="poker-live-tag" style="display:none" class="live-badge">Live</span>
                 </div>
                 <span class="nav-label">Poker</span>
+            </button>
+            <button class="nav-btn" id="btn-settle" onclick="switchTab('settle', this)">
+                <div style="position:relative">
+                    <span class="nav-icon">💰</span>
+                    <span id="settle-badge" style="display:none; position:absolute; top:-4px; right:-8px; background:var(--danger); color:white; font-size:0.5rem; font-weight:900; min-width:16px; height:16px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; padding:0 3px">0</span>
+                </div>
+                <span class="nav-label">Settle</span>
             </button>
             <button class="nav-btn" id="btn-insights" onclick="switchTab('insights', this)">
                 <span class="nav-icon">📈</span>
@@ -1762,6 +1771,7 @@
             const list = document.getElementById('settlement-results');
             if (!data) {
                 list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is not balanced or no scores entered.</div>';
+                updateSettleBadge();
                 return;
             }
 
@@ -1820,7 +1830,8 @@
             nets = nets.filter(n => Math.abs(n.net) > 0.01);
 
             if (!nets.length) {
-                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">Table is balanced.</div>';
+                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.4; font-size:0.8rem">All settled up! 🎉</div>';
+                updateSettleBadge();
                 return;
             }
             list.innerHTML = '';
@@ -1934,6 +1945,26 @@
             function removeNet(n) {
                 const i = nets.findIndex(x => x.name === n);
                 if (i !== -1) nets.splice(i, 1);
+            }
+
+            // Update settle badge counter
+            updateSettleBadge();
+        }
+
+        function updateSettleBadge() {
+            const badge = document.getElementById('settle-badge');
+            if (!badge) return;
+            const cards = document.querySelectorAll('#settlement-results > div');
+            let unsettled = 0;
+            cards.forEach(card => {
+                const cb = card.querySelector('input[type="checkbox"]');
+                if (cb && !cb.checked) unsettled++;
+            });
+            if (unsettled > 0) {
+                badge.textContent = unsettled;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
             }
         }
 
